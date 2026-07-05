@@ -1,0 +1,21 @@
+import type { NextRequest } from "next/server";
+import { NextResponse, userAgent } from "next/server";
+
+export function middleware(request: NextRequest) {
+  if (request.nextUrl.pathname !== "/") {
+    return NextResponse.next();
+  }
+
+  const { device } = userAgent(request);
+  const isMobile = device.type === "mobile" || device.type === "tablet";
+
+  if (isMobile) {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
+  }
+
+  return NextResponse.next();
+}
+
+export const config = {
+  matcher: "/",
+};
