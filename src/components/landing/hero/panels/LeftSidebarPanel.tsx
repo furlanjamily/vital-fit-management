@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronDown, Dumbbell, Moon, Sun } from "lucide-react";
+import { NavUserMenu } from "@/components/app/NavUserMenu";
 import {
   classNavItems,
   isNavActive,
   mainNavItems,
-  profileHref,
   utilityNavItems,
 } from "@/config/app-nav.config";
 import { cn } from "@/lib/cn";
@@ -115,25 +115,8 @@ export function LeftSidebarPanel() {
             );
           })}
 
-          <Link
-            href={profileHref}
-            className={cn(
-              "flex items-center gap-3 rounded-2xl px-2 py-2.5 text-xs font-semibold text-white/72 transition hover:bg-white/8",
-              isNavActive(pathname, profileHref) && "bg-white/8 text-white",
-            )}
-          >
-            <span className="size-4 rounded-full border border-white/28 bg-white/20" />
-            Profile
-          </Link>
+          <NavUserMenu />
 
-          <div className="mt-2 flex w-fit items-center gap-1 rounded-full border border-white/18 bg-black/16 p-1">
-            <span className="grid size-7 place-items-center rounded-full bg-white/92 text-[#151712]">
-              <Sun className="size-3.5" />
-            </span>
-            <span className="grid size-7 place-items-center rounded-full text-white/48">
-              <Moon className="size-3.5" />
-            </span>
-          </div>
         </div>
       </div>
     </div>

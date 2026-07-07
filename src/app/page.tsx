@@ -1,5 +1,5 @@
-import { HeroScene } from "@/components/landing/hero/HeroScene";
+import { redirect } from "next/navigation";
 
 export default function Home() {
-  return <HeroScene />;
+  redirect("/dashboard");
 }

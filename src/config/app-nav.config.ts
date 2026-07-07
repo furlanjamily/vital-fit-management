@@ -6,6 +6,7 @@ import {
   LineChart,
   Settings,
   UsersRound,
+  User2Icon,
 } from "lucide-react";
 
 export type AppNavItem = {
@@ -25,7 +26,7 @@ export const mainNavItems: AppNavItem[] = [
   { icon: Grid2X2, label: "Dashboard", href: "/dashboard" },
   { icon: UsersRound, label: "Community", href: "/community", badge: "3" },
   { icon: LineChart, label: "Analytics", href: "/analytics" },
-  { icon: UsersRound, label: "Members", href: "/members" },
+  { icon: UsersRound, label: "Alunos", href: "/members" },
 ];
 
 export const classNavItems: ClassNavItem[] = [
@@ -35,6 +36,7 @@ export const classNavItems: ClassNavItem[] = [
 ];
 
 export const utilityNavItems: AppNavItem[] = [
+  { icon: User2Icon, label: "Usuários", href: "/users" },
   { icon: HelpCircle, label: "Help", href: "/help" },
   { icon: Settings, label: "Setting", href: "/settings" },
 ];

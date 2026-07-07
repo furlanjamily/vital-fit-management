@@ -3,6 +3,14 @@
 :root {
   --background: #070806;
   --foreground: #f7f7f2;
+  --mobile-content-top-gap: 1.5rem;
+  --mobile-nav-bottom-gap: 1.5rem;
+  --mobile-nav-content-gap: 1.5rem;
+  --mobile-nav-bar-height: 4.75rem;
+  --mobile-nav-reserved-height: calc(
+    var(--mobile-nav-content-gap) + var(--mobile-nav-bottom-gap) +
+      var(--mobile-nav-bar-height) + env(safe-area-inset-bottom, 0px)
+  );
 }
 
 @theme inline {

@@ -13,10 +13,14 @@ import { cn } from "@/lib/cn";
 export function MobileBottomNav() {
   const pathname = usePathname();
 
+  if (pathname === "/login") {
+    return null;
+  }
+
   return (
     <nav
       aria-label="Mobile navigation"
-      className="fixed inset-x-0 bottom-6 z-50 box-border block w-full px-[max(1rem,env(safe-area-inset-left),env(safe-area-inset-right))] lg:hidden"
+      className="z-50 box-border block w-full shrink-0 px-[max(1rem,env(safe-area-inset-left),env(safe-area-inset-right))] pb-[max(var(--mobile-nav-bottom-gap),env(safe-area-inset-bottom))] lg:hidden"
     >
       <div className="w-full overflow-hidden rounded-4xl border border-white/10 bg-black/52 shadow-[0_16px_56px_rgba(0,0,0,0.52)] backdrop-blur-2xl">
         <div className="overflow-x-auto overscroll-x-contain [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">

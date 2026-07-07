@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { MobileBottomNav } from "@/components/landing/hero/MobileBottomNav";
 import "./globals.css";
@@ -19,6 +19,12 @@ export const metadata: Metadata = {
     "Template premium de landing page para gestao de academias com dashboard glassmorphism.",
 };
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -28,13 +34,15 @@ export default function RootLayout({
     <html
       lang="pt-BR"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} h-full scroll-smooth antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} h-dvh overflow-hidden scroll-smooth antialiased lg:h-full lg:overflow-auto`}
     >
       <body
         suppressHydrationWarning
-        className="min-h-full overflow-x-hidden bg-[#070806] font-sans text-white"
+        className="flex h-dvh flex-col gap-[var(--mobile-nav-content-gap)] overflow-hidden bg-[#070806] font-sans text-white lg:block lg:h-auto lg:min-h-full lg:gap-0 lg:overflow-x-hidden"
       >
-        <div className="pb-32 lg:pb-0">{children}</div>
+        <div className="min-h-0 flex-1 overflow-hidden lg:h-auto lg:flex-none lg:overflow-visible">
+          {children}
+        </div>
         <MobileBottomNav />
       </body>
     </html>
