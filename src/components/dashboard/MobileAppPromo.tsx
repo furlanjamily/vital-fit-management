@@ -1,3 +1,4 @@
+import { SolidButton } from "@/components/common/form";
 import { GlassPanel } from "@/components/common/glass-panel/glass-panel";
 
 export function MobileAppPromo() {
@@ -14,12 +15,9 @@ export function MobileAppPromo() {
       <p className="mt-2 text-xs leading-relaxed text-white/42">
         Manage your business whenever you want with your thumbs
       </p>
-      <button
-        type="button"
-        className="mt-5 w-full rounded-xl bg-white px-4 py-3 text-sm font-semibold text-[#1a1d19] transition hover:bg-white/92"
-      >
+      <SolidButton fullWidth className="mt-5">
         Download Now
-      </button>
+      </SolidButton>
     </GlassPanel>
   );
 }

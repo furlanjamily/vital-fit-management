@@ -18,7 +18,7 @@ export type MemberRow = {
   created_at: string;
 };
 
-/** Modelo de domínio usado pela UI (ReusableTable, formulário). */
+/** Modelo de domínio usado pela UI (Table, formulário). */
 export type ManagedMember = {
   id: string;
   name: string;

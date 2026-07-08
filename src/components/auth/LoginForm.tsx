@@ -6,9 +6,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import {
+  FormField,
+  GlassButton,
+  GlassInput,
+  IconButton,
+} from "@/components/common/form";
 import { createClient } from "@/lib/supabase/client";
-import { cn } from "@/lib/cn";
-import { GlassButton } from "@/components/common/button/glass-button";
 
 const loginSchema = z.object({
   email: z.email("Informe um e-mail válido."),
@@ -22,9 +26,6 @@ const loginSchema = z.object({
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
-
-const inputClassName =
-  "w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/32 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] transition-colors focus:border-white/30 focus:outline-none focus:ring-2 focus:ring-[#8ad5ff]/25";
 
 type LoginFormProps = {
   redirectPath?: string;
@@ -76,60 +77,51 @@ export function LoginForm({ redirectPath = "/dashboard" }: LoginFormProps) {
         </p>
       ) : null}
 
-      <div className="grid gap-2">
-        <label htmlFor="email" className="text-xs font-semibold tracking-wide text-white/55">
-          E-mail
-        </label>
-        <input
+      <FormField label="E-mail" htmlFor="email" error={errors.email?.message}>
+        <GlassInput
           id="email"
           type="email"
+          tone="login"
           autoComplete="email"
           placeholder="admin@vitalfit.com"
-          className={cn(inputClassName, errors.email && "border-orange-400/30")}
+          invalid={Boolean(errors.email)}
           {...register("email")}
         />
-        {errors.email ? (
-          <p className="text-xs text-orange-300/90">{errors.email.message}</p>
-        ) : null}
-      </div>
+      </FormField>
 
-      <div className="grid gap-2">
-        <label htmlFor="password" className="text-xs font-semibold tracking-wide text-white/55">
-          Senha
-        </label>
-        <div className="relative">
-          <input
-            id="password"
-            type={showPassword ? "text" : "password"}
-            autoComplete="current-password"
-            placeholder="••••••••"
-            className={cn(inputClassName, "pr-12", errors.password && "border-orange-400/30")}
-            {...register("password")}
-          />
-          <button
-            type="button"
-            aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
-            className="absolute inset-y-0 right-0 flex items-center px-3 text-white/45 transition-colors hover:text-white/75"
-            onClick={() => setShowPassword((current) => !current)}
-          >
-            {showPassword ? <EyeOff className="size-4 text-gray-600" /> : <Eye className="size-4 text-gray-600" />}
-          </button>
-        </div>
-        {errors.password ? (
-          <p className="text-xs text-orange-300/90">{errors.password.message}</p>
-        ) : null}
-      </div>
+      <FormField label="Senha" htmlFor="password" error={errors.password?.message}>
+        <GlassInput
+          id="password"
+          type={showPassword ? "text" : "password"}
+          tone="login"
+          autoComplete="current-password"
+          placeholder="••••••••"
+          invalid={Boolean(errors.password)}
+          rightSlot={
+            <IconButton
+              shape="round"
+              size="sm"
+              aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+              className="mr-1 size-8 border-0 bg-transparent text-white/45 hover:bg-transparent hover:text-white/75"
+              onClick={() => setShowPassword((current) => !current)}
+            >
+              {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+            </IconButton>
+          }
+          {...register("password")}
+        />
+      </FormField>
 
-      <GlassButton
-        type="submit"
-        variant="default"
-        shape="pill"
-        fullWidth
-        loading={isSubmitting}
-        className="mt-1"
-      >
-        {isSubmitting ? "Entrando..." : "Entrar"}
-      </GlassButton>
+        <GlassButton
+          type="submit"
+          variant="default"
+          shape="pill"
+          fullWidth
+          loading={isSubmitting}
+          className="mt-1"
+        >
+          {isSubmitting ? "Entrando..." : "Entrar"}
+        </GlassButton>
     </form>
   );
 }

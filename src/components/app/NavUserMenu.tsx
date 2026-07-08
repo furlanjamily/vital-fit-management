@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChevronDown, Loader2, LogOut, User } from "lucide-react";
+import { GhostButton } from "@/components/common/form";
 import { GlassPanel } from "@/components/common/glass-panel/glass-panel";
 import { UserAvatar } from "@/components/users/UserAvatar";
 import { profileHref } from "@/config/app-nav.config";
@@ -110,12 +111,11 @@ export function NavUserMenu() {
         elevation="floating"
         className="rounded-full"
       >
-        <button
-          type="button"
+        <GhostButton
           onClick={() => setOpen((current) => !current)}
           aria-expanded={open}
           aria-haspopup="menu"
-          className="flex w-full items-center gap-2.5 rounded-full px-2 py-1.5 text-left transition hover:bg-white/6"
+          className="w-full justify-start gap-2.5 rounded-full px-2 py-1.5 text-left hover:bg-white/6"
         >
           <UserAvatar
             name={sessionUser.displayName}
@@ -138,7 +138,7 @@ export function NavUserMenu() {
               className={cn("size-3.5 transition-transform duration-200", open && "rotate-180")}
             />
           </span>
-        </button>
+        </GhostButton>
       </GlassPanel>
 
       {open && (
@@ -157,11 +157,10 @@ export function NavUserMenu() {
             Meu perfil
           </Link>
 
-          <button
-            type="button"
+          <GhostButton
             onClick={handleLogout}
             disabled={loggingOut}
-            className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-xs font-medium text-red-300/90 transition hover:bg-white/8 hover:text-red-200 disabled:opacity-60"
+            className="w-full justify-start gap-2.5 px-3 py-2.5 text-left text-red-300/90 hover:text-red-200"
           >
             {loggingOut ? (
               <Loader2 className="size-3.5 animate-spin" />
@@ -169,7 +168,7 @@ export function NavUserMenu() {
               <LogOut className="size-3.5" />
             )}
             Sair
-          </button>
+          </GhostButton>
         </GlassPanel>
       )}
     </div>

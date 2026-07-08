@@ -1,4 +1,5 @@
 import { ArrowUpRight } from "lucide-react";
+import { IconButton } from "@/components/common/form";
 import { GlassPanel } from "@/components/common/glass-panel/glass-panel";
 import { cn } from "@/lib/cn";
 
@@ -31,12 +32,12 @@ export function GymCapacity() {
           <p className="text-sm font-semibold text-white">Gym Capacity</p>
           <p className="mt-1 text-[11px] text-white/40">Indoor and outdoor</p>
         </div>
-        <button
-          type="button"
-          className="grid size-8 place-items-center rounded-full border border-white/14 bg-white/7 text-white/70 transition hover:bg-white/13 hover:text-white"
+        <IconButton
+          aria-label="Ver detalhes da capacidade"
+          className="bg-white/7 text-white/70 hover:bg-white/13 hover:text-white"
         >
           <ArrowUpRight className="size-3.5" />
-        </button>
+        </IconButton>
       </div>
 
       <div

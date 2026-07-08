@@ -11,8 +11,17 @@ import {
   UserPlus,
 } from "lucide-react";
 import { createUserAction, updateUserAction } from "@/app/(app)/users/actions";
+import {
+  DangerButton,
+  GhostButton,
+  GlassButton,
+  IconButton,
+  OutlineButton,
+  SolidButton,
+} from "@/components/common/form";
 import { GlassPanel } from "@/components/common/glass-panel/glass-panel";
-import { ReusableTable, type TableColumn } from "@/components/common/table/reusable-table";
+import { ModalOverlay } from "@/components/common/modal/modal-overlay";
+import { Table, type TableColumn } from "@/components/common/table/table";
 import { UserAvatar } from "@/components/users/UserAvatar";
 import { UserForm } from "@/components/users/UserForm";
 import {
@@ -77,14 +86,13 @@ function RowActions({ user, onEdit, onToggleStatus, onRequestRemove }: RowAction
 
   return (
     <div ref={containerRef} className="relative flex justify-end">
-      <button
-        type="button"
-        onClick={() => setOpen((current) => !current)}
+      <IconButton
         aria-label={`Ações para ${user.name}`}
-        className="grid size-8 place-items-center rounded-full border border-white/14 bg-white/7 text-white/70 transition hover:bg-white/13 hover:text-white"
+        className="bg-white/7 text-white/70 hover:bg-white/13 hover:text-white"
+        onClick={() => setOpen((current) => !current)}
       >
         <MoreVertical className="size-3.5" />
-      </button>
+      </IconButton>
 
       {open && (
         <GlassPanel
@@ -94,21 +102,20 @@ function RowActions({ user, onEdit, onToggleStatus, onRequestRemove }: RowAction
           className="absolute right-0 top-10 z-30 w-40 rounded-xl bg-[#221d17]/92 p-1.5"
         >
           {items.map((item) => (
-            <button
+            <GhostButton
               key={item.label}
-              type="button"
+              className={cn(
+                "w-full justify-start gap-2.5 px-3 py-2 text-left",
+                item.className,
+              )}
               onClick={() => {
                 setOpen(false);
                 item.onClick();
               }}
-              className={cn(
-                "flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-xs transition hover:bg-white/8",
-                item.className,
-              )}
             >
               <item.icon className="size-3.5" />
               {item.label}
-            </button>
+            </GhostButton>
           ))}
         </GlassPanel>
       )}
@@ -124,7 +131,7 @@ type ConfirmRemoveModalProps = {
 
 function ConfirmRemoveModal({ user, onConfirm, onCancel }: ConfirmRemoveModalProps) {
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4">
+    <ModalOverlay>
       <GlassPanel
         variant="strong"
         intensity="medium"
@@ -139,24 +146,13 @@ function ConfirmRemoveModal({ user, onConfirm, onCancel }: ConfirmRemoveModalPro
         </p>
 
         <div className="mt-6 flex justify-end gap-3">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="rounded-xl border border-white/14 bg-white/7 px-4 py-2.5 text-xs font-semibold text-white/75 transition hover:bg-white/13 hover:text-white"
-          >
-            Cancelar
-          </button>
-          <button
-            type="button"
-            onClick={onConfirm}
-            className="flex items-center gap-2 rounded-xl bg-red-400/90 px-4 py-2.5 text-xs font-semibold text-[#1a0d0a] transition hover:bg-red-300"
-          >
-            <Trash2 className="size-3.5" />
+          <OutlineButton onClick={onCancel}>Cancelar</OutlineButton>
+          <DangerButton leftIcon={<Trash2 className="size-3.5" />} onClick={onConfirm}>
             Remover
-          </button>
+          </DangerButton>
         </div>
       </GlassPanel>
-    </div>
+    </ModalOverlay>
   );
 }
 
@@ -288,6 +284,7 @@ export function UsersContent({ initialUsers, loadError = null }: UsersContentPro
     {
       key: "name",
       header: "Usuário",
+      width: "42%",
       searchValue: (user) => `${user.name} ${user.email}`,
       render: (user) => (
         <div className="flex items-center gap-2.5">
@@ -307,6 +304,7 @@ export function UsersContent({ initialUsers, loadError = null }: UsersContentPro
     {
       key: "role",
       header: "Permissão",
+      width: "24%",
       searchValue: (user) => roleLabels[user.role],
       render: (user) => (
         <span className="inline-flex rounded-full border border-white/14 bg-white/8 px-2.5 py-1 text-[10px] font-medium text-white/65">
@@ -317,6 +315,7 @@ export function UsersContent({ initialUsers, loadError = null }: UsersContentPro
     {
       key: "status",
       header: "Status",
+      width: "22%",
       searchValue: (user) => (user.status === "active" ? "Ativo" : "Inativo"),
       render: (user) => (
         <span
@@ -340,6 +339,8 @@ export function UsersContent({ initialUsers, loadError = null }: UsersContentPro
     {
       key: "actions",
       header: "",
+      width: "3rem",
+      headerClassName: "w-12",
       className: "w-12",
       render: (user) => (
         <RowActions
@@ -353,7 +354,7 @@ export function UsersContent({ initialUsers, loadError = null }: UsersContentPro
   ];
 
   return (
-    <div className="flex w-full flex-col gap-6 pb-24">
+    <div className="flex h-full min-h-0 w-full flex-col gap-6">
       <div className="mb-2 flex items-center justify-between gap-4">
         <div>
           <h1 className="text-[1.72rem] font-semibold tracking-[-0.055em] text-white">
@@ -364,14 +365,9 @@ export function UsersContent({ initialUsers, loadError = null }: UsersContentPro
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={openCreateForm}
-          className="flex shrink-0 items-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-semibold text-[#1a1d19] transition hover:bg-white/92"
-        >
-          <UserPlus className="size-4" />
+        <GlassButton variant="subtle" size="md" rightIcon={<UserPlus className="size-4" />} onClick={openCreateForm}>
           Novo Usuário
-        </button>
+        </GlassButton>
       </div>
 
       {loadError ? (
@@ -383,7 +379,7 @@ export function UsersContent({ initialUsers, loadError = null }: UsersContentPro
         </p>
       ) : null}
 
-      <ReusableTable
+      <Table
         data={users}
         columns={columns}
         getRowId={(user) => user.id}
@@ -391,10 +387,11 @@ export function UsersContent({ initialUsers, loadError = null }: UsersContentPro
         searchPlaceholder="Buscar por nome, e-mail..."
         emptyMessage="Nenhum usuário encontrado."
         rowClassName={(user) => (user.status === "inactive" ? "opacity-50" : undefined)}
+        className="min-h-0 flex-1"
       />
 
       {formOpen && (
-        <div className="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/40 p-4">
+        <ModalOverlay scrollable>
           <UserForm
             key={editingUser?.id ?? "new"}
             editingUser={editingUser}
@@ -403,7 +400,7 @@ export function UsersContent({ initialUsers, loadError = null }: UsersContentPro
             onSubmit={handleSubmit}
             onCancelEdit={closeForm}
           />
-        </div>
+        </ModalOverlay>
       )}
 
       {removingUser && (

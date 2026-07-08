@@ -6,6 +6,7 @@ import {
   Heart,
   Swords,
 } from "lucide-react";
+import { GhostButton } from "@/components/common/form";
 import { GlassPanel } from "@/components/common/glass-panel/glass-panel";
 import { cn } from "@/lib/cn";
 
@@ -74,18 +75,17 @@ export function FavouritedWorkout() {
 
       <div className="mb-4 flex gap-4 overflow-x-auto border-b border-white/10 pb-3 text-[11px]">
         {tabs.map((tab, index) => (
-          <button
+          <GhostButton
             key={tab}
-            type="button"
             className={cn(
-              "shrink-0 pb-1 transition",
+              "shrink-0 rounded-none pb-1 text-[11px]",
               index === 0
-                ? "border-b border-white font-semibold text-white"
-                : "text-white/40 hover:text-white/70",
+                ? "border-b border-white font-semibold text-white hover:bg-transparent"
+                : "text-white/40 hover:bg-transparent hover:text-white/70",
             )}
           >
             {tab}
-          </button>
+          </GhostButton>
         ))}
       </div>
 

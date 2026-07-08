@@ -1,4 +1,5 @@
 import { Bell, Mail } from "lucide-react";
+import { IconButton } from "@/components/common/form";
 import { BusinessHeader } from "@/components/dashboard/BusinessHeader";
 import { FavouritedWorkout } from "@/components/dashboard/FavouritedWorkout";
 import { GymCapacity } from "@/components/dashboard/GymCapacity";
@@ -25,13 +26,13 @@ export function DashboardContent({ userName }: DashboardContentProps) {
         </div>
         <div className="flex items-center gap-2 text-white/72">
           {[Bell, Mail].map((Icon, index) => (
-            <button
+            <IconButton
               key={index}
-              type="button"
-              className="grid size-9 place-items-center rounded-full border border-white/14 bg-white/7 transition hover:bg-white/13 hover:text-white"
+              aria-label={index === 0 ? "Notificações" : "Mensagens"}
+              className="size-9 bg-white/7 text-white/72 hover:bg-white/13 hover:text-white"
             >
               <Icon className="size-4" />
-            </button>
+            </IconButton>
           ))}
         </div>
       </div>

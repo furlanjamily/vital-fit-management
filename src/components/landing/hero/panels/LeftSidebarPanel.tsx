@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronDown, Dumbbell, Moon, Sun } from "lucide-react";
+import { ChevronDown, Dumbbell } from "lucide-react";
 import { NavUserMenu } from "@/components/app/NavUserMenu";
+import { GhostButton } from "@/components/common/form";
 import {
   classNavItems,
   isNavActive,
@@ -21,7 +22,7 @@ export function LeftSidebarPanel() {
 
   return (
     <div className="h-full w-full overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.07] shadow-2xl shadow-black/40 backdrop-blur-[12px]">
-      <div className="flex h-full flex-col overflow-y-auto p-5 pb-12 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="flex h-full flex-col overflow-y-auto p-5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <Link href="/dashboard" className="flex shrink-0 items-center gap-3 transition hover:opacity-90">
           <span className="grid size-9 shrink-0 place-items-center rounded-full border border-white/20 bg-white/12">
             <Dumbbell className="size-4 text-white" />
@@ -87,13 +88,10 @@ export function LeftSidebarPanel() {
               );
             })}
           </div>
-          <button
-            type="button"
-            className="mt-4 flex items-center gap-3 px-2 text-xs font-semibold text-white/64"
-          >
+          <GhostButton className="mt-4 justify-start gap-3 px-2 text-xs font-semibold text-white/64 hover:bg-transparent hover:text-white/80">
             <ChevronDown className="size-4" />
             Show more
-          </button>
+          </GhostButton>
         </div>
 
         <div className="mt-auto grid shrink-0 gap-2 pt-10">

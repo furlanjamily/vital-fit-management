@@ -1,5 +1,10 @@
 -- VitalFit Management — tabela de alunos (members)
--- Execute no SQL Editor do Supabase antes de usar /members com dados reais.
+--
+-- ONDE EXECUTAR: Supabase Dashboard → SQL Editor → New query → Run
+-- (NÃO execute via cliente autenticado nem o hint de auth.users)
+--
+-- Este script NÃO toca em auth.users. Ignore erros/hints sobre auth.users
+-- ao configurar alunos — gestão de usuários do sistema usa Admin API.
 
 create extension if not exists "pgcrypto";
 
@@ -27,33 +32,29 @@ comment on table public.members is 'Matrículas / alunos da academia';
 comment on column public.members.cpf is 'CPF armazenado apenas com dígitos (11 caracteres)';
 comment on column public.members.status is 'true = ativo, false = inativo';
 
--- Row Level Security — usuários autenticados podem fazer CRUD.
--- Para restringir a admins, substitua (true) por uma checagem de role, ex.:
---   (auth.jwt() -> 'user_metadata' ->> 'role') in ('SUPER_ADMIN', 'ADMIN')
+-- Permissões de tabela (obrigatório para RLS funcionar com role authenticated)
+grant usage on schema public to authenticated, service_role;
+grant all on table public.members to authenticated, service_role;
 
 alter table public.members enable row level security;
 
+-- Idempotente: remove policies antigas antes de recriar
+drop policy if exists "members_select_authenticated" on public.members;
+drop policy if exists "members_insert_authenticated" on public.members;
+drop policy if exists "members_update_authenticated" on public.members;
+drop policy if exists "members_delete_authenticated" on public.members;
+
 create policy "members_select_authenticated"
-  on public.members
-  for select
-  to authenticated
-  using (true);
+  on public.members for select to authenticated using (true);
 
 create policy "members_insert_authenticated"
-  on public.members
-  for insert
-  to authenticated
-  with check (true);
+  on public.members for insert to authenticated with check (true);
 
 create policy "members_update_authenticated"
-  on public.members
-  for update
-  to authenticated
-  using (true)
-  with check (true);
+  on public.members for update to authenticated using (true) with check (true);
 
 create policy "members_delete_authenticated"
-  on public.members
-  for delete
-  to authenticated
-  using (true);
+  on public.members for delete to authenticated using (true);
+
+-- Recarrega o schema cache do PostgREST
+notify pgrst, 'reload schema';

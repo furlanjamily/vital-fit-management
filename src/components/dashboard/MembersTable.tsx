@@ -1,7 +1,8 @@
 "use client";
 
 import { ChevronDown } from "lucide-react";
-import { ReusableTable, type TableColumn } from "@/components/common/table/reusable-table";
+import { OutlineButton } from "@/components/common/form";
+import { Table, type TableColumn } from "@/components/common/table/table";
 
 type Member = {
   name: string;
@@ -116,20 +117,17 @@ const columns: TableColumn<Member>[] = [
 
 export function MembersTable() {
   return (
-    <ReusableTable
+    <Table
       data={members}
       columns={columns}
       getRowId={(member) => member.email}
       title="All Members"
       searchPlaceholder="Search"
       headerActions={
-        <button
-          type="button"
-          className="flex items-center gap-2 rounded-xl border border-white/12 bg-black/20 px-3 py-2.5 text-xs text-white/60 transition hover:bg-white/8"
-        >
+        <OutlineButton className="gap-2 px-3 py-2.5 font-normal text-white/60">
           Sort by: Expired Soon
           <ChevronDown className="size-3.5" />
-        </button>
+        </OutlineButton>
       }
     />
   );

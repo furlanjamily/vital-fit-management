@@ -1,4 +1,5 @@
 import { ArrowUpRight } from "lucide-react";
+import { IconButton } from "@/components/common/form";
 import { GlassPanel } from "@/components/common/glass-panel/glass-panel";
 
 const trainerAvatar =
@@ -23,12 +24,13 @@ function TrainerCard() {
             <p className="text-[11px] text-white/40">Personal Trainer</p>
           </div>
         </div>
-        <button
-          type="button"
-          className="grid size-7 place-items-center rounded-full border border-white/14 bg-white/7 text-white/70 transition hover:bg-white/13 hover:text-white"
+        <IconButton
+          size="sm"
+          aria-label="Ver perfil do personal"
+          className="size-7 bg-white/7 text-white/70 hover:bg-white/13 hover:text-white"
         >
           <ArrowUpRight className="size-3" />
-        </button>
+        </IconButton>
       </div>
 
       <div className="mb-3 flex gap-4">

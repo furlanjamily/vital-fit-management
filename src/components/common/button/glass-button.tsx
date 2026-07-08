@@ -1,7 +1,7 @@
 import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode } from "react";
 import { Loader2 } from "lucide-react";
-import { GlassPanel } from "@/components/common/glass-panel/glass-panel";
 import { cn } from "@/lib/cn";
+import { GlassPanel } from "../glass-panel/glass-panel";
 
 type GlassPanelVariant = "default" | "hero" | "strong" | "subtle";
 type GlassPanelIntensity = "low" | "medium" | "high";
@@ -102,19 +102,28 @@ export function GlassButton({
 
   const content = (
     <>
-      {loading ? (
+      {loading && (
         <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden="true" />
-      ) : (
-        leftIcon
       )}
+
+      {!loading && leftIcon && (
+        <GlassPanel variant="subtle" intensity="low" elevation="floating" className="rounded-full p-2">
+          {leftIcon}
+        </GlassPanel>
+      )}
+
       <span className="truncate">{children}</span>
-      {!loading && rightIcon}
+
+      {!loading && rightIcon && <GlassPanel intensity="low" elevation="floating" className="rounded-full p-2">
+        {rightIcon}
+      </GlassPanel>
+      }
     </>
   );
 
   const innerClassName = cn(
     "inline-flex w-full items-center justify-center font-semibold tracking-[-0.01em] text-white transition",
-    "hover:bg-white/8 active:bg-white/10",
+    "hover:bg-white/8 active:bg-white/10 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60",
     sizeClasses[size],
     radius,
     focusRing,
