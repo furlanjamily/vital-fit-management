@@ -13,8 +13,8 @@ import {
   Sun,
 } from "lucide-react";
 import type { ReactNode } from "react";
-import { useHydrated } from "@/hooks/use-hydrated";
-import { useLocalWeather } from "@/hooks/use-local-weather";
+import { useHydrated } from "@/hooks/useHydrated";
+import { useLocalWeather } from "@/hooks/useLocalWeather";
 
 function renderWeatherIcon(weatherCode: number, isDay: boolean): ReactNode {
   const className = "size-4";

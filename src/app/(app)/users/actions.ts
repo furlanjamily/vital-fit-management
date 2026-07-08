@@ -1,56 +1,48 @@
 "use server";
 
 import type { User } from "@supabase/supabase-js";
-import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  createUserSchema,
+  updateUserSchema,
+  type CreateUserInput,
+  type UpdateUserInput,
+} from "@/components/users/user.schema";
+import {
+  isUserRole,
+  type ManagedUser,
+  type UserStatus,
+} from "@/components/users/users.types";
+import {
+  actionFailure,
+  actionSuccess,
+  toActionError,
+  type ActionResult,
+} from "@/lib/action-result";
 import {
   resolveAvatarUrl,
   resolveDisplayName,
 } from "@/lib/auth/resolve-user-display";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-import type { ManagedUser, UserRole, UserStatus } from "@/components/users/users.types";
 
-const USER_ROLES: UserRole[] = ["SUPER_ADMIN", "ADMIN", "TRAINER", "MEMBER"];
+const LIST_USERS_PER_PAGE = 100;
 
-const UUID_REGEX =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const SESSION_EXPIRED_MESSAGE = "Sessão expirada. Faça login novamente.";
+const ACCESS_DENIED_MESSAGE = "Acesso negado.";
+const MISSING_SERVICE_ROLE_MESSAGE =
+  "Configure SUPABASE_SERVICE_ROLE_KEY no .env para listar usuários.";
 
-type CreateUserInput = {
-  name: string;
-  email: string;
-  password: string;
-  role: UserRole;
-};
+/**
+ * Sem a service role configurada, as mutações não persistem: a action devolve
+ * `persisted: false` e o client informa o modo simulação ao usuário.
+ */
+export type CreateUserData =
+  | { persisted: true; user: ManagedUser }
+  | { persisted: false };
 
-export type CreateUserResult =
-  | { ok: true; user: ManagedUser }
-  | { ok: true; simulated: true }
-  | { ok: false; error: string };
-
-type UpdateUserInput = {
-  id: string;
-  name: string;
-  email: string;
-  role: UserRole;
-  password?: string;
-};
-
-export type UpdateUserResult =
-  | { ok: true; user: ManagedUser; isCurrentUser: boolean }
-  | { ok: true; simulated: true }
-  | { ok: false; error: string };
-
-export type ListUsersResult =
-  | { ok: true; users: ManagedUser[] }
-  | { ok: false; error: string };
-
-function parseRole(metadata: Record<string, unknown>): UserRole {
-  const raw = metadata.role;
-  if (typeof raw === "string") {
-    const upper = raw.toUpperCase() as UserRole;
-    if (USER_ROLES.includes(upper)) return upper;
-  }
-  return "MEMBER";
-}
+export type UpdateUserData =
+  | { persisted: true; user: ManagedUser; isCurrentUser: boolean }
+  | { persisted: false };
 
 function parseStatus(user: User): UserStatus {
   if (typeof user.user_metadata?.status === "string") {
@@ -66,142 +58,127 @@ function parseStatus(user: User): UserStatus {
 
 function mapAuthUserToManaged(user: User): ManagedUser {
   const metadata = user.user_metadata ?? {};
+  const rawRole = typeof metadata.role === "string" ? metadata.role.toUpperCase() : null;
 
   return {
     id: user.id,
     name: resolveDisplayName(metadata, user.email ?? undefined),
     email: user.email ?? "",
-    role: parseRole(metadata),
+    role: isUserRole(rawRole) ? rawRole : "MEMBER",
     status: parseStatus(user),
     avatarUrl: resolveAvatarUrl(metadata),
   };
 }
 
-async function requireSuperAdminSession() {
+type SuperAdminSession =
+  | { authorized: true; currentUser: User }
+  | { authorized: false; error: string };
+
+async function requireSuperAdminSession(): Promise<SuperAdminSession> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
-    return { ok: false as const, error: "Sessão expirada. Faça login novamente." };
-  }
+  if (!user) return { authorized: false, error: SESSION_EXPIRED_MESSAGE };
 
+  // Usuário sem role definida é tratado como SUPER_ADMIN apenas em desenvolvimento,
+  // enquanto os perfis não são persistidos no Supabase.
   const metadataRole = user.user_metadata?.role;
   const role =
-    typeof metadataRole === "string"
-      ? (metadataRole.toUpperCase() as UserRole)
-      : "SUPER_ADMIN";
+    typeof metadataRole === "string" ? metadataRole.toUpperCase() : "SUPER_ADMIN";
 
   if (role !== "SUPER_ADMIN") {
-    return { ok: false as const, error: "Acesso negado." };
+    return { authorized: false, error: ACCESS_DENIED_MESSAGE };
   }
 
-  return { ok: true as const, currentUser: user };
+  return { authorized: true, currentUser: user };
 }
 
-export async function listUsersAction(): Promise<ListUsersResult> {
-  const session = await requireSuperAdminSession();
-  if (!session.ok) return session;
+export async function listUsersAction(): Promise<ActionResult<ManagedUser[]>> {
+  try {
+    const session = await requireSuperAdminSession();
+    if (!session.authorized) return actionFailure(session.error);
 
-  const admin = createAdminClient();
-  if (!admin) {
-    return {
-      ok: false,
-      error: "Configure SUPABASE_SERVICE_ROLE_KEY no .env para listar usuários.",
-    };
+    const admin = createAdminClient();
+    if (!admin) return actionFailure(MISSING_SERVICE_ROLE_MESSAGE);
+
+    const { data, error } = await admin.auth.admin.listUsers({
+      perPage: LIST_USERS_PER_PAGE,
+    });
+
+    if (error) return actionFailure(error.message);
+
+    return actionSuccess((data.users ?? []).map(mapAuthUserToManaged));
+  } catch (error) {
+    return actionFailure(toActionError(error, "Erro ao listar usuários."));
   }
-
-  const { data, error } = await admin.auth.admin.listUsers({ perPage: 100 });
-
-  if (error) {
-    return { ok: false, error: error.message };
-  }
-
-  return {
-    ok: true,
-    users: (data.users ?? []).map(mapAuthUserToManaged),
-  };
 }
 
-export async function updateUserAction(input: UpdateUserInput): Promise<UpdateUserResult> {
-  const session = await requireSuperAdminSession();
-  if (!session.ok) return session;
+export async function createUserAction(
+  input: CreateUserInput,
+): Promise<ActionResult<CreateUserData>> {
+  try {
+    const parsed = createUserSchema.safeParse(input);
+    if (!parsed.success) return actionFailure(parsed.error.issues[0].message);
 
-  if (!UUID_REGEX.test(input.id)) {
-    return {
-      ok: false,
-      error: "ID de usuário inválido. Recarregue a página para sincronizar a lista.",
-    };
+    const session = await requireSuperAdminSession();
+    if (!session.authorized) return actionFailure(session.error);
+
+    const admin = createAdminClient();
+    if (!admin) return actionSuccess<CreateUserData>({ persisted: false });
+
+    const { name, email, password, role } = parsed.data;
+    const { data, error } = await admin.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: { name, role },
+    });
+
+    if (error || !data.user) {
+      return actionFailure(error?.message ?? "Não foi possível criar o usuário.");
+    }
+
+    return actionSuccess<CreateUserData>({
+      persisted: true,
+      user: mapAuthUserToManaged(data.user),
+    });
+  } catch (error) {
+    return actionFailure(toActionError(error, "Erro ao criar usuário."));
   }
-
-  const admin = createAdminClient();
-
-  if (!admin) {
-    return { ok: true, simulated: true };
-  }
-
-  const payload: {
-    email: string;
-    user_metadata: { name: string; role: UserRole };
-    password?: string;
-  } = {
-    email: input.email,
-    user_metadata: {
-      name: input.name,
-      role: input.role,
-    },
-  };
-
-  if (input.password?.trim()) {
-    payload.password = input.password.trim();
-  }
-
-  const { data, error } = await admin.auth.admin.updateUserById(input.id, payload);
-
-  if (error || !data.user) {
-    return {
-      ok: false,
-      error: error?.message ?? "Não foi possível atualizar o usuário.",
-    };
-  }
-
-  return {
-    ok: true,
-    isCurrentUser: data.user.id === session.currentUser.id,
-    user: mapAuthUserToManaged(data.user),
-  };
 }
 
-export async function createUserAction(input: CreateUserInput): Promise<CreateUserResult> {
-  const session = await requireSuperAdminSession();
-  if (!session.ok) return session;
+export async function updateUserAction(
+  input: UpdateUserInput,
+): Promise<ActionResult<UpdateUserData>> {
+  try {
+    const parsed = updateUserSchema.safeParse(input);
+    if (!parsed.success) return actionFailure(parsed.error.issues[0].message);
 
-  const admin = createAdminClient();
+    const session = await requireSuperAdminSession();
+    if (!session.authorized) return actionFailure(session.error);
 
-  if (!admin) {
-    return { ok: true, simulated: true };
+    const admin = createAdminClient();
+    if (!admin) return actionSuccess<UpdateUserData>({ persisted: false });
+
+    const { id, name, email, role, password } = parsed.data;
+    const { data, error } = await admin.auth.admin.updateUserById(id, {
+      email,
+      user_metadata: { name, role },
+      ...(password ? { password } : {}),
+    });
+
+    if (error || !data.user) {
+      return actionFailure(error?.message ?? "Não foi possível atualizar o usuário.");
+    }
+
+    return actionSuccess<UpdateUserData>({
+      persisted: true,
+      user: mapAuthUserToManaged(data.user),
+      isCurrentUser: data.user.id === session.currentUser.id,
+    });
+  } catch (error) {
+    return actionFailure(toActionError(error, "Erro ao atualizar usuário."));
   }
-
-  const { data, error } = await admin.auth.admin.createUser({
-    email: input.email,
-    password: input.password,
-    email_confirm: true,
-    user_metadata: {
-      name: input.name,
-      role: input.role,
-    },
-  });
-
-  if (error || !data.user) {
-    return {
-      ok: false,
-      error: error?.message ?? "Não foi possível criar o usuário.",
-    };
-  }
-
-  return {
-    ok: true,
-    user: mapAuthUserToManaged(data.user),
-  };
 }

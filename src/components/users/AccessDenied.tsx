@@ -1,6 +1,6 @@
 import { ShieldAlert } from "lucide-react";
 import Link from "next/link";
-import { GlassPanel } from "@/components/common/glass-panel/glass-panel";
+import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
 
 export function AccessDenied() {
   return (

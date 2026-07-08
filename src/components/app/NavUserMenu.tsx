@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChevronDown, Loader2, LogOut, User } from "lucide-react";
 import { GhostButton } from "@/components/common/form";
-import { GlassPanel } from "@/components/common/glass-panel/glass-panel";
+import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
 import { UserAvatar } from "@/components/users/UserAvatar";
 import { profileHref } from "@/config/app-nav.config";
 import {

@@ -2,7 +2,7 @@
 
 import { ChevronDown } from "lucide-react";
 import { OutlineButton } from "@/components/common/form";
-import { Table, type TableColumn } from "@/components/common/table/table";
+import { Table, type TableColumn } from "@/components/common/table/Table";
 
 type Member = {
   name: string;

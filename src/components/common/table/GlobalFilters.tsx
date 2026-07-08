@@ -2,14 +2,14 @@
 
 import { useState } from "react";
 import { ChevronDown, Search, X } from "lucide-react";
-import { DatePicker } from "@/components/common/date-picker/date-picker";
-import { GhostButton } from "@/components/common/button/ghost-button";
-import { GlassInput } from "@/components/common/input/glass-input";
-import { GlassSelect } from "@/components/common/select/glass-select";
+import { GhostButton } from "@/components/common/button/GhostButton";
+import { GlassButton } from "@/components/common/button/GlassButton";
+import { DatePicker } from "@/components/common/date-picker/DatePicker";
+import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
+import { GlassInput } from "@/components/common/input/GlassInput";
+import { GlassSelect } from "@/components/common/select/GlassSelect";
 import type { TableFilterDefinition } from "@/components/common/table/global-filters.types";
 import { cn } from "@/lib/cn";
-import { GlassPanel } from "../glass-panel/glass-panel";
-import { GlassButton } from "../form";
 
 export type GlobalFiltersProps<T> = {
   filters: TableFilterDefinition<T>[];
@@ -20,12 +20,53 @@ export type GlobalFiltersProps<T> = {
   defaultExpanded?: boolean;
 };
 
-function hasActiveFilters(values: Record<string, string>) {
-  return Object.values(values).some((value) => value.trim().length > 0);
-}
-
 function countActiveFilters(values: Record<string, string>) {
   return Object.values(values).filter((value) => value.trim().length > 0).length;
+}
+
+type FilterControlProps<T> = {
+  filter: TableFilterDefinition<T>;
+  value: string;
+  onChange: (key: string, value: string) => void;
+};
+
+function FilterControl<T>({ filter, value, onChange }: FilterControlProps<T>) {
+  if (filter.type === "text") {
+    return (
+      <GlassInput
+        leftIcon={filter.leftIcon ?? Search}
+        inputSize="md"
+        tone="muted"
+        value={value}
+        onChange={(event) => onChange(filter.key, event.target.value)}
+        placeholder={filter.placeholder}
+        wrapperClassName={cn("w-full sm:w-52", filter.wrapperClassName)}
+      />
+    );
+  }
+
+  if (filter.type === "select") {
+    return (
+      <GlassSelect
+        selectSize="md"
+        tone="muted"
+        value={value}
+        onChange={(event) => onChange(filter.key, event.target.value)}
+        placeholder={filter.placeholder}
+        options={filter.options}
+        wrapperClassName={cn("w-full sm:w-44", filter.wrapperClassName)}
+      />
+    );
+  }
+
+  return (
+    <DatePicker
+      value={value}
+      onChange={(nextValue) => onChange(filter.key, nextValue)}
+      placeholder={filter.placeholder}
+      wrapperClassName={cn("w-full sm:w-44", filter.wrapperClassName)}
+    />
+  );
 }
 
 export function GlobalFilters<T>({
@@ -37,8 +78,8 @@ export function GlobalFilters<T>({
   defaultExpanded = false,
 }: GlobalFiltersProps<T>) {
   const [expanded, setExpanded] = useState(defaultExpanded);
-  const canClear = hasActiveFilters(values);
   const activeCount = countActiveFilters(values);
+  const canClear = activeCount > 0;
 
   return (
     <GlassPanel
@@ -84,56 +125,21 @@ export function GlobalFilters<T>({
       {expanded ? (
         <div className="mt-4 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-1 flex-wrap items-center justify-center gap-3">
-            {filters.map((filter) => {
-              const value = values[filter.key] ?? "";
-
-              if (filter.type === "text") {
-                return (
-                  <GlassInput
-                    key={filter.key}
-                    leftIcon={filter.leftIcon ?? Search}
-                    inputSize="md"
-                    tone="muted"
-                    value={value}
-                    onChange={(event) => onChange(filter.key, event.target.value)}
-                    placeholder={filter.placeholder}
-                    wrapperClassName={cn("w-full sm:w-52", filter.wrapperClassName)}
-                  />
-                );
-              }
-
-              if (filter.type === "select") {
-                return (
-                  <GlassSelect
-                    key={filter.key}
-                    selectSize="md"
-                    tone="muted"
-                    value={value}
-                    onChange={(event) => onChange(filter.key, event.target.value)}
-                    placeholder={filter.placeholder}
-                    options={filter.options}
-                    wrapperClassName={cn("w-full sm:w-44", filter.wrapperClassName)}
-                  />
-                );
-              }
-
-              return (
-                <DatePicker
-                  key={filter.key}
-                  value={value}
-                  onChange={(nextValue) => onChange(filter.key, nextValue)}
-                  placeholder={filter.placeholder}
-                  wrapperClassName={cn("w-full sm:w-44", filter.wrapperClassName)}
-                />
-              );
-            })}
+            {filters.map((filter) => (
+              <FilterControl
+                key={filter.key}
+                filter={filter}
+                value={values[filter.key] ?? ""}
+                onChange={onChange}
+              />
+            ))}
           </div>
 
           <GlassButton
             variant="subtle"
             size="sm"
             onClick={onClear}
-            rightIcon={<X className="size-1.5 " />}
+            rightIcon={<X className="size-1.5" />}
             className="shrink-0 gap-1.5 self-end text-xs font-medium lg:self-auto"
           >
             Limpar filtros

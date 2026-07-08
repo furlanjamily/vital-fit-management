@@ -19,7 +19,7 @@ A experiência logada deve parecer uma interface fitness premium “flutuando”
 
 **Rota inicial:** `/` redireciona para `/dashboard` via `redirect()` em `src/app/page.tsx`.
 
-**Autenticação:** rotas do app `(app)/` exigem sessão Supabase. `/login` é pública. Middleware em `src/middleware.ts` + `src/lib/supabase/middleware.ts`.
+**Autenticação:** rotas do app `(app)/` exigem sessão Supabase. `/login` é pública. Proxy em `src/proxy.ts` (Next.js 16) delega para `src/lib/supabase/middleware.ts`.
 
 **Estado atual da cena desktop:** `DesktopAppShell` renderiza três painéis em perspectiva (esquerdo, central, direito). O conteúdo de cada rota aparece no painel central via `CenterPanelShell`.
 
@@ -48,6 +48,7 @@ npm run dev
 npm run lint
 npm run build
 npm run start
+npm run seed:members   # popula tabela public.members (script local)
 ```
 
 ### Variáveis de ambiente (`.env`)
@@ -85,6 +86,7 @@ src/
       community/page.tsx
       analytics/page.tsx
       members/page.tsx            # MembersContent (gestão de alunos)
+      members/actions.ts          # server actions: CRUD alunos (Supabase)
       users/page.tsx              # UsersContent (Super Admin only)
       users/actions.ts            # server actions: list/create/update users
       profile/page.tsx
@@ -103,8 +105,34 @@ src/
       button/
         premium-button.tsx        # legado (landing)
         glass-button.tsx          # botão com GlassPanel (só vidro, sem fill colorido)
+        solid-button.tsx          # CTA sólido (ex.: "Novo Aluno")
+        outline-button.tsx
+        ghost-button.tsx
+        danger-button.tsx
+        icon-button.tsx
+      date-picker/
+        date-picker.tsx           # seletor de data estilo pill (dd / mm / aaaa)
+      form/
+        index.ts                  # barrel: botões + GlassInput + GlassSelect + FormField...
+        form.styles.ts            # tokens compartilhados de inputs/selects
+        form-field.tsx
+        glass-switch.tsx
+        avatar-upload-trigger.tsx
+      input/
+        glass-input.tsx
+      select/
+        glass-select.tsx
+      modal/
+        modal-overlay.tsx
       glass-panel/glass-panel.tsx
-      table/reusable-table.tsx    # tabela genérica com filtro global + GlassPanel
+      table/
+        table.tsx                 # tabela genérica + paginação + filtros
+        global-filters.tsx        # barra colapsável de filtros (acima do GlassPanel)
+        global-filters.types.ts   # TableFilterDefinition (text | select | date)
+        table.types.ts            # TableColumn<T>
+        table-head.tsx
+        table-footer.tsx
+        table-colgroup.tsx
       section-container/
     dashboard/
       DashboardContent.tsx        # layout principal do dashboard
@@ -114,14 +142,15 @@ src/
       RevenueAnalytics.tsx
       TrainerCards.tsx
       FavouritedWorkout.tsx
-      MembersTable.tsx            # usa ReusableTable (dados mock dashboard)
+      MembersTable.tsx            # usa Table (dados mock dashboard)
       MobileAppPromo.tsx
       HeaderDateWeather.tsx         # data + clima (Open-Meteo)
     members/
-      MembersContent.tsx          # gestão de alunos (mock local, pronto p/ API)
+      MembersContent.tsx          # server component — getMembersAction()
+      MembersContentClient.tsx    # client — Table + filtros + modais CRUD
       MemberRegistrationForm.tsx
       members.types.ts
-      member.helpers.ts           # máscaras CPF e data
+      member.helpers.ts           # máscaras CPF/data + parse ISO
     users/
       UsersContent.tsx            # gestão de usuários do sistema
       UserForm.tsx
@@ -159,7 +188,7 @@ src/
       admin.ts                    # service role (server-only)
       middleware.ts               # refresh session + redirect login
       env.ts
-  middleware.ts
+  proxy.ts                        # Next.js 16 proxy (auth + refresh session)
 ```
 
 ### Fluxo de renderização
@@ -184,11 +213,13 @@ Cada rota em `(app)/` exporta o conteúdo que aparece **dentro** do painel centr
 - Redirect pós-login: `/dashboard` (ou `?next=` se válido)
 - Submit usa `GlassButton` (variant glass, shape pill)
 
-### Middleware
+### Proxy e sessão (auth)
 
-- `src/middleware.ts` delega para `updateSession`
+- `src/proxy.ts` exporta `proxy()` e delega para `updateSession`
+- Lógica em `src/lib/supabase/middleware.ts`
 - Rotas públicas: `/login`
-- Demais rotas: redireciona para `/login` se não houver sessão
+- Demais rotas: redireciona para `/login?next=` se não houver sessão
+- Usuário logado em `/login` → redirect para `/dashboard`
 
 ### Metadados do usuário (Supabase Auth)
 
@@ -219,6 +250,18 @@ Requer `SUPABASE_SERVICE_ROLE_KEY` no servidor:
 - `updateUserAction` — `admin.updateUserById`; se editar a si mesmo, client chama `refreshSession()` + `router.refresh()`
 
 **Nunca** usar `signUp` no client para criar usuários admin — troca a sessão ativa. Sempre Admin API via service role.
+
+### Server actions de alunos (`members/actions.ts`)
+
+Usa `createClient()` (server, cookies do usuário logado):
+
+- `getMembersAction` — lista `public.members`
+- `createMemberAction` — insert com validação (CPF, e-mail, data)
+- `updateMemberAction` — update por id
+- `updateMemberStatusAction` — toggle `status` boolean
+- `deleteMemberAction` — remove por id
+
+Mapeamento DB ↔ UI: `MemberRow` → `ManagedMember` via `mapRowToManaged()`. Datas: ISO no banco, `DD/MM/AAAA` na UI (`member.helpers.ts`).
 
 ## Rotas Do App
 
@@ -273,7 +316,7 @@ Arquivo orquestrador: `src/components/dashboard/DashboardContent.tsx`
 | `RevenueAnalytics` | subtle/floating | gráfico barras; tooltip Apr usa `elevation="modal"` |
 | `TrainerCards` | 2× subtle/floating | cards King Zarips |
 | `FavouritedWorkout` | subtle/floating | tags scatter + tabs |
-| `MembersTable` | via ReusableTable | tabela mock do dashboard |
+| `MembersTable` | via Table | tabela mock do dashboard |
 
 ### Regras do dashboard
 
@@ -286,35 +329,137 @@ Arquivo orquestrador: `src/components/dashboard/DashboardContent.tsx`
 
 Padrão visual espelhado em `/members`:
 
-- Header + botão "Novo Usuário" → modal `UserForm`
-- `ReusableTable` com busca global
-- Menu de ações: Editar, Desativar/Reativar, Remover (confirmação modal)
+- Header + botão "Novo Usuário" (`SolidButton`) → modal `UserForm`
+- `Table` com busca textual padrão (`searchPlaceholder`)
+- Menu de ações por linha: Editar, Desativar/Reativar, Remover (confirmação modal)
 - Avatar: `UserAvatar` (foto ou iniciais coloridas estilo Google)
-- Dados reais do Supabase Auth via `listUsersAction`
+- Dados reais do Supabase Auth via `listUsersAction` (`users/actions.ts`)
 
 ## Gestão de Alunos (`/members`)
 
-Mesma arquitetura visual que `/users`:
+Arquitetura **server + client**:
 
-- Header + botão "Novo Aluno" → modal `MemberRegistrationForm`
-- `ReusableTable` — colunas: Aluno, CPF, Origem, Plano, Status
-- Formulário em grid `md:grid-cols-2`:
-  - Avatar (drop/upload + iniciais)
-  - Nome, e-mail, CPF (máscara), data nascimento (máscara DD/MM/AAAA)
-  - Origem: Academia / Gympass / TotalPass
-  - Plano: Mensal Base / Trimestral Premium / Anual Pro
-  - Toggle iOS para status Ativo/Inativo
-- **Persistência:** mock local por enquanto (`setTimeout` simulado) — preparado para server action/API
-- Submit usa `GlassButton`
+- `MembersContent` (RSC) chama `getMembersAction()` e passa dados para `MembersContentClient`
+- `MembersContentClient`: header + `Table` + modais de cadastro/remoção
+- **Persistência real:** Supabase `public.members` via `members/actions.ts` (create, update, delete, toggle status)
+- Script auxiliar: `npm run seed:members`
+
+### Filtros da tabela (`GlobalFilters`)
+
+Configurados em `MembersContentClient` via prop `filters`:
+
+| Filtro | Tipo | Comportamento |
+|---|---|---|
+| Busca | `text` | nome, e-mail, CPF (colunas com `searchValue`) |
+| Status | `select` | match exato em `member.status` |
+| Nascimento | `date` | match em ISO via `parseBirthDateToIso(member.birthDate)` |
+
+### Colunas
+
+Aluno (avatar + nome/e-mail), CPF, Origem, Plano, Status, ações (menu ⋮)
+
+### Formulário (`MemberRegistrationForm`)
+
+Grid `md:grid-cols-2`:
+
+- Avatar (drop/upload + iniciais)
+- Nome, e-mail, CPF (máscara), data nascimento (máscara DD/MM/AAAA)
+- Origem: Academia / Gympass / TotalPass
+- Plano: Mensal Base / Trimestral Premium / Anual Pro
+- Toggle iOS (`GlassSwitch`) para status Ativo/Inativo
+- Submit via `GlassButton`; modais usam `ModalOverlay` + `GlassPanel elevation="modal"`
 
 ## Componentes Compartilhados
 
-### `ReusableTable<T>` (`common/table/reusable-table.tsx`)
+### `Table<T>` (`common/table/table.tsx`)
 
-- Wrapper: `GlassPanel variant="subtle" elevation="floating"`
-- Props: `data`, `columns`, `getRowId`, `title`, `searchPlaceholder`, `headerActions`, `rowClassName`
-- Coluna com `searchValue(row)` participa do filtro global interno
-- Suporta `globalFilter` controlado externamente
+Componente principal de listagem. Estrutura em **dois blocos**:
+
+```txt
+[ GlobalFilters ]     ← acima, fora do GlassPanel da tabela
+[ GlassPanel ]
+    título (opcional)
+    thead fixo + tbody scrollável
+    TableFooter (paginação + itens por página)
+```
+
+**Props principais:** `data`, `columns`, `getRowId`, `title`, `filters`, `filterValues`, `onFilterChange`, `headerActions`, `rowClassName`, `defaultPageSize`, `pageSizeOptions`
+
+**Filtros (`filters?: TableFilterDefinition<T>[]`):**
+
+| Tipo | Uso |
+|---|---|
+| `text` | busca parcial nas colunas com `searchValue` |
+| `select` | match exato via `match(row)` |
+| `date` | match exato em ISO (`YYYY-MM-DD`) via `match(row)` |
+
+Filtros ativos combinam com **AND**. Sem `filters`, usa busca textual padrão (`searchPlaceholder`).
+
+**Exemplo de configuração de filtros:**
+
+```tsx
+const filters: TableFilterDefinition<ManagedMember>[] = [
+  { type: "text", key: "search", placeholder: "Buscar..." },
+  {
+    type: "select",
+    key: "status",
+    placeholder: "Status",
+    options: [{ value: "active", label: "Ativo" }],
+    match: (row) => row.status,
+  },
+  {
+    type: "date",
+    key: "birthDate",
+    match: (row) => parseBirthDateToIso(row.birthDate) ?? "",
+  },
+];
+
+<Table data={rows} columns={columns} filters={filters} ... />
+```
+
+**Coluna (`TableColumn<T>`):** `key`, `header`, `render`, `searchValue?`, `width?`, `className?`
+
+**Subcomponentes:** `TableHead`, `TableFooter`, `TableColGroup`, `GlobalFilters`
+
+### `GlobalFilters<T>` (`common/table/global-filters.tsx`)
+
+Barra de filtros **colapsável** (estado inicial: fechada), renderizada **acima** do `GlassPanel` da tabela.
+
+- Wrapper: `GlassPanel elevation="floating"` (só a barra de filtros, não a tabela)
+- Cabeçalho: "Filtrar por" + badge de filtros ativos + chevron expand/collapse
+- Expandido: `GlassInput` / `GlassSelect` / `DatePicker` + botão "Limpar filtros" (`GlassButton`)
+- Colapsado com filtros ativos: botão compacto "Limpar"
+
+Tipos em `global-filters.types.ts`.
+
+### `DatePicker` (`common/date-picker/date-picker.tsx`)
+
+Seletor de data com aparência de input pill:
+
+- Placeholder: `dd / mm / aaaa`
+- Ícone calendário à direita
+- Valor interno: ISO `YYYY-MM-DD` (input nativo `type="date"`)
+- Estilos via `form.styles.ts` (`tone="muted"` padrão)
+
+### Design system de formulários
+
+Barrel: `common/form/index.ts`
+
+| Componente | Uso |
+|---|---|
+| `GlassInput` | inputs de texto com ícone opcional |
+| `GlassSelect` | select nativo estilizado |
+| `GlassButton` | ação glass (sem fill sólido) |
+| `SolidButton` | CTA principal (ex.: Novo Aluno) |
+| `OutlineButton` | ação secundária com borda |
+| `GhostButton` | ação terciária / menu |
+| `DangerButton` | ações destrutivas |
+| `IconButton` | botão só ícone |
+| `FormField` | label + erro + children |
+| `GlassSwitch` | toggle iOS |
+| `ModalOverlay` | overlay de modal com scroll opcional |
+
+Tokens compartilhados: `form.styles.ts` (`inputToneClasses`, `inputSizeClasses`, etc.)
 
 ### `GlassButton` (`common/button/glass-button.tsx`)
 
@@ -471,7 +616,7 @@ Arquivo: `src/components/landing/hero/data/heroScene.mock.ts`
 
 Usado por: background, painéis laterais legados, componentes hero.
 
-**Dashboard** e **Members** têm mocks próprios nos respectivos componentes. **Users** lê do Supabase Auth.
+**Dashboard** usa mocks locais em `MembersTable`. **Members** lê/escreve em Supabase. **Users** lê do Supabase Auth.
 
 ## Direção Visual Obrigatória
 
@@ -500,6 +645,8 @@ Evitar:
 
 ## Checklist Para Futuras Alterações
 
+- [ ] Tabelas usam `Table` + `GlobalFilters` (não glass manual no container)?
+- [ ] Filtros `select`/`date` têm `match(row)` correto?
 - [ ] Cards internos usam `<GlassPanel>` (não glass manual)?
 - [ ] Modais/dropdowns usam `elevation="floating"` ou `"modal"`?
 - [ ] Iluminação `before:`/`after:` preservada?
@@ -520,14 +667,15 @@ Desktop = cena 3D com painéis glass; mobile = painel central + nav inferior.
 Rota inicial: /dashboard. Login: /login.
 
 Arquitetura:
-- Auth: middleware + LoginForm + user_metadata (name, role)
+- Auth: src/proxy.ts + lib/supabase/middleware.ts + LoginForm + user_metadata (name, role)
 - Shell mobile: MobilePageWrapper | desktop: DesktopAppShell
 - Painel central: CenterPanelShell (scroll interno)
 - Dashboard: src/components/dashboard/* (GlassPanel em todos os cards)
 - Usuários: /users (Super Admin) — Supabase Admin API
-- Alunos: /members — mock local, ReusableTable + MemberRegistrationForm
-- Tabela: src/components/common/table/reusable-table.tsx
-- Botão glass: src/components/common/button/glass-button.tsx
+- Alunos: /members — Supabase public.members + members/actions.ts
+- Tabela: src/components/common/table/table.tsx
+- Filtros: GlobalFilters (colapsável, acima do GlassPanel) + DatePicker
+- Formulários: common/form/index.ts (GlassInput, GlassSelect, botões...)
 - Glass: src/components/common/glass-panel/glass-panel.tsx
 - Nav: src/config/app-nav.config.ts + NavUserMenu (logout)
 - Clima header: use-local-weather.ts + HeaderDateWeather.tsx
@@ -536,6 +684,7 @@ Regras glass:
 - NUNCA backdrop-blur manual nos cards internos
 - Cards: GlassPanel variant subtle + elevation floating
 - Modais: elevation modal
+- GlobalFilters: glass próprio acima da tabela; corpo da tabela em GlassPanel separado
 - NavUserMenu expandido: glass no fluxo (base), não overlay absoluto
 
 Tarefa:

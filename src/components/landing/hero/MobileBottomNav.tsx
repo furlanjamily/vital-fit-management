@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { profileAvatar } from "@/components/landing/hero/data/heroScene.mock";
+import { profileAvatar } from "@/components/landing/hero/data/hero-scene.mock";
 import {
   isNavActive,
   mobileNavItems,

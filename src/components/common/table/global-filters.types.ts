@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import type { GlassSelectOption } from "@/components/common/select/glass-select";
+import type { GlassSelectOption } from "@/components/common/select/GlassSelect";
 
 export type TableTextFilter = {
   type: "text";

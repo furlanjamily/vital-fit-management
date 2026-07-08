@@ -2,8 +2,8 @@
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { GhostButton, IconButton } from "@/components/common/form";
-import { GlassPanel } from "@/components/common/glass-panel/glass-panel";
-import { GlassSelect } from "@/components/common/select/glass-select";
+import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
+import { GlassSelect } from "@/components/common/select/GlassSelect";
 import { cn } from "@/lib/cn";
 
 export type TableFooterProps = {

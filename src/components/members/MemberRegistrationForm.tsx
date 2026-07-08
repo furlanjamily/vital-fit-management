@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  useState,
-  useTransition,
-  type FormEvent,
-} from "react";
+import { useState, useTransition, type FormEvent } from "react";
 import {
   Activity,
   Calendar,
@@ -19,6 +15,7 @@ import {
   createMemberAction,
   updateMemberAction,
 } from "@/app/(app)/members/actions";
+import { InlineAlert } from "@/components/common/feedback/InlineAlert";
 import {
   AvatarUploadTrigger,
   GlassButton,
@@ -27,7 +24,7 @@ import {
   GlassSwitch,
   IconButton,
 } from "@/components/common/form";
-import { GlassPanel } from "@/components/common/glass-panel/glass-panel";
+import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
 import { formatBirthDate, formatCpf } from "@/components/members/member.helpers";
 import {
   originOptions,
@@ -47,6 +44,13 @@ const EMPTY_VALUES: MemberFormValues = {
   avatarUrl: null,
 };
 
+function buildInitialValues(editingMember: ManagedMember | null): MemberFormValues {
+  if (!editingMember) return EMPTY_VALUES;
+
+  const { name, email, cpf, birthDate, origin, plan, status, avatarUrl } = editingMember;
+  return { name, email, cpf, birthDate, origin, plan, status, avatarUrl };
+}
+
 type MemberRegistrationFormProps = {
   editingMember: ManagedMember | null;
   onSuccess: (member: ManagedMember) => void;
@@ -59,18 +63,7 @@ export function MemberRegistrationForm({
   onCancel,
 }: MemberRegistrationFormProps) {
   const [values, setValues] = useState<MemberFormValues>(() =>
-    editingMember
-      ? {
-          name: editingMember.name,
-          email: editingMember.email,
-          cpf: editingMember.cpf,
-          birthDate: editingMember.birthDate,
-          origin: editingMember.origin,
-          plan: editingMember.plan,
-          status: editingMember.status,
-          avatarUrl: editingMember.avatarUrl,
-        }
-      : EMPTY_VALUES,
+    buildInitialValues(editingMember),
   );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -96,12 +89,12 @@ export function MemberRegistrationForm({
         ? await updateMemberAction(editingMember.id, values)
         : await createMemberAction(values);
 
-      if (!result.ok) {
+      if (!result.success) {
         setErrorMessage(result.error);
         return;
       }
 
-      onSuccess(result.member);
+      onSuccess(result.data);
     });
   }
 
@@ -135,14 +128,7 @@ export function MemberRegistrationForm({
       </div>
 
       <form onSubmit={handleSubmit} className="grid gap-5" noValidate>
-        {errorMessage ? (
-          <p
-            role="alert"
-            className="rounded-xl border border-orange-400/20 bg-orange-400/10 px-4 py-3 text-xs text-orange-200/90"
-          >
-            {errorMessage}
-          </p>
-        ) : null}
+        {errorMessage ? <InlineAlert className="text-xs">{errorMessage}</InlineAlert> : null}
 
         <AvatarUploadTrigger
           name={values.name}
@@ -223,20 +209,25 @@ export function MemberRegistrationForm({
         </div>
 
         <div className="flex w-full justify-center">
-        <GlassButton
-          type="submit"
-          variant="default"
-          shape="rounded"
-          loading={isPending}
-          rightIcon={!isPending ? <UserPlus className="size-4" /> : <Loader2 className="size-4 animate-spin" />}
-        >
-          {isPending
-            ? "Salvando..."
-            : isEditing
-              ? "Salvar alterações"
-              : "Cadastrar aluno"}
-        </GlassButton>
-        
+          <GlassButton
+            type="submit"
+            variant="default"
+            shape="rounded"
+            loading={isPending}
+            rightIcon={
+              isPending ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <UserPlus className="size-4" />
+              )
+            }
+          >
+            {isPending
+              ? "Salvando..."
+              : isEditing
+                ? "Salvar alterações"
+                : "Cadastrar aluno"}
+          </GlassButton>
         </div>
       </form>
     </GlassPanel>

@@ -7,7 +7,7 @@ import {
   Swords,
 } from "lucide-react";
 import { GhostButton } from "@/components/common/form";
-import { GlassPanel } from "@/components/common/glass-panel/glass-panel";
+import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
 import { cn } from "@/lib/cn";
 
 const tabs = ["All Workouts", "Martial Arts", "Weighted", "Calisthenic"];

@@ -1,8 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { sceneBackground } from "@/components/landing/hero/data/heroScene.mock";
-import { useHydrated } from "@/hooks/use-hydrated";
+import { sceneBackground } from "@/components/landing/hero/data/hero-scene.mock";
+import { useHydrated } from "@/hooks/useHydrated";
 
 export function HeroBackground() {
   const hydrated = useHydrated();

@@ -1,81 +1,30 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { useLoginForm } from "@/components/auth/useLoginForm";
+import { InlineAlert } from "@/components/common/feedback/InlineAlert";
 import {
   FormField,
   GlassButton,
   GlassInput,
   IconButton,
 } from "@/components/common/form";
-import { createClient } from "@/lib/supabase/client";
 
-const loginSchema = z.object({
-  email: z.email("Informe um e-mail válido."),
-  password: z
-    .string()
-    .min(8, "A senha deve ter no mínimo 8 caracteres.")
-    .regex(/[A-Z]/, "Deve conter pelo menos uma letra maiúscula.")
-    .regex(/[a-z]/, "Deve conter pelo menos uma letra minúscula.")
-    .regex(/\d/, "Deve conter pelo menos um número.")
-    .regex(/[^A-Za-z0-9]/, "Deve conter pelo menos um caractere especial."),
-});
-
-type LoginFormValues = z.infer<typeof loginSchema>;
+const DEFAULT_REDIRECT_PATH = "/dashboard";
 
 type LoginFormProps = {
   redirectPath?: string;
 };
 
-export function LoginForm({ redirectPath = "/dashboard" }: LoginFormProps) {
-  const router = useRouter();
+export function LoginForm({ redirectPath = DEFAULT_REDIRECT_PATH }: LoginFormProps) {
   const [showPassword, setShowPassword] = useState(false);
-  const [authError, setAuthError] = useState<string | null>(null);
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
-  });
-
-  async function onSubmit(values: LoginFormValues) {
-    setAuthError(null);
-
-    const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({
-      email: values.email,
-      password: values.password,
-    });
-
-    if (error) {
-      setAuthError("Credenciais inválidas. Verifique seu e-mail e senha.");
-      return;
-    }
-
-    router.push(redirectPath);
-    router.refresh();
-  }
+  const { register, errors, isSubmitting, authError, onSubmit } =
+    useLoginForm(redirectPath);
 
   return (
-    <form className="grid gap-5" onSubmit={handleSubmit(onSubmit)} noValidate>
-      {authError ? (
-        <p
-          role="alert"
-          className="rounded-xl border border-orange-400/20 bg-orange-400/10 px-4 py-3 text-sm text-orange-200/90"
-        >
-          {authError}
-        </p>
-      ) : null}
+    <form className="grid gap-5" onSubmit={onSubmit} noValidate>
+      {authError ? <InlineAlert>{authError}</InlineAlert> : null}
 
       <FormField label="E-mail" htmlFor="email" error={errors.email?.message}>
         <GlassInput
@@ -112,16 +61,16 @@ export function LoginForm({ redirectPath = "/dashboard" }: LoginFormProps) {
         />
       </FormField>
 
-        <GlassButton
-          type="submit"
-          variant="default"
-          shape="pill"
-          fullWidth
-          loading={isSubmitting}
-          className="mt-1"
-        >
-          {isSubmitting ? "Entrando..." : "Entrar"}
-        </GlassButton>
+      <GlassButton
+        type="submit"
+        variant="default"
+        shape="pill"
+        fullWidth
+        loading={isSubmitting}
+        className="mt-1"
+      >
+        {isSubmitting ? "Entrando..." : "Entrar"}
+      </GlassButton>
     </form>
   );
 }

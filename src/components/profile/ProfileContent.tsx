@@ -2,7 +2,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
   challenges,
   profileAvatar,
-} from "@/components/landing/hero/data/heroScene.mock";
+} from "@/components/landing/hero/data/hero-scene.mock";
 
 const calendarDays = [
   "",

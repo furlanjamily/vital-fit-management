@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { GlassPanel } from "@/components/common/glass-panel/glass-panel";
+import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
 import { HeroBackground } from "@/components/landing/hero/HeroBackground";
 
 type MobilePageWrapperProps = {

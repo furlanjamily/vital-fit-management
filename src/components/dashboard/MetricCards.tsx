@@ -1,5 +1,5 @@
 import { DollarSign, TrendingUp, UserCheck, Users, UsersRound } from "lucide-react";
-import { GlassPanel } from "@/components/common/glass-panel/glass-panel";
+import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
 
 const metrics = [
   {

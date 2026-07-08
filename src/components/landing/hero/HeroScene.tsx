@@ -6,8 +6,8 @@ import { HeroBackground } from "@/components/landing/hero/HeroBackground";
 import { CenterDashboardPanel } from "@/components/landing/hero/panels/CenterDashboardPanel";
 import { LeftSidebarPanel } from "@/components/landing/hero/panels/LeftSidebarPanel";
 import { RightProfilePanel } from "@/components/landing/hero/panels/RightProfilePanel";
-import { sceneMotion } from "@/components/landing/hero/motion/heroScene.motion";
-import { useHydrated } from "@/hooks/use-hydrated";
+import { sceneMotion } from "@/components/landing/hero/motion/hero-scene.motion";
+import { useHydrated } from "@/hooks/useHydrated";
 
 /**
  * 3D stage style applied only on desktop (lg+).

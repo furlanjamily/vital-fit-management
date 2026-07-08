@@ -1,37 +1,25 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { Edit3, Trash2, UserCheck, UserMinus, UserPlus } from "lucide-react";
+import { InlineAlert } from "@/components/common/feedback/InlineAlert";
+import { GlassButton } from "@/components/common/form";
+import { RowActionsMenu, type RowAction } from "@/components/common/menu/RowActionsMenu";
+import { ConfirmRemoveDialog } from "@/components/common/modal/ConfirmRemoveDialog";
+import { ModalOverlay } from "@/components/common/modal/ModalOverlay";
 import {
-  Edit3,
-  MoreVertical,
-  Trash2,
-  UserCheck,
-  UserMinus,
-  UserPlus,
-} from "lucide-react";
-import {
-  deleteMemberAction,
-  updateMemberStatusAction,
-} from "@/app/(app)/members/actions";
-import {
-  DangerButton,
-  GhostButton,
-  GlassButton,
-  IconButton,
-  OutlineButton,
-  SolidButton,
-} from "@/components/common/form";
-import { GlassPanel } from "@/components/common/glass-panel/glass-panel";
-import { ModalOverlay } from "@/components/common/modal/modal-overlay";
-import { Table, type TableColumn, type TableFilterDefinition } from "@/components/common/table/table";
+  Table,
+  type TableColumn,
+  type TableFilterDefinition,
+} from "@/components/common/table/Table";
 import { MemberRegistrationForm } from "@/components/members/MemberRegistrationForm";
 import { parseBirthDateToIso } from "@/components/members/member.helpers";
 import {
   originLabels,
   planLabels,
+  statusLabels,
   type ManagedMember,
 } from "@/components/members/members.types";
+import { useMembersManagement } from "@/components/members/useMembersManagement";
 import { UserAvatar } from "@/components/users/UserAvatar";
 import { cn } from "@/lib/cn";
 
@@ -40,143 +28,64 @@ type MembersContentClientProps = {
   loadError?: string | null;
 };
 
-type RowActionsProps = {
-  member: ManagedMember;
-  onEdit: () => void;
-  onToggleStatus: () => void;
-  onRequestRemove: () => void;
-  disabled?: boolean;
-};
+const memberFilters: TableFilterDefinition<ManagedMember>[] = [
+  {
+    type: "text",
+    key: "search",
+    placeholder: "Buscar por nome, e-mail, CPF...",
+  },
+  {
+    type: "select",
+    key: "status",
+    placeholder: "Status",
+    options: [
+      { value: "active", label: statusLabels.active },
+      { value: "inactive", label: statusLabels.inactive },
+    ],
+    match: (member) => member.status,
+  },
+  {
+    type: "date",
+    key: "birthDate",
+    placeholder: "dd / mm / aaaa",
+    match: (member) => parseBirthDateToIso(member.birthDate) ?? "",
+  },
+];
 
-function RowActions({
-  member,
-  onEdit,
-  onToggleStatus,
-  onRequestRemove,
-  disabled = false,
-}: RowActionsProps) {
-  const [open, setOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-
-    function onPointerDown(event: PointerEvent) {
-      if (!containerRef.current?.contains(event.target as Node)) {
-        setOpen(false);
-      }
-    }
-
-    document.addEventListener("pointerdown", onPointerDown);
-    return () => document.removeEventListener("pointerdown", onPointerDown);
-  }, [open]);
-
-  const isActive = member.status === "active";
-
-  const items = [
-    {
-      label: "Editar",
-      icon: Edit3,
-      onClick: onEdit,
-      className: "text-white/75 hover:text-white",
-    },
-    {
-      label: isActive ? "Inativar" : "Reativar",
-      icon: isActive ? UserMinus : UserCheck,
-      onClick: onToggleStatus,
-      className: "text-white/75 hover:text-white",
-    },
-    {
-      label: "Remover",
-      icon: Trash2,
-      onClick: onRequestRemove,
-      className: "text-red-300/85 hover:text-red-200",
-    },
-  ];
-
+function MemberIdentityCell({ member }: { member: ManagedMember }) {
   return (
-    <div ref={containerRef} className="relative z-30 flex justify-end">
-      <IconButton
-        aria-label={`Ações para ${member.name}`}
-        disabled={disabled}
-        className="bg-white/7 text-white/70 hover:bg-white/13 hover:text-white"
-        onClick={() => setOpen((current) => !current)}
-      >
-        <MoreVertical className="size-3.5" />
-      </IconButton>
-
-      {open && (
-        <GlassPanel
-          variant="strong"
-          intensity="medium"
-          elevation="modal"
-          className="absolute right-0 top-10 z-50 w-40 rounded-xl bg-[#221d17]/92 p-1.5"
-        >
-          {items.map((item) => (
-            <GhostButton
-              key={item.label}
-              disabled={disabled}
-              className={cn(
-                "w-full justify-start gap-2.5 px-3 py-2 text-left",
-                item.className,
-              )}
-              onClick={() => {
-                setOpen(false);
-                item.onClick();
-              }}
-            >
-              <item.icon className="size-3.5" />
-              {item.label}
-            </GhostButton>
-          ))}
-        </GlassPanel>
-      )}
+    <div className="flex items-center gap-2.5">
+      <UserAvatar
+        name={member.name}
+        avatarUrl={member.avatarUrl}
+        className="size-8"
+        textClassName="text-[10px]"
+      />
+      <div>
+        <p className="text-xs font-semibold text-white">{member.name}</p>
+        <p className="text-[10px] text-white/35">{member.email}</p>
+      </div>
     </div>
   );
 }
 
-type ConfirmRemoveModalProps = {
-  member: ManagedMember;
-  onConfirm: () => void;
-  onCancel: () => void;
-  removing?: boolean;
-};
+function MemberStatusBadge({ status }: { status: ManagedMember["status"] }) {
+  const isActive = status === "active";
 
-function ConfirmRemoveModal({
-  member,
-  onConfirm,
-  onCancel,
-  removing = false,
-}: ConfirmRemoveModalProps) {
   return (
-    <ModalOverlay>
-      <GlassPanel
-        variant="strong"
-        intensity="medium"
-        elevation="modal"
-        className="w-full max-w-sm rounded-2xl bg-[#221d17]/94 p-6"
-      >
-        <p className="text-sm font-semibold text-white">Remover aluno</p>
-        <p className="mt-2 text-xs leading-relaxed text-white/48">
-          Tem certeza que deseja remover{" "}
-          <span className="font-semibold text-white/85">{member.name}</span>? Esta ação não
-          pode ser desfeita.
-        </p>
-
-        <div className="mt-6 flex justify-end gap-3">
-          <OutlineButton onClick={onCancel} disabled={removing}>
-            Cancelar
-          </OutlineButton>
-          <DangerButton
-            leftIcon={<Trash2 className="size-3.5" />}
-            onClick={onConfirm}
-            disabled={removing}
-          >
-            {removing ? "Removendo..." : "Remover"}
-          </DangerButton>
-        </div>
-      </GlassPanel>
-    </ModalOverlay>
+    <span
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-medium",
+        isActive
+          ? "border-emerald-400/25 bg-emerald-400/10 text-emerald-300"
+          : "border-red-400/20 bg-red-400/10 text-red-300/80",
+      )}
+    >
+      <span
+        className={cn("size-1.5 rounded-full", isActive ? "bg-emerald-400" : "bg-red-400/70")}
+      />
+      {statusLabels[status]}
+    </span>
   );
 }
 
@@ -184,128 +93,49 @@ export function MembersContentClient({
   initialMembers,
   loadError = null,
 }: MembersContentClientProps) {
-  const router = useRouter();
-  const [members, setMembers] = useState<ManagedMember[]>(initialMembers);
-  const [formOpen, setFormOpen] = useState(false);
-  const [editingMember, setEditingMember] = useState<ManagedMember | null>(null);
-  const [removingMember, setRemovingMember] = useState<ManagedMember | null>(null);
-  const [actionError, setActionError] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
+  const {
+    members,
+    formOpen,
+    editingMember,
+    removingMember,
+    actionError,
+    isPending,
+    openCreateForm,
+    openEditForm,
+    closeForm,
+    handleFormSuccess,
+    toggleStatus,
+    removeMember,
+    requestRemove,
+    cancelRemove,
+  } = useMembersManagement(initialMembers);
 
-  function openCreateForm() {
-    setEditingMember(null);
-    setActionError(null);
-    setFormOpen(true);
+  function buildRowActions(member: ManagedMember): RowAction[] {
+    const isActive = member.status === "active";
+
+    return [
+      { label: "Editar", icon: Edit3, onSelect: () => openEditForm(member) },
+      {
+        label: isActive ? "Inativar" : "Reativar",
+        icon: isActive ? UserMinus : UserCheck,
+        onSelect: () => toggleStatus(member),
+      },
+      {
+        label: "Remover",
+        icon: Trash2,
+        tone: "danger",
+        onSelect: () => requestRemove(member),
+      },
+    ];
   }
-
-  function openEditForm(member: ManagedMember) {
-    setEditingMember(member);
-    setActionError(null);
-    setFormOpen(true);
-  }
-
-  function closeForm() {
-    setFormOpen(false);
-    setEditingMember(null);
-    setActionError(null);
-  }
-
-  function handleFormSuccess(member: ManagedMember) {
-    if (editingMember) {
-      setMembers((current) =>
-        current.map((item) => (item.id === member.id ? member : item)),
-      );
-    } else {
-      setMembers((current) => [member, ...current]);
-    }
-
-    closeForm();
-    router.refresh();
-  }
-
-  function toggleStatus(member: ManagedMember) {
-    const nextActive = member.status !== "active";
-
-    startTransition(async () => {
-      setActionError(null);
-
-      const result = await updateMemberStatusAction(member.id, nextActive);
-
-      if (!result.ok) {
-        setActionError(result.error);
-        return;
-      }
-
-      setMembers((current) =>
-        current.map((item) => (item.id === member.id ? result.member : item)),
-      );
-      router.refresh();
-    });
-  }
-
-  function removeMember(memberId: string) {
-    startTransition(async () => {
-      setActionError(null);
-
-      const result = await deleteMemberAction(memberId);
-
-      if (!result.ok) {
-        setActionError(result.error);
-        return;
-      }
-
-      setMembers((current) => current.filter((member) => member.id !== memberId));
-      if (editingMember?.id === memberId) closeForm();
-      setRemovingMember(null);
-      router.refresh();
-    });
-  }
-
-  const memberFilters: TableFilterDefinition<ManagedMember>[] = [
-    {
-      type: "text",
-      key: "search",
-      placeholder: "Buscar por nome, e-mail, CPF...",
-    },
-    {
-      type: "select",
-      key: "status",
-      placeholder: "Status",
-      options: [
-        { value: "active", label: "Ativo" },
-        { value: "inactive", label: "Inativo" },
-      ],
-      match: (member) => member.status,
-    },
-    {
-      type: "date",
-      key: "birthDate",
-      placeholder: "dd / mm / aaaa",
-      match: (member) => parseBirthDateToIso(member.birthDate) ?? "",
-    },
-  ];
 
   const columns: TableColumn<ManagedMember>[] = [
     {
       key: "name",
       header: "Aluno",
       width: "28%",
-      searchValue: (member) =>
-        `${member.name} ${member.email} ${member.cpf}`,
-      render: (member) => (
-        <div className="flex items-center gap-2.5">
-          <UserAvatar
-            name={member.name}
-            avatarUrl={member.avatarUrl}
-            className="size-8"
-            textClassName="text-[10px]"
-          />
-          <div>
-            <p className="text-xs font-semibold text-white">{member.name}</p>
-            <p className="text-[10px] text-white/35">{member.email}</p>
-          </div>
-        </div>
-      ),
+      searchValue: (member) => `${member.name} ${member.email} ${member.cpf}`,
+      render: (member) => <MemberIdentityCell member={member} />,
     },
     {
       key: "cpf",
@@ -336,25 +166,8 @@ export function MembersContentClient({
       key: "status",
       header: "Status",
       width: "14%",
-      searchValue: (member) => (member.status === "active" ? "Ativo" : "Inativo"),
-      render: (member) => (
-        <span
-          className={cn(
-            "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-medium",
-            member.status === "active"
-              ? "border-emerald-400/25 bg-emerald-400/10 text-emerald-300"
-              : "border-red-400/20 bg-red-400/10 text-red-300/80",
-          )}
-        >
-          <span
-            className={cn(
-              "size-1.5 rounded-full",
-              member.status === "active" ? "bg-emerald-400" : "bg-red-400/70",
-            )}
-          />
-          {member.status === "active" ? "Ativo" : "Inativo"}
-        </span>
-      ),
+      searchValue: (member) => statusLabels[member.status],
+      render: (member) => <MemberStatusBadge status={member.status} />,
     },
     {
       key: "actions",
@@ -363,12 +176,10 @@ export function MembersContentClient({
       headerClassName: "w-12",
       className: "w-12",
       render: (member) => (
-        <RowActions
-          member={member}
+        <RowActionsMenu
+          ariaLabel={`Ações para ${member.name}`}
           disabled={isPending}
-          onEdit={() => openEditForm(member)}
-          onToggleStatus={() => toggleStatus(member)}
-          onRequestRemove={() => setRemovingMember(member)}
+          actions={buildRowActions(member)}
         />
       ),
     },
@@ -386,28 +197,18 @@ export function MembersContentClient({
           </p>
         </div>
 
-        <GlassButton variant="subtle" size="md" rightIcon={<UserPlus className="size-4" />} onClick={openCreateForm}>
+        <GlassButton
+          variant="subtle"
+          size="md"
+          rightIcon={<UserPlus className="size-4" />}
+          onClick={openCreateForm}
+        >
           Novo Aluno
         </GlassButton>
       </div>
 
-      {loadError ? (
-        <p
-          role="alert"
-          className="rounded-xl border border-orange-400/20 bg-orange-400/10 px-4 py-3 text-sm text-orange-200/90"
-        >
-          {loadError}
-        </p>
-      ) : null}
-
-      {actionError ? (
-        <p
-          role="alert"
-          className="rounded-xl border border-orange-400/20 bg-orange-400/10 px-4 py-3 text-sm text-orange-200/90"
-        >
-          {actionError}
-        </p>
-      ) : null}
+      {loadError ? <InlineAlert>{loadError}</InlineAlert> : null}
+      {actionError ? <InlineAlert>{actionError}</InlineAlert> : null}
 
       <Table
         data={members}
@@ -432,11 +233,12 @@ export function MembersContentClient({
       )}
 
       {removingMember && (
-        <ConfirmRemoveModal
-          member={removingMember}
-          removing={isPending}
+        <ConfirmRemoveDialog
+          title="Remover aluno"
+          subjectName={removingMember.name}
+          pending={isPending}
           onConfirm={() => removeMember(removingMember.id)}
-          onCancel={() => setRemovingMember(null)}
+          onCancel={cancelRemove}
         />
       )}
     </div>

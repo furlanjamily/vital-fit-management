@@ -1,7 +1,7 @@
 import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode } from "react";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { GlassPanel } from "../glass-panel/glass-panel";
+import { GlassPanel } from "../glass-panel/GlassPanel";
 
 type GlassPanelVariant = "default" | "hero" | "strong" | "subtle";
 type GlassPanelIntensity = "low" | "medium" | "high";

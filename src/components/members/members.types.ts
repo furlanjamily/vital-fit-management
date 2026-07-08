@@ -1,8 +1,10 @@
-export type EnrollmentOrigin = "ACADEMIA" | "GYMPASS" | "TOTALPASS";
+export const ENROLLMENT_ORIGINS = ["ACADEMIA", "GYMPASS", "TOTALPASS"] as const;
+export const MEMBER_PLANS = ["MENSAL_BASE", "TRIMESTRAL_PREMIUM", "ANUAL_PRO"] as const;
+export const MEMBER_STATUSES = ["active", "inactive"] as const;
 
-export type MemberPlan = "MENSAL_BASE" | "TRIMESTRAL_PREMIUM" | "ANUAL_PRO";
-
-export type MemberStatus = "active" | "inactive";
+export type EnrollmentOrigin = (typeof ENROLLMENT_ORIGINS)[number];
+export type MemberPlan = (typeof MEMBER_PLANS)[number];
+export type MemberStatus = (typeof MEMBER_STATUSES)[number];
 
 /** Linha exata retornada pelo Supabase (`public.members`). */
 export type MemberRow = {
@@ -42,21 +44,6 @@ export type MemberFormValues = {
   avatarUrl: string | null;
 };
 
-/** Payload validado enviado às Server Actions. */
-export type MemberFormData = MemberFormValues;
-
-export const ENROLLMENT_ORIGINS: EnrollmentOrigin[] = [
-  "ACADEMIA",
-  "GYMPASS",
-  "TOTALPASS",
-];
-
-export const MEMBER_PLANS: MemberPlan[] = [
-  "MENSAL_BASE",
-  "TRIMESTRAL_PREMIUM",
-  "ANUAL_PRO",
-];
-
 export const originLabels: Record<EnrollmentOrigin, string> = {
   ACADEMIA: "Academia (Direto)",
   GYMPASS: "Gympass",
@@ -69,10 +56,17 @@ export const planLabels: Record<MemberPlan, string> = {
   ANUAL_PRO: "Anual Pro",
 };
 
-export const originOptions = (
-  Object.entries(originLabels) as [EnrollmentOrigin, string][]
-).map(([value, label]) => ({ value, label }));
+export const statusLabels: Record<MemberStatus, string> = {
+  active: "Ativo",
+  inactive: "Inativo",
+};
 
-export const planOptions = (
-  Object.entries(planLabels) as [MemberPlan, string][]
-).map(([value, label]) => ({ value, label }));
+export const originOptions = ENROLLMENT_ORIGINS.map((value) => ({
+  value,
+  label: originLabels[value],
+}));
+
+export const planOptions = MEMBER_PLANS.map((value) => ({
+  value,
+  label: planLabels[value],
+}));

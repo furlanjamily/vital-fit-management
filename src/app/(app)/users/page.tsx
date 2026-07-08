@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
+import { listUsersAction } from "@/app/(app)/users/actions";
 import { AccessDenied } from "@/components/users/AccessDenied";
 import { UsersContent } from "@/components/users/UsersContent";
-import type { UserRole } from "@/components/users/users.types";
-import { listUsersAction } from "@/app/(app)/users/actions";
+import { isUserRole, type UserRole } from "@/components/users/users.types";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -24,11 +24,10 @@ async function resolveCurrentRole(): Promise<UserRole | null> {
   if (!user) return null;
 
   const metadataRole = user.user_metadata?.role;
-  if (typeof metadataRole === "string") {
-    return metadataRole.toUpperCase() as UserRole;
-  }
+  if (typeof metadataRole !== "string") return "SUPER_ADMIN";
 
-  return "SUPER_ADMIN";
+  const normalizedRole = metadataRole.toUpperCase();
+  return isUserRole(normalizedRole) ? normalizedRole : null;
 }
 
 export default async function UsersPage() {
@@ -38,12 +37,12 @@ export default async function UsersPage() {
     return <AccessDenied />;
   }
 
-  const usersResult = await listUsersAction();
+  const result = await listUsersAction();
 
   return (
     <UsersContent
-      initialUsers={usersResult.ok ? usersResult.users : []}
-      loadError={usersResult.ok ? null : usersResult.error}
+      initialUsers={result.success ? result.data : []}
+      loadError={result.success ? null : result.error}
     />
   );
 }

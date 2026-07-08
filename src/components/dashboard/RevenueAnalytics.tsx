@@ -1,5 +1,5 @@
 import { Flame } from "lucide-react";
-import { GlassPanel } from "@/components/common/glass-panel/glass-panel";
+import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
 import { cn } from "@/lib/cn";
 
 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug"];

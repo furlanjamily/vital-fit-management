@@ -1,19 +1,16 @@
 "use client";
 
-import {
-  useState,
-  type FormEvent,
-} from "react";
+import { useState, type FormEvent } from "react";
 import { Eye, EyeOff, Lock, Mail, Shield, User, UserPlus, X } from "lucide-react";
+import { InlineAlert } from "@/components/common/feedback/InlineAlert";
 import {
   AvatarUploadTrigger,
   GlassButton,
   GlassInput,
   GlassSelect,
   IconButton,
-  SolidButton,
 } from "@/components/common/form";
-import { GlassPanel } from "@/components/common/glass-panel/glass-panel";
+import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
 import {
   roleOptions,
   type ManagedUser,
@@ -27,6 +24,18 @@ const EMPTY_VALUES: UserFormValues = {
   role: "MEMBER",
   avatarUrl: null,
 };
+
+function buildInitialValues(editingUser: ManagedUser | null): UserFormValues {
+  if (!editingUser) return EMPTY_VALUES;
+
+  return {
+    name: editingUser.name,
+    email: editingUser.email,
+    password: "",
+    role: editingUser.role,
+    avatarUrl: editingUser.avatarUrl,
+  };
+}
 
 type UserFormProps = {
   editingUser: ManagedUser | null;
@@ -44,15 +53,7 @@ export function UserForm({
   onCancelEdit,
 }: UserFormProps) {
   const [values, setValues] = useState<UserFormValues>(() =>
-    editingUser
-      ? {
-        name: editingUser.name,
-        email: editingUser.email,
-        password: "",
-        role: editingUser.role,
-        avatarUrl: editingUser.avatarUrl,
-      }
-      : EMPTY_VALUES,
+    buildInitialValues(editingUser),
   );
   const [showPassword, setShowPassword] = useState(false);
 
@@ -100,14 +101,7 @@ export function UserForm({
       </div>
 
       <form onSubmit={handleSubmit} className="grid gap-4" noValidate>
-        {errorMessage ? (
-          <p
-            role="alert"
-            className="rounded-xl border border-orange-400/20 bg-orange-400/10 px-4 py-3 text-xs text-orange-200/90"
-          >
-            {errorMessage}
-          </p>
-        ) : null}
+        {errorMessage ? <InlineAlert className="text-xs">{errorMessage}</InlineAlert> : null}
 
         <AvatarUploadTrigger
           name={values.name}
@@ -178,7 +172,6 @@ export function UserForm({
                 : "Cadastrar Usuário"}
           </GlassButton>
         </div>
-
       </form>
     </GlassPanel>
   );

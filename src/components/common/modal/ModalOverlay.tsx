@@ -2,7 +2,7 @@
 
 import { type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { useHydrated } from "@/hooks/use-hydrated";
+import { useHydrated } from "@/hooks/useHydrated";
 import { cn } from "@/lib/cn";
 
 type ModalOverlayProps = {

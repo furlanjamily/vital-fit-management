@@ -1,11 +1,11 @@
 import { Plus, X } from "lucide-react";
 import { GhostButton } from "@/components/common/form";
-import { GlassPanel } from "@/components/common/glass-panel/glass-panel";
+import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
 import {
   memberAvatars,
   modalFields,
   trainerAvatars,
-} from "@/components/landing/hero/data/heroScene.mock";
+} from "@/components/landing/hero/data/hero-scene.mock";
 
 function StackedAvatars({ avatars }: { avatars: string[] }) {
   return (

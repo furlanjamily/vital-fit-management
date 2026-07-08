@@ -1,5 +1,5 @@
 import { SolidButton } from "@/components/common/form";
-import { GlassPanel } from "@/components/common/glass-panel/glass-panel";
+import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
 
 export function MobileAppPromo() {
   return (

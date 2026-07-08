@@ -57,11 +57,3 @@ export function formatBirthDateFromIso(isoDate: string): string {
 
   return `${day.padStart(2, "0")}/${month.padStart(2, "0")}/${year}`;
 }
-
-export function isValidCpf(value: string): boolean {
-  return stripCpf(value).length === 11;
-}
-
-export function isValidEmail(value: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
-}
