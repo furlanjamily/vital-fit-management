@@ -5,6 +5,7 @@ import {
   MEMBER_PLANS,
   MEMBER_STATUSES,
 } from "@/components/members/members.types";
+import { isUuid } from "@/lib/is-uuid";
 
 const CPF_DIGITS_LENGTH = 11;
 
@@ -30,6 +31,14 @@ export const memberFormSchema = z.object({
     .string()
     .nullable()
     .transform((value) => value?.trim() || null),
+  professionalId: z
+    .string()
+    .nullable()
+    .transform((value) => (value?.trim() ? value.trim() : null))
+    .refine(
+      (value) => value === null || isUuid(value),
+      "Profissional inválido.",
+    ),
 });
 
 /** Valores normalizados após validação (CPF sem máscara, data em ISO). */

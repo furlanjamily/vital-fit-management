@@ -21,6 +21,8 @@ A experiência logada deve parecer uma interface fitness premium “flutuando”
 
 **Autenticação:** rotas do app `(app)/` exigem sessão Supabase. `/login` é pública. Proxy em `src/proxy.ts` (Next.js 16) delega para `src/lib/supabase/middleware.ts`.
 
+**Integração com API:** o projeto prioriza **dados reais via Supabase** e **Server Actions seguras** (com `try/catch`, validação Zod e retorno padronizado). Dados mockados permanecem apenas em áreas legadas ou de demonstração visual (dashboard KPIs, hero scene).
+
 **Estado atual da cena desktop:** `DesktopAppShell` renderiza três painéis em perspectiva (esquerdo, central, direito). O conteúdo de cada rota aparece no painel central via `CenterPanelShell`.
 
 **Estado atual do modal:** `FrontFloatingModal` existe como componente pronto, mas **não está renderizado** na cena — apenas importado em `HeroScene.tsx` (legado).
@@ -69,6 +71,96 @@ Este projeto possui uma regra em `AGENTS.md` dizendo que a versão do Next.js po
 
 Antes de alterar APIs específicas do Next.js, verifique a documentação local se ela existir em `node_modules/next/dist/docs/`.
 
+## Padrões de Código, Idioma e Nomenclatura
+
+Regras **estritas** para qualquer código novo gerado no projeto:
+
+| Contexto | Idioma | Exemplo |
+|---|---|---|
+| Identificadores de código (variáveis, funções, tipos) | **Inglês** | `getPatientName`, `useFinanceTransactions` |
+| Textos de UI (labels, toasts, mensagens) | **Português (pt-BR)** | `"Transação registrada!"` |
+| Mensagens de erro da API / Validação | **Português (pt-BR)** | `{ "error": "Acesso negado." }` |
+| Comentários | **Português (pt-BR)** | Apenas para intenções não óbvias |
+| Valores persistidos no banco de dados | **Não alterar** | Mantém o contrato de dados original |
+
+### Nomenclatura de Arquivos e Pastas
+
+| Tipo | Convenção | Exemplo |
+|---|---|---|
+| Componentes React | PascalCase | `DataTable.tsx`, `UserAvatar.tsx` |
+| Hooks customizados | camelCase com prefixo `use` | `useFinance.ts`, `useMembersManagement.ts` |
+| Módulos, utilitários e helpers (`lib/`) | kebab-case | `group-by-day.ts`, `action-result.ts` |
+| Rotas e Actions (App Router) | Padrão do framework | `page.tsx`, `layout.tsx`, `route.ts`, `actions.ts` |
+| Schemas Zod (domínio) | kebab-case + `.schema.ts` | `member.schema.ts`, `user.schema.ts` |
+| Tipos de domínio | kebab-case + `.types.ts` | `members.types.ts`, `users.types.ts` |
+
+## Arquitetura e Clean Code
+
+Diretrizes técnicas exigidas em todo o codebase:
+
+### Early Returns (Bouncers)
+
+Evitar aninhamento profundo de `if/else`. Retornar cedo em casos de erro, validação inválida ou estados impossíveis, mantendo o caminho feliz na raiz da função.
+
+```ts
+// ✅ Preferido
+if (!session.authenticated) return actionFailure(session.error);
+if (!parsed.success) return actionFailure(parsed.error.issues[0].message);
+// ... lógica principal
+
+// ❌ Evitar
+if (session.authenticated) {
+  if (parsed.success) {
+    // lógica aninhada
+  }
+}
+```
+
+### Separação de Responsabilidades (SoC)
+
+| Camada | Responsabilidade |
+|---|---|
+| **Server Components** | Busca de dados no servidor, composição de layout |
+| **Server Actions** | Mutations, validação Zod, integração Supabase, `try/catch` |
+| **Custom Hooks** | Estado de UI, orquestração de actions, side effects client |
+| **Client Components** | Renderização, interatividade, formulários — **sem lógica de negócio complexa** |
+
+Padrão adotado nas rotas CRUD (`/members`, `/users`):
+
+```txt
+page.tsx (RSC)
+  └─ *Content.tsx (RSC)          → chama Server Action de leitura
+       └─ *ContentClient.tsx     → UI + Table + modais
+            └─ use*Management.ts → estado, mutations, refresh
+                 └─ actions.ts   → Server Actions (Supabase + Zod)
+```
+
+### Tipagem Forte
+
+- **Proibido** o uso de `any`.
+- Tipagem estrita; preferir tipos inferidos por schemas Zod (`z.infer`, `z.input`).
+- Desestruturar props na assinatura do componente: `({ name, age }: Props) => { ... }`.
+- Retornos de Server Actions padronizados via `ActionResult<T>` (`lib/action-result.ts`).
+
+### Componentização
+
+O design system depende da **reutilização rigorosa** dos componentes globais. Nunca recriar padrões visuais manualmente quando já existem no design system:
+
+- `<GlassPanel>` — containers glass
+- `<Table>` + `<GlobalFilters>` — listagens com filtros e paginação
+- Botões e inputs em `common/form/` (`GlassButton`, `GlassInput`, `GlassSelect`, etc.)
+- `<RowActionsMenu>`, `<ConfirmRemoveDialog>`, `<InlineAlert>` — padrões de UI recorrentes
+
+### Integração com API (Supabase)
+
+Toda nova feature de dados deve seguir:
+
+1. **Server Action** com `"use server"` e bloco `try/catch`.
+2. **Validação Zod** no servidor (schema dedicado em `*.schema.ts`).
+3. **Retorno padronizado:** `{ success: true, data }` ou `{ success: false, error }` via helpers `actionSuccess()` / `actionFailure()`.
+4. **Mensagens de erro em pt-BR** — tanto validação quanto erros de banco/API.
+5. **`revalidatePath()`** após mutations que afetam listagens.
+
 ## Arquitetura Atual
 
 Estrutura principal atual:
@@ -85,10 +177,11 @@ src/
       dashboard/page.tsx          # DashboardContent + getUser (nome do usuário)
       community/page.tsx
       analytics/page.tsx
-      members/page.tsx            # MembersContent (gestão de alunos)
-      members/actions.ts          # server actions: CRUD alunos (Supabase)
+      members/page.tsx            # MembersContent (gestão de alunos — Supabase real)
+      members/actions.ts          # Server Actions CRUD alunos (Supabase + Zod)
       users/page.tsx              # UsersContent (Super Admin only)
-      users/actions.ts            # server actions: list/create/update users
+      users/actions.ts            # Server Actions CRUD usuários (Admin API + Zod)
+      professionals/page.tsx      # placeholder (em desenvolvimento)
       profile/page.tsx
       help/page.tsx
       settings/page.tsx
@@ -101,39 +194,48 @@ src/
       RoutePlaceholder.tsx
     auth/
       LoginForm.tsx               # login Supabase + GlassButton
+      login.schema.ts             # schema Zod do login
+      useLoginForm.ts             # hook de autenticação client
     common/
       button/
-        premium-button.tsx        # legado (landing)
-        glass-button.tsx          # botão com GlassPanel (só vidro, sem fill colorido)
-        solid-button.tsx          # CTA sólido (ex.: "Novo Aluno")
-        outline-button.tsx
-        ghost-button.tsx
-        danger-button.tsx
-        icon-button.tsx
+        GlassButton.tsx           # botão com GlassPanel (só vidro, sem fill colorido)
+        SolidButton.tsx           # CTA sólido
+        OutlineButton.tsx
+        GhostButton.tsx
+        DangerButton.tsx
+        IconButton.tsx
+        PremiumButton.tsx         # legado (landing)
       date-picker/
-        date-picker.tsx           # seletor de data estilo pill (dd / mm / aaaa)
+        DatePicker.tsx            # seletor de data estilo pill (dd / mm / aaaa)
+      feedback/
+        InlineAlert.tsx           # banner de erro/aviso reutilizável
       form/
         index.ts                  # barrel: botões + GlassInput + GlassSelect + FormField...
         form.styles.ts            # tokens compartilhados de inputs/selects
-        form-field.tsx
-        glass-switch.tsx
-        avatar-upload-trigger.tsx
+        FormField.tsx
+        GlassSwitch.tsx
+        AvatarUploadTrigger.tsx
       input/
-        glass-input.tsx
+        GlassInput.tsx
       select/
-        glass-select.tsx
+        GlassSelect.tsx
       modal/
-        modal-overlay.tsx
-      glass-panel/glass-panel.tsx
+        ModalOverlay.tsx
+        ConfirmRemoveDialog.tsx   # confirmação de remoção reutilizável
+      menu/
+        RowActionsMenu.tsx        # menu ⋮ de ações por linha (Table)
+      glass-panel/
+        GlassPanel.tsx
       table/
-        table.tsx                 # tabela genérica + paginação + filtros
-        global-filters.tsx        # barra colapsável de filtros (acima do GlassPanel)
+        Table.tsx                 # tabela genérica + paginação + filtros
+        GlobalFilters.tsx         # barra colapsável de filtros (acima do GlassPanel)
         global-filters.types.ts   # TableFilterDefinition (text | select | date)
         table.types.ts            # TableColumn<T>
-        table-head.tsx
-        table-footer.tsx
-        table-colgroup.tsx
+        TableHead.tsx
+        TableFooter.tsx
+        TableColGroup.tsx
       section-container/
+        SectionContainer.tsx
     dashboard/
       DashboardContent.tsx        # layout principal do dashboard
       BusinessHeader.tsx
@@ -142,21 +244,25 @@ src/
       RevenueAnalytics.tsx
       TrainerCards.tsx
       FavouritedWorkout.tsx
-      MembersTable.tsx            # usa Table (dados mock dashboard)
+      MembersTable.tsx            # usa Table (dados mock — apenas dashboard)
       MobileAppPromo.tsx
-      HeaderDateWeather.tsx         # data + clima (Open-Meteo)
+      HeaderDateWeather.tsx       # data + clima (Open-Meteo)
     members/
-      MembersContent.tsx          # server component — getMembersAction()
+      MembersContent.tsx          # RSC — getMembersAction()
       MembersContentClient.tsx    # client — Table + filtros + modais CRUD
-      MemberRegistrationForm.tsx
-      members.types.ts
+      MemberRegistrationForm.tsx  # formulário de cadastro/edição
+      useMembersManagement.ts     # hook — estado, mutations, refresh
+      members.types.ts            # tipos de domínio (ManagedMember, MemberRow...)
+      member.schema.ts            # schema Zod de validação server-side
       member.helpers.ts           # máscaras CPF/data + parse ISO
     users/
       UsersContent.tsx            # gestão de usuários do sistema
       UserForm.tsx
       UserAvatar.tsx
       AccessDenied.tsx
+      useUsersManagement.ts       # hook — estado, mutations, refresh
       users.types.ts
+      user.schema.ts              # schema Zod de validação server-side
       user.helpers.ts             # iniciais + cor avatar estilo Google
     profile/ProfileContent.tsx
     mobile/MobilePageWrapper.tsx
@@ -164,8 +270,8 @@ src/
       HeroBackground.tsx
       HeroScene.tsx               # legado
       MobileBottomNav.tsx
-      data/heroScene.mock.ts
-      motion/heroScene.motion.ts
+      data/hero-scene.mock.ts
+      motion/hero-scene.motion.ts
       panels/
         LeftSidebarPanel.tsx      # sidebar + NavUserMenu
         RightProfilePanel.tsx
@@ -175,10 +281,12 @@ src/
     app-nav.config.ts
     theme.ts
   hooks/
-    use-hydrated.ts               # useSyncExternalStore (SSR-safe)
-    use-local-weather.ts          # Open-Meteo + geolocalização/IP
-    use-prefers-reduced-motion.ts
+    useHydrated.ts                # useSyncExternalStore (SSR-safe)
+    useLocalWeather.ts            # Open-Meteo + geolocalização/IP
+    usePrefersReducedMotion.ts    # disponível, não integrado na hero
   lib/
+    action-result.ts              # ActionResult<T>, actionSuccess, actionFailure
+    is-uuid.ts                    # validação de UUID
     auth/resolve-user-display.ts  # nome, avatar de user_metadata
     cn.ts
     motion.ts
@@ -208,7 +316,8 @@ Cada rota em `(app)/` exporta o conteúdo que aparece **dentro** do painel centr
 
 ### Fluxo de login
 
-- Rota: `/login` → `LoginForm` com validação Zod
+- Rota: `/login` → `LoginForm` com validação Zod (`login.schema.ts`)
+- Lógica client extraída para `useLoginForm.ts`
 - `supabase.auth.signInWithPassword` via client
 - Redirect pós-login: `/dashboard` (ou `?next=` se válido)
 - Submit usa `GlassButton` (variant glass, shape pill)
@@ -243,25 +352,41 @@ Helpers: `src/lib/auth/resolve-user-display.ts` (`resolveDisplayName`, `resolveF
 
 ### Server actions de usuários (`users/actions.ts`)
 
-Requer `SUPABASE_SERVICE_ROLE_KEY` no servidor:
+Requer `SUPABASE_SERVICE_ROLE_KEY` no servidor. Retorno via `ActionResult<T>`.
 
 - `listUsersAction` — lista usuários Auth (Admin API)
-- `createUserAction` — `admin.createUser` com `user_metadata.name` + `role`
+- `createUserAction` — `admin.createUser` com `user_metadata.name` + `role`; validação via `user.schema.ts`
 - `updateUserAction` — `admin.updateUserById`; se editar a si mesmo, client chama `refreshSession()` + `router.refresh()`
 
 **Nunca** usar `signUp` no client para criar usuários admin — troca a sessão ativa. Sempre Admin API via service role.
 
 ### Server actions de alunos (`members/actions.ts`)
 
-Usa `createClient()` (server, cookies do usuário logado):
+Usa `createClient()` (server, cookies do usuário logado). Retorno via `ActionResult<T>`. Validação via `member.schema.ts` (Zod).
 
-- `getMembersAction` — lista `public.members`
-- `createMemberAction` — insert com validação (CPF, e-mail, data)
-- `updateMemberAction` — update por id
-- `updateMemberStatusAction` — toggle `status` boolean
-- `deleteMemberAction` — remove por id
+| Action | Operação |
+|---|---|
+| `getMembersAction` | Lista `public.members` (select ordenado por `created_at`) |
+| `createMemberAction` | Insert com validação Zod (CPF, e-mail, data, origem, plano) |
+| `updateMemberAction` | Update por id com validação Zod |
+| `updateMemberStatusAction` | Toggle `status` boolean |
+| `deleteMemberAction` | Remove por id |
+
+Todas as actions possuem `try/catch`, mensagens de erro em pt-BR e `revalidatePath("/members")` após mutations.
 
 Mapeamento DB ↔ UI: `MemberRow` → `ManagedMember` via `mapRowToManaged()`. Datas: ISO no banco, `DD/MM/AAAA` na UI (`member.helpers.ts`).
+
+### Contrato de retorno das Server Actions
+
+Definido em `src/lib/action-result.ts`:
+
+```ts
+type ActionResult<T = null> =
+  | { success: true; data: T }
+  | { success: false; error: string };
+```
+
+Helpers: `actionSuccess(data)`, `actionFailure(error)`, `toActionError(error, fallbackMessage)`.
 
 ## Rotas Do App
 
@@ -272,8 +397,9 @@ Mapeamento DB ↔ UI: `MemberRow` → `ManagedMember` via `mapRowToManaged()`. D
 | `/dashboard` | `dashboard/page.tsx` | `DashboardContent` + nome via `getUser()` |
 | `/community` | `community/page.tsx` | `RoutePlaceholder` |
 | `/analytics` | `analytics/page.tsx` | `RoutePlaceholder` |
-| `/members` | `members/page.tsx` | `MembersContent` (gestão de alunos) |
-| `/users` | `users/page.tsx` | `UsersContent` (Super Admin) |
+| `/members` | `members/page.tsx` | `MembersContent` — **Supabase `public.members`** |
+| `/users` | `users/page.tsx` | `UsersContent` (Super Admin) — **Supabase Auth** |
+| `/professionals` | `professionals/page.tsx` | placeholder (em desenvolvimento) |
 | `/profile` | `profile/page.tsx` | `ProfileContent` |
 | `/help` | `help/page.tsx` | `RoutePlaceholder` |
 | `/settings` | `settings/page.tsx` | `RoutePlaceholder` |
@@ -281,7 +407,7 @@ Mapeamento DB ↔ UI: `MemberRow` → `ManagedMember` via `mapRowToManaged()`. D
 
 Navegação centralizada em `src/config/app-nav.config.ts`:
 
-- `mainNavItems` — Dashboard, Community, Analytics, **Alunos** (`/members`)
+- `mainNavItems` — Dashboard, Community, Analytics, **Alunos** (`/members`), **Profissionais** (`/professionals`)
 - `classNavItems` — Crossfit, TRX, Yoga
 - `utilityNavItems` — **Usuários** (`/users`), Help, Setting
 - `mobileNavItems` — combinação usada no `MobileBottomNav`
@@ -294,7 +420,7 @@ Arquivo orquestrador: `src/components/dashboard/DashboardContent.tsx`
 
 ### Cabeçalho fixo (não alterar estrutura base)
 
-- Título: `Welcome {userName}!` — nome vem de `resolveFirstName(user_metadata, email)` no server
+- Título: `Bem vindo de volta, {userName}!` — nome vem de `resolveFirstName(user_metadata, email)` no server
 - Subtítulo: `HeaderDateWeather` — data pt-BR + temperatura/ícone via `useLocalWeather` (Open-Meteo)
 
 ### Layout (grid responsivo)
@@ -303,7 +429,7 @@ Arquivo orquestrador: `src/components/dashboard/DashboardContent.tsx`
 [Coluna esquerda lg:col-span-3]     [Coluna direita lg:col-span-9]
   BusinessHeader                      MetricCards | RevenueAnalytics
   GymCapacity                         Personal Trainer | FavouritedWorkout
-  (MobileAppPromo — opcional)         MembersTable (full width abaixo)
+                                      MembersTable (full width abaixo)
 ```
 
 ### Subcomponentes
@@ -316,7 +442,7 @@ Arquivo orquestrador: `src/components/dashboard/DashboardContent.tsx`
 | `RevenueAnalytics` | subtle/floating | gráfico barras; tooltip Apr usa `elevation="modal"` |
 | `TrainerCards` | 2× subtle/floating | cards King Zarips |
 | `FavouritedWorkout` | subtle/floating | tags scatter + tabs |
-| `MembersTable` | via Table | tabela mock do dashboard |
+| `MembersTable` | via Table | tabela mock do dashboard (demonstração visual) |
 
 ### Regras do dashboard
 
@@ -327,22 +453,45 @@ Arquivo orquestrador: `src/components/dashboard/DashboardContent.tsx`
 
 ## Gestão de Usuários (`/users`)
 
-Padrão visual espelhado em `/members`:
+Padrão visual e arquitetural espelhado em `/members`:
 
-- Header + botão "Novo Usuário" (`SolidButton`) → modal `UserForm`
+- Header + botão "Novo Usuário" (`GlassButton`) → modal `UserForm`
 - `Table` com busca textual padrão (`searchPlaceholder`)
-- Menu de ações por linha: Editar, Desativar/Reativar, Remover (confirmação modal)
+- Menu de ações por linha via `<RowActionsMenu>`: Editar, Desativar/Reativar, Remover
+- Confirmação de remoção via `<ConfirmRemoveDialog>`
 - Avatar: `UserAvatar` (foto ou iniciais coloridas estilo Google)
-- Dados reais do Supabase Auth via `listUsersAction` (`users/actions.ts`)
+- **Dados reais:** Supabase Auth via `listUsersAction` (`users/actions.ts`)
+- **Lógica client:** `useUsersManagement.ts` (estado, mutations, refresh de sessão)
 
 ## Gestão de Alunos (`/members`)
 
-Arquitetura **server + client**:
+**Fonte de dados:** Supabase `public.members` — integração real, sem mocks.
 
-- `MembersContent` (RSC) chama `getMembersAction()` e passa dados para `MembersContentClient`
-- `MembersContentClient`: header + `Table` + modais de cadastro/remoção
-- **Persistência real:** Supabase `public.members` via `members/actions.ts` (create, update, delete, toggle status)
-- Script auxiliar: `npm run seed:members`
+### Arquitetura server + client
+
+```txt
+members/page.tsx
+  └─ MembersContent.tsx (RSC)
+       ├─ getMembersAction()          → ActionResult<ManagedMember[]>
+       └─ MembersContentClient.tsx (client)
+            ├─ useMembersManagement.ts → estado, toggle, delete, form
+            ├─ Table + GlobalFilters
+            ├─ MemberRegistrationForm  → createMemberAction / updateMemberAction
+            ├─ RowActionsMenu          → menu ⋮ por linha
+            └─ ConfirmRemoveDialog     → deleteMemberAction
+```
+
+### Server Actions (`members/actions.ts`)
+
+Todas retornam `ActionResult<T>` com `try/catch` e validação Zod (`member.schema.ts`):
+
+- `getMembersAction()` → `ActionResult<ManagedMember[]>`
+- `createMemberAction(formValues)` → `ActionResult<ManagedMember>`
+- `updateMemberAction(id, formValues)` → `ActionResult<ManagedMember>`
+- `updateMemberStatusAction(id, isActive)` → `ActionResult<ManagedMember>`
+- `deleteMemberAction(id)` → `ActionResult`
+
+Script auxiliar para popular dados: `npm run seed:members`
 
 ### Filtros da tabela (`GlobalFilters`)
 
@@ -371,7 +520,7 @@ Grid `md:grid-cols-2`:
 
 ## Componentes Compartilhados
 
-### `Table<T>` (`common/table/table.tsx`)
+### `Table<T>` (`common/table/Table.tsx`)
 
 Componente principal de listagem. Estrutura em **dois blocos**:
 
@@ -421,7 +570,7 @@ const filters: TableFilterDefinition<ManagedMember>[] = [
 
 **Subcomponentes:** `TableHead`, `TableFooter`, `TableColGroup`, `GlobalFilters`
 
-### `GlobalFilters<T>` (`common/table/global-filters.tsx`)
+### `GlobalFilters<T>` (`common/table/GlobalFilters.tsx`)
 
 Barra de filtros **colapsável** (estado inicial: fechada), renderizada **acima** do `GlassPanel` da tabela.
 
@@ -432,7 +581,19 @@ Barra de filtros **colapsável** (estado inicial: fechada), renderizada **acima*
 
 Tipos em `global-filters.types.ts`.
 
-### `DatePicker` (`common/date-picker/date-picker.tsx`)
+### `RowActionsMenu` (`common/menu/RowActionsMenu.tsx`)
+
+Menu dropdown de ações por linha (ícone ⋮). Reutilizado em `/members` e `/users`.
+
+### `ConfirmRemoveDialog` (`common/modal/ConfirmRemoveDialog.tsx`)
+
+Modal de confirmação de remoção com `GlassPanel elevation="modal"`. Props: `title`, `subjectName`, `pending`, `onConfirm`, `onCancel`.
+
+### `InlineAlert` (`common/feedback/InlineAlert.tsx`)
+
+Banner de erro/aviso reutilizável (`role="alert"`, estilo orange). Usado em formulários e listagens.
+
+### `DatePicker` (`common/date-picker/DatePicker.tsx`)
 
 Seletor de data com aparência de input pill:
 
@@ -461,7 +622,7 @@ Barrel: `common/form/index.ts`
 
 Tokens compartilhados: `form.styles.ts` (`inputToneClasses`, `inputSizeClasses`, etc.)
 
-### `GlassButton` (`common/button/glass-button.tsx`)
+### `GlassButton` (`common/button/GlassButton.tsx`)
 
 Botão **somente vidro** — sem fill colorido/sólido:
 
@@ -470,7 +631,7 @@ Botão **somente vidro** — sem fill colorido/sólido:
 - Props: `loading`, `fullWidth`, `leftIcon`, `rightIcon`, `href` (link)
 - Inner: `text-white` + `hover:bg-white/8`
 
-### `GlassPanel` (`common/glass-panel/glass-panel.tsx`)
+### `GlassPanel` (`common/glass-panel/GlassPanel.tsx`)
 
 Ver seção Glassmorphism abaixo.
 
@@ -560,7 +721,7 @@ Status: **componente pronto, não renderizado**. Ao reativar, usar `elevation="f
 
 ## Glassmorphism — Liquid Glass (visionOS)
 
-Componente base: `src/components/common/glass-panel/glass-panel.tsx`
+Componente base: `src/components/common/glass-panel/GlassPanel.tsx`
 
 ### Props
 
@@ -606,17 +767,30 @@ Quando o menu expande **empurrando** itens da sidebar (sem overlay absoluto):
 
 | Hook | Arquivo | Uso |
 |---|---|---|
-| `useHydrated` | `use-hydrated.ts` | `useSyncExternalStore` — false no SSR, true no client |
-| `useLocalWeather` | `use-local-weather.ts` | GPS → IP → São Paulo; Open-Meteo; refresh 30min |
-| `usePrefersReducedMotion` | `use-prefers-reduced-motion.ts` | disponível, não integrado na hero |
+| `useHydrated` | `useHydrated.ts` | `useSyncExternalStore` — false no SSR, true no client |
+| `useLocalWeather` | `useLocalWeather.ts` | GPS → IP → São Paulo; Open-Meteo; refresh 30min |
+| `usePrefersReducedMotion` | `usePrefersReducedMotion.ts` | disponível, não integrado na hero |
+| `useMembersManagement` | `members/useMembersManagement.ts` | estado CRUD de alunos (client) |
+| `useUsersManagement` | `users/useUsersManagement.ts` | estado CRUD de usuários (client) |
+| `useLoginForm` | `auth/useLoginForm.ts` | autenticação client com Zod |
 
-## Dados Mockados
+## Dados Mockados (Escopo Limitado)
 
-Arquivo: `src/components/landing/hero/data/heroScene.mock.ts`
+O projeto **prioriza integração real com API**. Mocks permanecem apenas em:
 
-Usado por: background, painéis laterais legados, componentes hero.
+| Área | Arquivo | Escopo |
+|---|---|---|
+| Hero scene (legado) | `landing/hero/data/hero-scene.mock.ts` | background, painéis laterais, profile mock |
+| Dashboard KPIs | componentes em `dashboard/*` | `MembersTable`, `MetricCards`, `RevenueAnalytics`, etc. |
 
-**Dashboard** usa mocks locais em `MembersTable`. **Members** lê/escreve em Supabase. **Users** lê do Supabase Auth.
+**Rotas com dados reais (Supabase):**
+
+| Rota | Fonte |
+|---|---|
+| `/members` | `public.members` via Server Actions |
+| `/users` | Supabase Auth via Admin API |
+| `/login` | Supabase Auth (signInWithPassword) |
+| `/dashboard` (nome) | `user.user_metadata` via `getUser()` |
 
 ## Direção Visual Obrigatória
 
@@ -645,12 +819,28 @@ Evitar:
 
 ## Checklist Para Futuras Alterações
 
+### Design System
+
 - [ ] Tabelas usam `Table` + `GlobalFilters` (não glass manual no container)?
 - [ ] Filtros `select`/`date` têm `match(row)` correto?
 - [ ] Cards internos usam `<GlassPanel>` (não glass manual)?
 - [ ] Modais/dropdowns usam `elevation="floating"` ou `"modal"`?
 - [ ] Iluminação `before:`/`after:` preservada?
+- [ ] Menus de ação usam `<RowActionsMenu>` (não duplicar dropdown)?
+- [ ] Confirmações de remoção usam `<ConfirmRemoveDialog>`?
+
+### Arquitetura e Código
+
+- [ ] Identificadores em inglês, UI/erros em pt-BR?
+- [ ] Nomenclatura de arquivos correta (PascalCase componentes, camelCase hooks, kebab-case lib)?
+- [ ] Lógica de negócio extraída para Custom Hook ou Server Action (não no componente UI)?
+- [ ] Server Actions com `try/catch`, Zod e `ActionResult<T>`?
+- [ ] Zero `any` — tipagem estrita?
+- [ ] Early returns em validações e guards?
 - [ ] Nova rota adicionada em `app-nav.config.ts`?
+
+### Supabase e Deploy
+
 - [ ] CRUD admin usa `createAdminClient()` + service role (nunca `signUp` client)?
 - [ ] Nome/role gravados em `user_metadata.name` / `user_metadata.role`?
 - [ ] Mobile: scroll só no painel glass?
@@ -670,15 +860,23 @@ Arquitetura:
 - Auth: src/proxy.ts + lib/supabase/middleware.ts + LoginForm + user_metadata (name, role)
 - Shell mobile: MobilePageWrapper | desktop: DesktopAppShell
 - Painel central: CenterPanelShell (scroll interno)
-- Dashboard: src/components/dashboard/* (GlassPanel em todos os cards)
-- Usuários: /users (Super Admin) — Supabase Admin API
-- Alunos: /members — Supabase public.members + members/actions.ts
-- Tabela: src/components/common/table/table.tsx
+- Dashboard: src/components/dashboard/* (GlassPanel em todos os cards; KPIs mock)
+- Usuários: /users (Super Admin) — Supabase Admin API + useUsersManagement
+- Alunos: /members — Supabase public.members + useMembersManagement
+- Server Actions: ActionResult<T> (lib/action-result.ts) + Zod (*.schema.ts)
+- Tabela: src/components/common/table/Table.tsx
 - Filtros: GlobalFilters (colapsável, acima do GlassPanel) + DatePicker
 - Formulários: common/form/index.ts (GlassInput, GlassSelect, botões...)
-- Glass: src/components/common/glass-panel/glass-panel.tsx
+- UI compartilhada: RowActionsMenu, ConfirmRemoveDialog, InlineAlert
+- Glass: src/components/common/glass-panel/GlassPanel.tsx
 - Nav: src/config/app-nav.config.ts + NavUserMenu (logout)
-- Clima header: use-local-weather.ts + HeaderDateWeather.tsx
+- Clima header: useLocalWeather.ts + HeaderDateWeather.tsx
+
+Regras de código:
+- Identificadores em inglês; UI e erros em pt-BR
+- Componentes PascalCase, hooks useCamelCase, lib kebab-case
+- SoC: UI → hooks → Server Actions (sem lógica complexa em componentes)
+- Early returns, tipagem estrita (zero any), ActionResult padronizado
 
 Regras glass:
 - NUNCA backdrop-blur manual nos cards internos

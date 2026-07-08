@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "seed:members": "node scripts/seed-members.mjs"
+    "seed:members": "node scripts/seed-members.mjs",
+    "seed:test-flow": "node scripts/seed-test-flow.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",

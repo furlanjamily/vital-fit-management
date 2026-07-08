@@ -17,7 +17,25 @@ export type MemberRow = {
   plan: MemberPlan | null;
   status: boolean;
   avatar_url: string | null;
+  professional_id: string | null;
   created_at: string;
+};
+
+export type MemberFormValues = {
+  name: string;
+  email: string;
+  cpf: string;
+  birthDate: string;
+  origin: EnrollmentOrigin;
+  plan: MemberPlan;
+  status: MemberStatus;
+  avatarUrl: string | null;
+  professionalId: string | null;
+};
+
+export type ProfessionalOption = {
+  id: string;
+  name: string;
 };
 
 /** Modelo de domínio usado pela UI (Table, formulário). */
@@ -31,17 +49,8 @@ export type ManagedMember = {
   plan: MemberPlan;
   status: MemberStatus;
   avatarUrl: string | null;
-};
-
-export type MemberFormValues = {
-  name: string;
-  email: string;
-  cpf: string;
-  birthDate: string;
-  origin: EnrollmentOrigin;
-  plan: MemberPlan;
-  status: MemberStatus;
-  avatarUrl: string | null;
+  professionalId: string | null;
+  professionalName: string | null;
 };
 
 export const originLabels: Record<EnrollmentOrigin, string> = {
@@ -60,6 +69,10 @@ export const statusLabels: Record<MemberStatus, string> = {
   active: "Ativo",
   inactive: "Inativo",
 };
+
+export const UNASSIGNED_PROFESSIONAL_VALUE = "";
+
+export const unassignedProfessionalLabel = "Sem professor vinculado";
 
 export const originOptions = ENROLLMENT_ORIGINS.map((value) => ({
   value,

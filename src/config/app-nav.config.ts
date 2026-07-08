@@ -27,6 +27,7 @@ export const mainNavItems: AppNavItem[] = [
   { icon: UsersRound, label: "Community", href: "/community", badge: "3" },
   { icon: LineChart, label: "Analytics", href: "/analytics" },
   { icon: UsersRound, label: "Alunos", href: "/members" },
+  { icon: UsersRound, label: "Profissionais", href: "/professionals" },
 ];
 
 export const classNavItems: ClassNavItem[] = [

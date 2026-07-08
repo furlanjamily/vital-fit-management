@@ -13,6 +13,7 @@ import type {
   ManagedMember,
   MemberFormValues,
   MemberRow,
+  ProfessionalOption,
 } from "@/components/members/members.types";
 import {
   actionFailure,
@@ -25,13 +26,20 @@ import { createClient } from "@/lib/supabase/server";
 
 const MEMBERS_PATH = "/members";
 const MEMBERS_TABLE = "members";
+const PROFESSIONALS_TABLE = "professionals";
+
+const MEMBERS_SELECT_WITH_PROFESSIONAL = "*, professionals(id, full_name)" as const;
 
 const SESSION_EXPIRED_MESSAGE = "Sessão expirada. Faça login novamente.";
 const INVALID_MEMBER_ID_MESSAGE = "ID de aluno inválido.";
 const MISSING_MEMBERS_TABLE_MESSAGE =
   "Tabela members não existe. Abra o SQL Editor do Supabase e execute o arquivo supabase/members.sql.";
 
-function mapRowToManaged(row: MemberRow): ManagedMember {
+type MemberRowWithProfessional = MemberRow & {
+  professionals: { id: string; full_name: string } | null;
+};
+
+function mapRowToManaged(row: MemberRowWithProfessional): ManagedMember {
   return {
     id: row.id,
     name: row.full_name,
@@ -42,6 +50,8 @@ function mapRowToManaged(row: MemberRow): ManagedMember {
     plan: row.plan ?? "MENSAL_BASE",
     status: row.status ? "active" : "inactive",
     avatarUrl: row.avatar_url,
+    professionalId: row.professional_id,
+    professionalName: row.professionals?.full_name ?? null,
   };
 }
 
@@ -55,6 +65,7 @@ function toMemberRowPayload(values: ValidatedMemberForm) {
     plan: values.plan,
     status: values.status === "active",
     avatar_url: values.avatarUrl,
+    professional_id: values.professionalId,
   };
 }
 
@@ -101,14 +112,40 @@ export async function getMembersAction(): Promise<ActionResult<ManagedMember[]>>
 
     const { data, error } = await session.supabase
       .from(MEMBERS_TABLE)
-      .select("*")
+      .select(MEMBERS_SELECT_WITH_PROFESSIONAL)
       .order("created_at", { ascending: false });
 
     if (error) return actionFailure(mapDatabaseError(error.message));
 
-    return actionSuccess((data as MemberRow[]).map(mapRowToManaged));
+    return actionSuccess((data as MemberRowWithProfessional[]).map(mapRowToManaged));
   } catch (error) {
     return actionFailure(toActionError(error, "Erro ao buscar alunos."));
+  }
+}
+
+export async function getActiveProfessionalsOptionsAction(): Promise<
+  ActionResult<ProfessionalOption[]>
+> {
+  try {
+    const session = await requireAuthenticatedClient();
+    if (!session.authenticated) return actionFailure(session.error);
+
+    const { data, error } = await session.supabase
+      .from(PROFESSIONALS_TABLE)
+      .select("id, full_name")
+      .eq("status", true)
+      .order("full_name", { ascending: true });
+
+    if (error) return actionFailure(error.message);
+
+    return actionSuccess(
+      (data ?? []).map((row) => ({
+        id: row.id,
+        name: row.full_name,
+      })),
+    );
+  } catch (error) {
+    return actionFailure(toActionError(error, "Erro ao buscar profissionais."));
   }
 }
 
@@ -125,7 +162,7 @@ export async function createMemberAction(
     const { data: row, error } = await session.supabase
       .from(MEMBERS_TABLE)
       .insert(toMemberRowPayload(parsed.data))
-      .select("*")
+      .select(MEMBERS_SELECT_WITH_PROFESSIONAL)
       .single();
 
     if (error || !row) {
@@ -136,7 +173,7 @@ export async function createMemberAction(
 
     revalidatePath(MEMBERS_PATH);
 
-    return actionSuccess(mapRowToManaged(row as MemberRow));
+    return actionSuccess(mapRowToManaged(row as MemberRowWithProfessional));
   } catch (error) {
     return actionFailure(toActionError(error, "Erro ao cadastrar aluno."));
   }
@@ -159,7 +196,7 @@ export async function updateMemberAction(
       .from(MEMBERS_TABLE)
       .update(toMemberRowPayload(parsed.data))
       .eq("id", id)
-      .select("*")
+      .select(MEMBERS_SELECT_WITH_PROFESSIONAL)
       .single();
 
     if (error || !row) {
@@ -170,7 +207,7 @@ export async function updateMemberAction(
 
     revalidatePath(MEMBERS_PATH);
 
-    return actionSuccess(mapRowToManaged(row as MemberRow));
+    return actionSuccess(mapRowToManaged(row as MemberRowWithProfessional));
   } catch (error) {
     return actionFailure(toActionError(error, "Erro ao atualizar aluno."));
   }
@@ -190,7 +227,7 @@ export async function updateMemberStatusAction(
       .from(MEMBERS_TABLE)
       .update({ status: isActive })
       .eq("id", id)
-      .select("*")
+      .select(MEMBERS_SELECT_WITH_PROFESSIONAL)
       .single();
 
     if (error || !row) {
@@ -199,7 +236,7 @@ export async function updateMemberStatusAction(
 
     revalidatePath(MEMBERS_PATH);
 
-    return actionSuccess(mapRowToManaged(row as MemberRow));
+    return actionSuccess(mapRowToManaged(row as MemberRowWithProfessional));
   } catch (error) {
     return actionFailure(toActionError(error, "Erro ao alterar status."));
   }

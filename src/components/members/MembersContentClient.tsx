@@ -17,7 +17,10 @@ import {
   originLabels,
   planLabels,
   statusLabels,
+  UNASSIGNED_PROFESSIONAL_VALUE,
+  unassignedProfessionalLabel,
   type ManagedMember,
+  type ProfessionalOption,
 } from "@/components/members/members.types";
 import { useMembersManagement } from "@/components/members/useMembersManagement";
 import { UserAvatar } from "@/components/users/UserAvatar";
@@ -25,32 +28,50 @@ import { cn } from "@/lib/cn";
 
 type MembersContentClientProps = {
   initialMembers: ManagedMember[];
+  professionalOptions: ProfessionalOption[];
   loadError?: string | null;
 };
 
-const memberFilters: TableFilterDefinition<ManagedMember>[] = [
-  {
-    type: "text",
-    key: "search",
-    placeholder: "Buscar por nome, e-mail, CPF...",
-  },
-  {
-    type: "select",
-    key: "status",
-    placeholder: "Status",
-    options: [
-      { value: "active", label: statusLabels.active },
-      { value: "inactive", label: statusLabels.inactive },
-    ],
-    match: (member) => member.status,
-  },
-  {
-    type: "date",
-    key: "birthDate",
-    placeholder: "dd / mm / aaaa",
-    match: (member) => parseBirthDateToIso(member.birthDate) ?? "",
-  },
-];
+function buildMemberFilters(
+  professionalOptions: ProfessionalOption[],
+): TableFilterDefinition<ManagedMember>[] {
+  return [
+    {
+      type: "text",
+      key: "search",
+      placeholder: "Buscar por nome, e-mail, CPF...",
+    },
+    {
+      type: "select",
+      key: "status",
+      placeholder: "Status",
+      options: [
+        { value: "active", label: statusLabels.active },
+        { value: "inactive", label: statusLabels.inactive },
+      ],
+      match: (member) => member.status,
+    },
+    {
+      type: "select",
+      key: "professionalId",
+      placeholder: "Personal Trainer",
+      options: [
+        { value: UNASSIGNED_PROFESSIONAL_VALUE, label: unassignedProfessionalLabel },
+        ...professionalOptions.map((professional) => ({
+          value: professional.id,
+          label: professional.name,
+        })),
+      ],
+      match: (member) => member.professionalId ?? UNASSIGNED_PROFESSIONAL_VALUE,
+    },
+    {
+      type: "date",
+      key: "birthDate",
+      placeholder: "dd / mm / aaaa",
+      match: (member) => parseBirthDateToIso(member.birthDate) ?? "",
+    },
+  ];
+}
 
 function MemberIdentityCell({ member }: { member: ManagedMember }) {
   return (
@@ -89,8 +110,17 @@ function MemberStatusBadge({ status }: { status: ManagedMember["status"] }) {
   );
 }
 
+function ProfessionalTrainerCell({ member }: { member: ManagedMember }) {
+  if (!member.professionalName) {
+    return <span className="text-white/48">Não atribuído</span>;
+  }
+
+  return <span className="text-white/75">{member.professionalName}</span>;
+}
+
 export function MembersContentClient({
   initialMembers,
+  professionalOptions,
   loadError = null,
 }: MembersContentClientProps) {
   const {
@@ -109,6 +139,8 @@ export function MembersContentClient({
     requestRemove,
     cancelRemove,
   } = useMembersManagement(initialMembers);
+
+  const memberFilters = buildMemberFilters(professionalOptions);
 
   function buildRowActions(member: ManagedMember): RowAction[] {
     const isActive = member.status === "active";
@@ -133,21 +165,28 @@ export function MembersContentClient({
     {
       key: "name",
       header: "Aluno",
-      width: "28%",
+      width: "24%",
       searchValue: (member) => `${member.name} ${member.email} ${member.cpf}`,
       render: (member) => <MemberIdentityCell member={member} />,
     },
     {
       key: "cpf",
       header: "CPF",
-      width: "15%",
+      width: "13%",
       searchValue: (member) => member.cpf,
       render: (member) => member.cpf,
     },
     {
+      key: "professional",
+      header: "Personal Trainer",
+      width: "16%",
+      searchValue: (member) => member.professionalName ?? "",
+      render: (member) => <ProfessionalTrainerCell member={member} />,
+    },
+    {
       key: "origin",
       header: "Origem",
-      width: "18%",
+      width: "14%",
       searchValue: (member) => originLabels[member.origin],
       render: (member) => (
         <span className="inline-flex rounded-full border border-white/14 bg-white/8 px-2.5 py-1 text-[10px] font-medium text-white/65">
@@ -158,14 +197,14 @@ export function MembersContentClient({
     {
       key: "plan",
       header: "Plano",
-      width: "16%",
+      width: "13%",
       searchValue: (member) => planLabels[member.plan],
       render: (member) => planLabels[member.plan],
     },
     {
       key: "status",
       header: "Status",
-      width: "14%",
+      width: "12%",
       searchValue: (member) => statusLabels[member.status],
       render: (member) => <MemberStatusBadge status={member.status} />,
     },
@@ -226,6 +265,7 @@ export function MembersContentClient({
           <MemberRegistrationForm
             key={editingMember?.id ?? "new"}
             editingMember={editingMember}
+            professionalOptions={professionalOptions}
             onSuccess={handleFormSuccess}
             onCancel={closeForm}
           />

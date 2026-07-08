@@ -2,20 +2,20 @@
 
 import { useState, useTransition, type FormEvent } from "react";
 import {
-  Activity,
   Calendar,
-  CreditCard,
-  Dumbbell,
+  Clock,
+  IdCard,
   Loader2,
   Mail,
   User,
   UserPlus,
+  Users,
   X,
 } from "lucide-react";
 import {
-  createMemberAction,
-  updateMemberAction,
-} from "@/app/(app)/members/actions";
+  createProfessionalAction,
+  updateProfessionalAction,
+} from "@/app/(app)/professionals/actions";
 import { InlineAlert } from "@/components/common/feedback/InlineAlert";
 import {
   AvatarUploadTrigger,
@@ -26,87 +26,61 @@ import {
   IconButton,
 } from "@/components/common/form";
 import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
-import { formatBirthDate, formatCpf } from "@/components/members/member.helpers";
 import {
-  originOptions,
-  planOptions,
-  unassignedProfessionalLabel,
-  UNASSIGNED_PROFESSIONAL_VALUE,
-  type ManagedMember,
-  type MemberFormValues,
-  type ProfessionalOption,
-} from "@/components/members/members.types";
+  formatBirthDate,
+  formatCref,
+} from "@/components/professionals/professional.helpers";
+import {
+  genderOptions,
+  shiftOptions,
+  type ManagedProfessional,
+  type ProfessionalFormValues,
+} from "@/components/professionals/professionals.types";
 
-const EMPTY_VALUES: MemberFormValues = {
+const EMPTY_VALUES: ProfessionalFormValues = {
   name: "",
   email: "",
-  cpf: "",
+  cref: "",
   birthDate: "",
-  origin: "ACADEMIA",
-  plan: "MENSAL_BASE",
+  gender: "Male",
+  shift: "Morning",
   status: "active",
   avatarUrl: null,
-  professionalId: null,
 };
 
-function buildInitialValues(editingMember: ManagedMember | null): MemberFormValues {
-  if (!editingMember) return EMPTY_VALUES;
+function buildInitialValues(
+  editingProfessional: ManagedProfessional | null,
+): ProfessionalFormValues {
+  if (!editingProfessional) return EMPTY_VALUES;
 
-  const { name, email, cpf, birthDate, origin, plan, status, avatarUrl, professionalId } =
-    editingMember;
-  return { name, email, cpf, birthDate, origin, plan, status, avatarUrl, professionalId };
+  const { name, email, cref, birthDate, gender, shift, status, avatarUrl } =
+    editingProfessional;
+
+  return { name, email, cref, birthDate, gender, shift, status, avatarUrl };
 }
 
-function buildProfessionalSelectOptions(
-  professionalOptions: ProfessionalOption[],
-  editingMember: ManagedMember | null,
-) {
-  const options = [
-    { value: UNASSIGNED_PROFESSIONAL_VALUE, label: unassignedProfessionalLabel },
-    ...professionalOptions.map((professional) => ({
-      value: professional.id,
-      label: professional.name,
-    })),
-  ];
-
-  const currentId = editingMember?.professionalId;
-  const isCurrentMissing =
-    currentId && !professionalOptions.some((professional) => professional.id === currentId);
-
-  if (isCurrentMissing && currentId) {
-    options.push({
-      value: currentId,
-      label: editingMember?.professionalName ?? "Profissional inativo",
-    });
-  }
-
-  return options;
-}
-
-type MemberRegistrationFormProps = {
-  editingMember: ManagedMember | null;
-  professionalOptions: ProfessionalOption[];
-  onSuccess: (member: ManagedMember) => void;
+type ProfessionalRegistrationFormProps = {
+  editingProfessional: ManagedProfessional | null;
+  onSuccess: (professional: ManagedProfessional) => void;
   onCancel: () => void;
 };
 
-export function MemberRegistrationForm({
-  editingMember,
-  professionalOptions,
+export function ProfessionalRegistrationForm({
+  editingProfessional,
   onSuccess,
   onCancel,
-}: MemberRegistrationFormProps) {
-  const [values, setValues] = useState<MemberFormValues>(() =>
-    buildInitialValues(editingMember),
+}: ProfessionalRegistrationFormProps) {
+  const [values, setValues] = useState<ProfessionalFormValues>(() =>
+    buildInitialValues(editingProfessional),
   );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  const isEditing = editingMember !== null;
+  const isEditing = editingProfessional !== null;
 
-  function setField<K extends keyof MemberFormValues>(
+  function setField<K extends keyof ProfessionalFormValues>(
     field: K,
-    value: MemberFormValues[K],
+    value: ProfessionalFormValues[K],
   ) {
     setValues((prev) => ({ ...prev, [field]: value }));
   }
@@ -120,8 +94,8 @@ export function MemberRegistrationForm({
       setErrorMessage(null);
 
       const result = isEditing
-        ? await updateMemberAction(editingMember.id, values)
-        : await createMemberAction(values);
+        ? await updateProfessionalAction(editingProfessional.id, values)
+        : await createProfessionalAction(values);
 
       if (!result.success) {
         setErrorMessage(result.error);
@@ -142,12 +116,12 @@ export function MemberRegistrationForm({
       <div className="mb-5 flex items-center justify-between">
         <div>
           <p className="text-sm font-semibold text-white">
-            {isEditing ? "Editar aluno" : "Cadastrar aluno"}
+            {isEditing ? "Editar profissional" : "Cadastrar profissional"}
           </p>
           <p className="mt-1 text-[11px] text-white/48">
             {isEditing
-              ? `Alterando matrícula de ${editingMember.name}`
-              : "Nova matrícula na academia"}
+              ? `Alterando cadastro de ${editingProfessional.name}`
+              : "Novo personal trainer na academia"}
           </p>
         </div>
 
@@ -190,12 +164,11 @@ export function MemberRegistrationForm({
           />
 
           <GlassInput
-            leftIcon={CreditCard}
-            inputMode="numeric"
-            value={values.cpf}
-            onChange={(event) => setField("cpf", formatCpf(event.target.value))}
-            placeholder="CPF (000.000.000-00)"
-            maxLength={14}
+            leftIcon={IdCard}
+            value={values.cref}
+            onChange={(event) => setField("cref", formatCref(event.target.value))}
+            placeholder="CREF (123456-G/SP)"
+            maxLength={12}
           />
 
           <GlassInput
@@ -208,49 +181,31 @@ export function MemberRegistrationForm({
           />
 
           <GlassSelect
-            leftIcon={Activity}
-            options={originOptions}
-            value={values.origin}
+            leftIcon={Users}
+            options={genderOptions}
+            value={values.gender}
             onChange={(event) =>
-              setField("origin", event.target.value as MemberFormValues["origin"])
+              setField("gender", event.target.value as ProfessionalFormValues["gender"])
             }
             wrapperClassName="z-20"
           />
 
           <GlassSelect
-            leftIcon={Activity}
-            options={planOptions}
-            value={values.plan}
+            leftIcon={Clock}
+            options={shiftOptions}
+            value={values.shift}
             onChange={(event) =>
-              setField("plan", event.target.value as MemberFormValues["plan"])
+              setField("shift", event.target.value as ProfessionalFormValues["shift"])
             }
             wrapperClassName="z-20"
           />
-
-          <div className="md:col-span-2">
-            <p className="mb-2 text-[11px] font-medium text-white/55">
-              Personal Trainer Responsável
-            </p>
-            <GlassSelect
-              leftIcon={Dumbbell}
-              options={buildProfessionalSelectOptions(professionalOptions, editingMember)}
-              value={values.professionalId ?? UNASSIGNED_PROFESSIONAL_VALUE}
-              onChange={(event) =>
-                setField(
-                  "professionalId",
-                  event.target.value ? event.target.value : null,
-                )
-              }
-              wrapperClassName="z-20"
-            />
-          </div>
         </div>
 
         <div className="flex items-center justify-between rounded-xl border border-white/14 bg-white/5 px-4 py-3">
           <div>
-            <p className="text-sm font-medium text-white">Status do aluno</p>
+            <p className="text-sm font-medium text-white">Status do profissional</p>
             <p className="text-[11px] text-white/40">
-              {values.status === "active" ? "Matrícula ativa" : "Matrícula inativa"}
+              {values.status === "active" ? "Profissional ativo" : "Profissional inativo"}
             </p>
           </div>
 
@@ -278,7 +233,7 @@ export function MemberRegistrationForm({
               ? "Salvando..."
               : isEditing
                 ? "Salvar alterações"
-                : "Cadastrar aluno"}
+                : "Cadastrar profissional"}
           </GlassButton>
         </div>
       </form>

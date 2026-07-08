@@ -44,7 +44,7 @@ export function LeftSidebarPanel() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center justify-between rounded-2xl px-2 py-2.5 text-xs font-medium text-white/42 transition",
+                  "flex items-center justify-between rounded-2xl px-2 py-2.5 text-xs font-semibold text-white/72 transition hover:bg-white/8",
                   active && "bg-white/8 text-white",
                 )}
               >
@@ -62,8 +62,8 @@ export function LeftSidebarPanel() {
           })}
         </nav>
 
-        <div className="mt-9 shrink-0">
-          <p className="mb-4 text-xs font-semibold text-white/72">Classes</p>
+        <div className="mt-3 shrink-0">
+          <p className="mb-3 text-xs font-semibold text-white/72">Classes</p>
           <div className="grid gap-2">
             {classNavItems.map((item) => {
               const active = isNavActive(pathname, item.href);
@@ -94,7 +94,7 @@ export function LeftSidebarPanel() {
           </GhostButton>
         </div>
 
-        <div className="mt-auto grid shrink-0 gap-2 pt-10">
+        <div className="mt-auto grid shrink-0 gap-2">
           {utilityNavItems.map((item) => {
             const active = isNavActive(pathname, item.href);
 
