@@ -218,8 +218,8 @@ export function ProfessionalsContentClient({
 
         <GlassButton
           variant="subtle"
-          size="md"
-          rightIcon={<UserPlus className="size-4" />}
+          size="sm"
+          rightIcon={<UserPlus className="size-3" />}
           onClick={openCreateForm}
         >
           Novo Profissional

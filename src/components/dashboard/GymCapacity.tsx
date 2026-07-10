@@ -25,7 +25,7 @@ export function GymCapacity() {
       variant="subtle"
       intensity="low"
       elevation="floating"
-      className="rounded-2xl p-5"
+      className="h-full rounded-2xl p-5"
     >
       <div className="mb-4 flex items-start justify-between">
         <div>
@@ -41,7 +41,7 @@ export function GymCapacity() {
       </div>
 
       <div
-        className="grid gap-[5px]"
+        className="h-full grid gap-[5px]"
         style={{ gridTemplateColumns: `repeat(${COLS}, minmax(0, 1fr))` }}
       >
         {Array.from({ length: ROWS * COLS }, (_, index) => {

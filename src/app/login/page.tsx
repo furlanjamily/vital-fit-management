@@ -22,12 +22,12 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const { next } = await searchParams;
 
   return (
-    <main className="flex h-dvh min-h-full w-full flex-col items-center justify-center overflow-hidden">
+    <main className="flex h-dvh min-h-full w-full flex-col items-center justify-center overflow-hidden p-4">
       <GlassPanel
         variant="hero"
         intensity="high"
         elevation="base"
-        className="relative z-10 max-w-md rounded-[2rem]  shadow-[0_48px_150px_rgba(32,22,14,0.38)] sm:p-10"
+        className="relative z-10 max-w-sm sm:max-w-md lg:max-w-lg  rounded-[2rem]  shadow-[0_48px_150px_rgba(32,22,14,0.38)] p-10"
       >
         <header className="mb-8 text-center">
           <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.28em] text-white/42">

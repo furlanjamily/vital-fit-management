@@ -9,7 +9,7 @@ export function BusinessHeader() {
       </h2>
 
       <div className="flex flex-col gap-2.5">
-        <GlassButton variant="subtle" size="md" leftIcon={<Plus className="size-4" />}>
+        <GlassButton variant="subtle" size="sm" leftIcon={<Plus className="size-3" />}>
           Novo Aluno
         </GlassButton>
       </div>

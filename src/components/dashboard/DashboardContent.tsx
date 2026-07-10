@@ -7,6 +7,10 @@ import { HeaderDateWeather } from "@/components/dashboard/HeaderDateWeather";
 import { MembersTable } from "@/components/dashboard/MembersTable";
 import { MetricCards } from "@/components/dashboard/MetricCards";
 import { RevenueAnalytics } from "@/components/dashboard/RevenueAnalytics";
+import { MemberActivityExact } from "@/components/dashboard/MemberActivityExact";
+import { RevenueOverviewExact } from "@/components/dashboard/RevenueOverviewExact";
+import { StatsOverviewExact } from "@/components/dashboard/StatsOverviewExact";
+import { WorkoutScheduleExact } from "@/components/dashboard/WorkoutScheduleExact";
 import { TrainerCards } from "@/components/dashboard/TrainerCards";
 
 const DEFAULT_USER_NAME = "User";
@@ -43,7 +47,26 @@ export function DashboardContent({ userName }: DashboardContentProps) {
         </div>
       </div>
 
-      <div className="grid w-full grid-cols-1 gap-6 lg:grid-cols-12">
+      <RevenueOverviewExact />
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <StatsOverviewExact />
+        <MemberActivityExact />
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-10">
+        <div className="lg:col-span-7">
+          <WorkoutScheduleExact />
+        </div>
+        <div className="lg:col-span-3">
+          <GymCapacity />
+        </div>
+      </div>
+
+      <FavouritedWorkout />
+
+
+      {/* <div className="grid w-full grid-cols-1 gap-6 lg:grid-cols-12">
         <div className="flex flex-col gap-6 lg:col-span-3">
           <BusinessHeader />
           <GymCapacity />
@@ -65,11 +88,11 @@ export function DashboardContent({ userName }: DashboardContentProps) {
             <FavouritedWorkout />
           </div>
         </div>
-      </div>
+      </div> */}
 
-      <div className="w-full grid-cols-1 gap-6">
+      {/* <div className="w-full grid-cols-1 gap-6">
         <MembersTable />
-      </div>
+      </div> */}
     </div>
   );
 }
