@@ -1,0 +1,42 @@
+---
+description: VitalFit brand colors — orange/amber palette for dashboards and UI
+alwaysApply: true
+---
+
+# VitalFit Design System — Cores
+
+## Paleta da Marca (Obrigatória)
+
+Toda cor de destaque, botão, gráfico e navbar usa tons laranja/âmbar da landing VitalFit.
+
+| Papel | Tons |
+|-------|------|
+| Primary | `#FF7A00` / `orange-500` → `orange-600` |
+| Secondary | `#FFB300` / `amber-500` |
+| Deep accent | `#FF4D3D` / `orange-700` |
+| Highlight | `#FFF2AF` / gold |
+
+Tokens centralizados em `src/config/brand-colors.ts`.
+
+## Botões e CTAs
+
+Sempre degradê laranja:
+```tsx
+className="bg-gradient-to-r from-orange-500 to-orange-600"
+// ou
+className="bg-[linear-gradient(90deg,#FF7A4A_0%,#FF4D3D_100%)]"
+```
+
+## Navbar
+
+- Glow laranja à esquerda (`#fff3dc`, `orange-500`)
+- Item ativo: `shadow-[inset_3px_0_0_0_#F97316]`
+- Badges: gradiente `from-orange-500 to-orange-600`
+
+## Dashboards (`/dashboard`, `/finance`)
+
+Gráficos, highlights e badges seguem a mesma paleta laranja/âmbar — nunca roxo/rosa/ciano como destaque principal.
+
+## Alertas
+
+Use `#FF5E4A` ou `red-500` para erros/perdas — não roxo.

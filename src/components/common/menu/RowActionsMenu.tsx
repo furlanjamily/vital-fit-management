@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { MoreVertical, type LucideIcon } from "lucide-react";
 import { GhostButton, IconButton } from "@/components/common/form";
 import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
+import { glassText } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
 
 export type RowAction = {
@@ -20,8 +21,11 @@ type RowActionsMenuProps = {
 };
 
 const ACTION_TONE_CLASSES: Record<NonNullable<RowAction["tone"]>, string> = {
-  default: "text-white/75 hover:text-white",
-  danger: "text-red-300/85 hover:text-red-200",
+  default: cn(
+    glassText.primaryElevated,
+    "hover:bg-white/10 hover:text-glass-primary",
+  ),
+  danger: "text-red-300 hover:bg-red-500/12 hover:text-red-200",
 };
 
 export function RowActionsMenu({
@@ -55,7 +59,9 @@ export function RowActionsMenu({
       <IconButton
         aria-label={ariaLabel}
         disabled={disabled}
-        className="bg-white/7 text-white/70 hover:bg-white/13 hover:text-white"
+        className={cn(
+          "bg-white/7 text-glass-secondary hover:bg-white/13 hover:text-glass-primary",
+        )}
         onClick={() => setOpen((current) => !current)}
       >
         <MoreVertical className="size-3.5" />
@@ -64,9 +70,9 @@ export function RowActionsMenu({
       {open && (
         <GlassPanel
           variant="strong"
-          intensity="medium"
-          elevation="modal"
-          className="absolute right-0 top-10 z-50 w-40 rounded-xl bg-[#221d17]/92 p-1.5"
+          intensity="high"
+          elevation="popover"
+          className="absolute right-0 top-10 z-50 w-44 rounded-xl p-1.5"
         >
           {actions.map((action) => (
             <GhostButton

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronDown, Dumbbell } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { NavUserMenu } from "@/components/app/NavUserMenu";
 import { GhostButton } from "@/components/common/form";
 import {
@@ -11,27 +11,27 @@ import {
   mainNavItems,
   utilityNavItems,
 } from "@/config/app-nav.config";
+import { glassText, glassTextStyles } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
 
-/**
- * Flat glass plate: no extrusion, no side shadows.
- * Outer div = fixed glass shell. Inner div = hidden vertical scroll.
- */
 export function LeftSidebarPanel() {
   const pathname = usePathname();
 
   return (
-    <div className="h-full w-full overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.07] shadow-2xl shadow-black/40 backdrop-blur-[12px]">
+    <div className="h-full w-full overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.07] shadow-2xl shadow-orange-950/20 backdrop-blur-[12px]">
       <div className="flex h-full flex-col overflow-y-auto p-5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <Link href="/dashboard" className="flex shrink-0 items-center gap-3 transition hover:opacity-90">
-          <span className="grid size-9 shrink-0 place-items-center rounded-full border border-white/20 bg-white/12">
-            <Dumbbell className="size-4 text-white" />
-          </span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/vital-fit-logo.png"
+            alt=""
+            className="h-11 w-auto shrink-0 object-contain"
+          />
           <div>
-            <p className="text-sm font-semibold tracking-[-0.03em] text-white">
-              FitnessUp
+            <p className={cn(glassTextStyles.panelTitle, "text-sm tracking-[-0.03em]")}>
+              VITAL FIT
             </p>
-            <p className="text-[10px] text-white/48">Workspace</p>
+            <p className={cn(glassText.muted, "text-[10px]")}>Workspace</p>
           </div>
         </Link>
 
@@ -44,8 +44,9 @@ export function LeftSidebarPanel() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center justify-between rounded-2xl px-2 py-2.5 text-xs font-semibold text-white/72 transition hover:bg-white/8",
-                  active && "bg-white/8 text-white",
+                  "flex items-center justify-between rounded-2xl px-2 py-2.5 text-xs font-semibold transition hover:bg-white/8",
+                  glassText.secondary,
+                  active && cn("bg-white/8", glassText.primary),
                 )}
               >
                 <span className="flex items-center gap-3">
@@ -53,7 +54,7 @@ export function LeftSidebarPanel() {
                   {item.label}
                 </span>
                 {item.badge ? (
-                  <span className="grid size-5 place-items-center rounded-full bg-[#176dff] text-[10px] font-bold text-white">
+                  <span className={cn("grid size-5 place-items-center rounded-full bg-orange-500 text-[10px] font-bold", glassText.primary)}>
                     {item.badge}
                   </span>
                 ) : null}
@@ -63,7 +64,7 @@ export function LeftSidebarPanel() {
         </nav>
 
         <div className="mt-3 shrink-0">
-          <p className="mb-3 text-xs font-semibold text-white/72">Classes</p>
+          <p className={cn(glassText.secondary, "mb-3 text-xs font-semibold")}>Classes</p>
           <div className="grid gap-2">
             {classNavItems.map((item) => {
               const active = isNavActive(pathname, item.href);
@@ -74,21 +75,26 @@ export function LeftSidebarPanel() {
                   href={item.href}
                   className={cn(
                     "flex items-center justify-between rounded-2xl px-2 py-2 text-xs transition",
-                    active ? "bg-white/8 text-white" : "text-white/38",
+                    active ? cn("bg-white/8", glassText.primary) : glassText.muted,
                   )}
                 >
                   <span className="flex items-center gap-3">
                     <span className="size-3 rounded-full border border-white/22" />
                     {item.label}
                   </span>
-                  <span className="grid size-5 place-items-center rounded-full bg-[#176dff] text-[10px] font-bold text-white">
+                  <span className={cn("grid size-5 place-items-center rounded-full bg-orange-500 text-[10px] font-bold", glassText.primary)}>
                     {item.count}
                   </span>
                 </Link>
               );
             })}
           </div>
-          <GhostButton className="mt-4 justify-start gap-3 px-2 text-xs font-semibold text-white/64 hover:bg-transparent hover:text-white/80">
+          <GhostButton
+            className={cn(
+              "mt-4 justify-start gap-3 px-2 text-xs font-semibold hover:bg-transparent hover:text-glass-secondary",
+              glassText.secondary,
+            )}
+          >
             <ChevronDown className="size-4" />
             Show more
           </GhostButton>
@@ -103,8 +109,9 @@ export function LeftSidebarPanel() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-3 rounded-2xl px-2 py-2.5 text-xs font-semibold text-white/72 transition hover:bg-white/8",
-                  active && "bg-white/8 text-white",
+                  "flex items-center gap-3 rounded-2xl px-2 py-2.5 text-xs font-semibold transition hover:bg-white/8",
+                  glassText.secondary,
+                  active && cn("bg-white/8", glassText.primary),
                 )}
               >
                 <item.icon className="size-4" />

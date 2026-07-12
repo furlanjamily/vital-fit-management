@@ -1,6 +1,7 @@
 import { ArrowUpRight } from "lucide-react";
 import { IconButton } from "@/components/common/form";
 import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
+import { glassText, glassTextStyles } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
 
 const ROWS = 10;
@@ -29,12 +30,12 @@ export function GymCapacity() {
     >
       <div className="mb-4 flex items-start justify-between">
         <div>
-          <p className="text-sm font-semibold text-white">Gym Capacity</p>
-          <p className="mt-1 text-[11px] text-white/40">Indoor and outdoor</p>
+          <p className={glassTextStyles.panelTitle}>Gym Capacity</p>
+          <p className={cn(glassTextStyles.kpiLabel, "mt-1")}>Indoor and outdoor</p>
         </div>
         <IconButton
           aria-label="Ver detalhes da capacidade"
-          className="bg-white/7 text-white/70 hover:bg-white/13 hover:text-white"
+          className="bg-white/7 hover:bg-white/13 hover:text-glass-primary"
         >
           <ArrowUpRight className="size-3.5" />
         </IconButton>
@@ -55,7 +56,7 @@ export function GymCapacity() {
               key={key}
               className={cn(
                 "size-1.5 rounded-full",
-                isActive ? "bg-white" : "bg-white/20",
+                isActive ? "bg-orange-500" : "bg-white/70",
               )}
             />
           );
@@ -63,8 +64,8 @@ export function GymCapacity() {
       </div>
 
       <div className="mt-4 flex items-center justify-between text-sm">
-        <span className="text-white/50">Space Status</span>
-        <span className="font-semibold text-white">56%</span>
+        <span className={glassText.secondary}>Space Status</span>
+        <span className={cn(glassText.primary, "font-semibold")}>56%</span>
       </div>
     </GlassPanel>
   );

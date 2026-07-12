@@ -10,6 +10,7 @@ import {
   type FormControlSize,
   type InputTone,
 } from "@/components/common/form/form.styles";
+import { glassText } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
 
 export type DatePickerProps = Omit<
@@ -76,7 +77,7 @@ export function DatePicker({
           className,
         )}
       >
-        <span className={cn("truncate", value ? "text-white" : "text-white/32")}>
+        <span className={cn("truncate", value ? glassText.primary : glassText.muted)}>
           {value ? formatDisplayDate(value) : placeholder}
         </span>
       </button>
@@ -84,7 +85,7 @@ export function DatePicker({
       <Calendar
         aria-hidden
         className={cn(
-          "pointer-events-none absolute top-1/2 -translate-y-1/2 text-white/40",
+          cn("pointer-events-none absolute top-1/2 -translate-y-1/2", glassText.muted),
           pickerSize === "sm" ? "right-2.5 size-3.5" : "right-3.5 size-4",
         )}
       />

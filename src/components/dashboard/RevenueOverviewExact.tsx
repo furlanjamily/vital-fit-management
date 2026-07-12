@@ -1,6 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import { ChevronDown, SquareArrowUp } from "lucide-react";
 import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
+import { glassText, glassTextStyles } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
 
 type RevenueBar = {
@@ -59,6 +60,7 @@ function formatCurrency(value: number): string {
 }
 
 const BAR_HATCH_HEIGHT_PERCENT = 38;
+const HIGHLIGHT_ACCENT = "#FF7A00";
 
 const barHatchStyle: CSSProperties = {
   backgroundImage: `repeating-linear-gradient(
@@ -67,6 +69,7 @@ const barHatchStyle: CSSProperties = {
     rgba(255, 255, 255, 0.14) 1.5px,
     transparent 1.5px,
     transparent 5px
+    
   )`,
 };
 
@@ -79,14 +82,22 @@ function RevenueBarColumn({ bar }: RevenueBarColumnProps) {
   const hatchHeight = `${BAR_HATCH_HEIGHT_PERCENT}%`;
 
   return (
-    <div className="relative flex flex-1 flex-col items-center justify-end">
+    <div
+      className={cn(
+        "relative flex flex-1 flex-col items-center justify-end",
+        bar.highlighted && "z-30",
+      )}
+    >
       {bar.highlighted && (
         <RevenueGlass
-          className="absolute z-20 size-[9px] rounded-full border-2 border-[#D4FF33]"
-          style={{ bottom: barHeightPx + 4 }}
+          className="absolute z-40 size-[9px] rounded-full border-2"
+          style={{ bottom: barHeightPx + 4, borderColor: HIGHLIGHT_ACCENT }}
         >
           <div className="grid h-full place-items-center">
-            <span className="size-[2px] rounded-full bg-[#D4FF33]" />
+            <span
+              className="h-full size-[2px] rounded-full"
+              style={{ backgroundColor: HIGHLIGHT_ACCENT }}
+            />
           </div>
         </RevenueGlass>
       )}
@@ -96,24 +107,27 @@ function RevenueBarColumn({ bar }: RevenueBarColumnProps) {
         style={{ height: barHeightPx }}
       >
         <div className="relative h-full w-full overflow-hidden rounded-full">
-          <div className="absolute inset-0 bg-black/40" />
+          <div className="absolute inset-0 bg-white/10" />
 
           {bar.highlighted ? (
             <>
-              <div className="absolute inset-x-0 bottom-0 top-[28%] z-[1] bg-[#D4FF33]" />
               <div
-                className="absolute inset-x-0 top-0 z-[2] bg-black/55"
+                className="absolute inset-x-0 bottom-0 top-[28%] z-[1]"
+                style={{ backgroundColor: HIGHLIGHT_ACCENT }}
+              />
+              <div
+                className="absolute inset-x-0 top-0 z-[2] bg-white/15"
                 style={{ height: hatchHeight, ...barHatchStyle }}
               />
             </>
           ) : (
             <>
               <div
-                className="absolute inset-x-0 top-0 z-[1] bg-black/30"
+                className="absolute inset-x-0 top-0 z-[1] bg-white/12"
                 style={{ height: hatchHeight, ...barHatchStyle }}
               />
               <div
-                className="absolute inset-x-0 bottom-0 z-[1] bg-black/20"
+                className="absolute inset-x-0 bottom-0 z-[1] bg-orange-500"
                 style={{ top: hatchHeight }}
               />
             </>
@@ -122,15 +136,15 @@ function RevenueBarColumn({ bar }: RevenueBarColumnProps) {
           <span
             className={cn(
               "absolute inset-x-0 bottom-[22%] z-[3] text-center text-[9px] font-medium leading-none tracking-[-0.02em]",
-              bar.highlighted ? "text-[#0a0a0a]/75" : "text-white/38",
+               glassText.tertiary,
             )}
           >
             {bar.percentage}%
-          </span>
+          </span>                           
         </div>
       </RevenueGlass>
 
-      <span className="mt-1.5 text-[9px] font-medium tracking-[-0.01em] text-white/42">
+      <span className={cn("mt-1.5 text-[9px] font-medium tracking-[-0.01em]", glassText.muted)}>
         {bar.month}
       </span>
     </div>
@@ -139,23 +153,26 @@ function RevenueBarColumn({ bar }: RevenueBarColumnProps) {
 
 function HighlightConnector() {
   const badgeLeftPercent = 2;
-  const lineStartPercent = 18;
+  const lineStartPercent = 15;
   const highlightedCenterPercent =
     ((HIGHLIGHTED_BAR_INDEX + 0.5) / REVENUE_BARS.length) * 100;
 
   return (
     <div className="relative mb-3 h-7 w-full">
       <RevenueGlass
-        className="absolute top-[220%] z-20 -translate-y-1/2 rounded-full"
+        className="absolute top-[200%] z-20 -translate-y-1/2 rounded-full"
         style={{ left: `${badgeLeftPercent}%` }}
       >
-        <span className="block px-2.5 py-1 text-[11px] font-semibold tracking-[-0.03em] text-[#D4FF33]">
+        <span
+          className="block px-2.5 py-1 text-[12px] font-semibold tracking-[-0.03em]"
+          style={{ color: HIGHLIGHT_ACCENT }}
+        >
           ${formatCurrency(HIGHLIGHT_VALUE)}
         </span>
       </RevenueGlass>
 
       <div
-        className="absolute top-[220%] z-10 h-px translate-y-[-220%] bg-white/14"
+        className="absolute top-[220%] z-0 h-px translate-y-[-250%] bg-white/40"
         style={{
           left: `${lineStartPercent}%`,
           width: `${highlightedCenterPercent - lineStartPercent}%`,
@@ -170,10 +187,10 @@ export function RevenueOverviewExact() {
     <RevenueGlass className="w-full rounded-2xl px-4 py-4 sm:px-5 sm:py-5 lg:px-6 lg:py-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
         <div className="min-w-0">
-          <h2 className="text-base font-semibold tracking-[-0.04em] text-white">
+          <h2 className={cn(glassText.primary, "text-base font-semibold tracking-[-0.04em]")}>
             Receitas Totais
           </h2>
-          <p className="mt-0.5 text-[11px] leading-snug text-white/42">
+          <p className={cn(glassText.muted, "mt-0.5 text-[11px] leading-snug")}>
             fique de olho nas receitas totais geradas
           </p>
         </div>
@@ -182,10 +199,13 @@ export function RevenueOverviewExact() {
           <RevenueGlass className="rounded-full">
             <button
               type="button"
-              className="flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-medium text-white/88 transition-colors hover:bg-white/8"
+              className={cn(
+                "flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-medium transition-colors hover:bg-white/8",
+                glassText.secondary,
+              )}
             >
               Este ano
-              <ChevronDown className="size-3 text-white/55" strokeWidth={2.25} />
+              <ChevronDown className={cn("size-3", glassText.tertiary)} strokeWidth={2.25} />
             </button>
           </RevenueGlass>
 
@@ -193,7 +213,10 @@ export function RevenueOverviewExact() {
             <button
               type="button"
               aria-label="Export revenue"
-              className="grid size-full place-items-center text-white/78 transition-colors hover:bg-white/8 hover:text-white"
+              className={cn(
+                "grid size-full place-items-center transition-colors hover:bg-white/8 hover:text-glass-primary",
+                glassText.secondary,
+              )}
             >
               <SquareArrowUp className="size-3" strokeWidth={2.25} />
             </button>
@@ -205,20 +228,25 @@ export function RevenueOverviewExact() {
         <div className="mb-4 shrink-0 self-end">
           <RevenueGlass className="rounded-full">
             <div className="inline-flex items-baseline px-4 py-2 sm:px-5 sm:py-2.5">
-              <span className="mr-0.5 text-xl font-semibold tracking-tighter text-white/38 sm:text-2xl">
+              <span
+                className={cn(
+                  "mr-0.5 text-xl font-semibold tracking-tighter sm:text-2xl",
+                  glassText.tertiary,
+                )}
+              >
                 $
               </span>
-              <span className="text-xl font-bold tracking-tighter text-white sm:text-2xl">
+              <span className={cn(glassTextStyles.kpiValue, "text-xl sm:text-2xl")}>
                 {formatCurrency(TOTAL_REVENUE)}
               </span>
             </div>
           </RevenueGlass>
         </div>
 
-        <div className="min-w-0 flex-1">
+        <div className="relative min-w-0 flex-1">
           <HighlightConnector />
 
-          <div className="flex items-end gap-1 sm:gap-1.5">
+          <div className="relative z-20 flex items-end gap-1 sm:gap-1.5">
             {REVENUE_BARS.map((bar) => (
               <RevenueBarColumn key={bar.month} bar={bar} />
             ))}

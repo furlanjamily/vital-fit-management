@@ -1,10 +1,12 @@
 import { Plus } from "lucide-react";
 import { GlassButton } from "@/components/common/form";
+import { glassTextStyles } from "@/config/glass-typography";
+import { cn } from "@/lib/cn";
 
 export function BusinessHeader() {
   return (
     <div className="flex flex-col gap-5">
-      <h2 className="text-[1.35rem] font-semibold leading-tight tracking-[-0.04em] text-white">
+      <h2 className={cn(glassTextStyles.pageTitle, "text-[1.35rem] leading-tight tracking-[-0.04em]")}>
         Controle seu espaço fitness favorito!
       </h2>
 

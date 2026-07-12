@@ -3,6 +3,7 @@
 import { useRef, useState, type ChangeEvent, type DragEvent } from "react";
 import { Camera } from "lucide-react";
 import { UserAvatar } from "@/components/users/UserAvatar";
+import { glassText } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
 
 type AvatarUploadTriggerProps = {
@@ -69,7 +70,8 @@ export function AvatarUploadTrigger({
         />
         <span
           className={cn(
-            "absolute inset-0 grid place-items-center rounded-full bg-black/45 text-white opacity-0 transition group-hover:opacity-100",
+            "absolute inset-0 grid place-items-center rounded-full bg-white/25 opacity-0 transition group-hover:opacity-100",
+            glassText.primary,
             isDragging && "opacity-100",
           )}
         >
@@ -83,7 +85,7 @@ export function AvatarUploadTrigger({
           onChange={handleFileChange}
         />
       </button>
-      <p className="text-center text-[10px] text-white/40">{hint}</p>
+      <p className={cn("text-center text-[10px]", glassText.muted)}>{hint}</p>
     </div>
   );
 }

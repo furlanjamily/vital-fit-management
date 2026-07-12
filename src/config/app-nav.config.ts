@@ -7,6 +7,7 @@ import {
   Settings,
   UsersRound,
   User2Icon,
+  CircleDollarSignIcon,
 } from "lucide-react";
 
 export type AppNavItem = {
@@ -28,6 +29,7 @@ export const mainNavItems: AppNavItem[] = [
   { icon: LineChart, label: "Analytics", href: "/analytics" },
   { icon: UsersRound, label: "Alunos", href: "/members" },
   { icon: UsersRound, label: "Profissionais", href: "/professionals" },
+  {icon: CircleDollarSignIcon, label: "Financeiro", href: "/finance" }
 ];
 
 export const classNavItems: ClassNavItem[] = [

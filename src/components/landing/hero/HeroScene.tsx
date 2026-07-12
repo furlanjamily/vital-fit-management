@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { HeroBackground } from "@/components/landing/hero/HeroBackground";
 import { CenterDashboardPanel } from "@/components/landing/hero/panels/CenterDashboardPanel";
 import { LeftSidebarPanel } from "@/components/landing/hero/panels/LeftSidebarPanel";
 import { RightProfilePanel } from "@/components/landing/hero/panels/RightProfilePanel";
@@ -24,21 +23,14 @@ export function HeroScene() {
   const motionInitial = hydrated ? "hidden" : false;
 
   return (
-    <main className="relative hidden min-h-svh overflow-hidden bg-[#17120d] text-white lg:flex">
-      <HeroBackground />
-
+    <main className="relative hidden min-h-svh overflow-hidden text-white lg:flex">
       <div
         className="relative z-10 flex w-full items-center justify-center gap-[clamp(14px,1.4vw,24px)] px-6 py-10"
         style={stageStyle}
       >
-        {/* Ambient glow behind the panels */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[44rem] w-[72rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.1),rgba(39,119,255,0.08)_36%,transparent_72%)] blur-[70px]"
-        />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute bottom-0 left-1/2 -z-10 h-16 w-[64%] -translate-x-1/2 rounded-full bg-black/30 blur-2xl"
+          className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[44rem] w-[72rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.08),rgba(255,153,60,0.06)_36%,transparent_72%)] blur-[70px]"
         />
 
         {/* Left plate — rotateY only, pivot on edge facing center */}

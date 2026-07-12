@@ -9,6 +9,7 @@ import { TableColGroup } from "@/components/common/table/TableColGroup";
 import { TableFooter } from "@/components/common/table/TableFooter";
 import { TableHead } from "@/components/common/table/TableHead";
 import type { TableColumn } from "@/components/common/table/table.types";
+import { glassTextStyles } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
 
 export type { TableColumn } from "@/components/common/table/table.types";
@@ -195,7 +196,7 @@ export function Table<T>({
       >
         {title ? (
           <div className="mb-5 flex shrink-0 items-center justify-between gap-4">
-            <p className="text-sm font-semibold text-white">{title}</p>
+            <p className={glassTextStyles.panelTitle}>{title}</p>
           </div>
         ) : null}
 
@@ -220,7 +221,7 @@ export function Table<T>({
                   <tr>
                     <td
                       colSpan={columns.length}
-                      className="py-10 text-center text-xs text-white/40"
+                      className={cn("py-10 text-center", glassTextStyles.tableEmpty)}
                     >
                       {emptyMessage}
                     </td>
@@ -238,7 +239,8 @@ export function Table<T>({
                         <td
                           key={column.key}
                           className={cn(
-                            "py-3.5 pr-4 text-xs text-white/55 last:pr-0",
+                            "py-3.5 pr-4 last:pr-0",
+                            glassTextStyles.tableCell,
                             column.className,
                           )}
                         >

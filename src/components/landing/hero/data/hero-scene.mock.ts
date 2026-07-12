@@ -17,13 +17,11 @@ import type {
 } from "@/components/landing/hero/types";
 
 export const sceneBackground: SceneBackgroundConfig = {
-  image:
-    "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=2400&q=90",
-  position: "center 54%",
-  overlay:
-    "linear-gradient(180deg, rgba(31,24,17,0.05) 0%, rgba(24,20,16,0.18) 44%, rgba(12,10,8,0.34) 100%)",
+  image: "/system-background.png",
+  position: "center center",
+  overlay: "transparent",
   blur: "0px",
-  brightness: 0.92,
+  brightness: 0.96,
 };
 
 export const sidebarMenu: MenuItem[] = [
@@ -77,7 +75,7 @@ export const modalFields: ModalField[] = [
 
 export const sceneStats = [
   { icon: BarChart3, label: "310 members", tone: "blue" },
-  { icon: Dumbbell, label: "42 live plans", tone: "lime" },
+  { icon: Dumbbell, label: "42 live plans", tone: "pink" },
 ];
 
 export const profileAvatar =

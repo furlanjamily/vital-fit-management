@@ -2,8 +2,10 @@
 
 import { Trash2 } from "lucide-react";
 import { DangerButton, OutlineButton } from "@/components/common/form";
-import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
 import { ModalOverlay } from "@/components/common/modal/ModalOverlay";
+import { ModalPanel } from "@/components/common/modal/ModalPanel";
+import { glassText, glassTextStyles } from "@/config/glass-typography";
+import { cn } from "@/lib/cn";
 
 type ConfirmRemoveDialogProps = {
   title: string;
@@ -23,16 +25,11 @@ export function ConfirmRemoveDialog({
 }: ConfirmRemoveDialogProps) {
   return (
     <ModalOverlay>
-      <GlassPanel
-        variant="strong"
-        intensity="medium"
-        elevation="modal"
-        className="w-full max-w-sm rounded-2xl bg-[#221d17]/94 p-6"
-      >
-        <p className="text-sm font-semibold text-white">{title}</p>
-        <p className="mt-2 text-xs leading-relaxed text-white/48">
+      <ModalPanel className="w-full max-w-sm">
+        <p className={glassTextStyles.modalTitle}>{title}</p>
+        <p className={cn("mt-2 text-xs leading-relaxed", glassText.secondaryElevated)}>
           Tem certeza que deseja remover{" "}
-          <span className="font-semibold text-white/85">{subjectName}</span>? Esta ação
+          <span className={cn(glassText.primaryElevated, "font-semibold")}>{subjectName}</span>? Esta ação
           não pode ser desfeita.
         </p>
 
@@ -48,7 +45,7 @@ export function ConfirmRemoveDialog({
             {pending ? "Removendo..." : "Remover"}
           </DangerButton>
         </div>
-      </GlassPanel>
+      </ModalPanel>
     </ModalOverlay>
   );
 }

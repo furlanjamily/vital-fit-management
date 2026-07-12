@@ -8,6 +8,7 @@ import {
   mobileNavItems,
   profileHref,
 } from "@/config/app-nav.config";
+import { glassText } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
 
 export function MobileBottomNav() {
@@ -22,7 +23,7 @@ export function MobileBottomNav() {
       aria-label="Mobile navigation"
       className="z-50 box-border block w-full shrink-0 px-[max(1rem,env(safe-area-inset-left),env(safe-area-inset-right))] pb-[max(var(--mobile-nav-bottom-gap),env(safe-area-inset-bottom))] lg:hidden"
     >
-      <div className="w-full overflow-hidden rounded-4xl border border-white/10 bg-black/52 shadow-[0_16px_56px_rgba(0,0,0,0.52)] backdrop-blur-2xl">
+      <div className="w-full overflow-hidden rounded-4xl border border-white/15 bg-white/10 shadow-[0_16px_56px_rgba(255,122,0,0.12)] backdrop-blur-2xl">
         <div className="overflow-x-auto overscroll-x-contain [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <div className="flex w-max min-w-full items-center py-3">
             <div className="w-4 shrink-0" aria-hidden="true" />
@@ -44,11 +45,11 @@ export function MobileBottomNav() {
                       <Icon
                         className={cn(
                           "size-5 transition-colors",
-                          active ? "text-white" : "text-white/38",
+                          active ? glassText.primary : glassText.muted,
                         )}
                       />
                       {badge && (
-                        <span className="absolute -right-1.5 -top-1.5 grid size-4 place-items-center rounded-full bg-[#176dff] text-[8px] font-bold text-white">
+                        <span className={cn("absolute -right-1.5 -top-1.5 grid size-4 place-items-center rounded-full bg-[#176dff] text-[8px] font-bold", glassText.primary)}>
                           {badge}
                         </span>
                       )}
@@ -56,7 +57,7 @@ export function MobileBottomNav() {
                     <span
                       className={cn(
                         "text-[9px] font-semibold leading-none transition-colors",
-                        active ? "text-white/80" : "text-white/28",
+                        active ? glassText.secondary : glassText.muted,
                       )}
                     >
                       {label}
@@ -90,8 +91,8 @@ export function MobileBottomNav() {
                   className={cn(
                     "text-[9px] font-semibold leading-none transition-colors",
                     isNavActive(pathname, profileHref)
-                      ? "text-white/80"
-                      : "text-white/28",
+                      ? glassText.secondary
+                      : glassText.muted,
                   )}
                 >
                   Profile

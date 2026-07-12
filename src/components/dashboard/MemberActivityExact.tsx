@@ -1,5 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
+import { glassText, glassTextStyles } from "@/config/glass-typography";
+import { cn } from "@/lib/cn";
 
 type ActivityBubble = {
   id: string;
@@ -27,7 +29,7 @@ const ACTIVITY_BUBBLES: ActivityBubble[] = [
   {
     id: "primary",
     percentage: 90,
-    color: "#9B51E0",
+    color: "#FF7A00",
     textColor: "#FFFFFF",
     size: 132,
     zIndex: 10,
@@ -38,10 +40,10 @@ const ACTIVITY_BUBBLES: ActivityBubble[] = [
     },
   },
   {
-    id: "yellow",
+    id: "amber",
     percentage: 89,
-    color: "#F2C94C",
-    textColor: "#1A1A1A",
+    color: "#FFB300",
+    textColor: "#ffffff",
     size: 102,
     zIndex: 20,
     position: {
@@ -52,7 +54,7 @@ const ACTIVITY_BUBBLES: ActivityBubble[] = [
   {
     id: "green",
     percentage: 65,
-    color: "#27AE60",
+    color: "#FF9800",
     textColor: "#FFFFFF",
     size: 78,
     zIndex: 30,
@@ -64,7 +66,7 @@ const ACTIVITY_BUBBLES: ActivityBubble[] = [
   {
     id: "blue",
     percentage: 30,
-    color: "#2F80ED",
+    color: "#FF7A4A",
     textColor: "#FFFFFF",
     size: 52,
     zIndex: 40,
@@ -76,10 +78,10 @@ const ACTIVITY_BUBBLES: ActivityBubble[] = [
 ];
 
 const ACTIVITY_LEGEND: ActivityLegendItem[] = [
-  { id: "morning", label: "08:00-10:00", color: "#F2994A" },
-  { id: "midday-a", label: "10:00-14:00", color: "#56CCF2" },
-  { id: "midday-b", label: "10:00-14:00", color: "#EB5757" },
-  { id: "midday-c", label: "10:00-14:00", color: "#EB5757" },
+  { id: "morning", label: "08:00-10:00", color: "#FF7A4A" },
+  { id: "midday-a", label: "10:00-14:00", color: "#FFB300" },
+  { id: "midday-b", label: "10:00-14:00", color: "#FF9800" },
+  { id: "midday-c", label: "10:00-14:00", color: "#FF9800" },
 ];
 
 type MemberActivityGlassProps = {
@@ -140,7 +142,7 @@ function ActivityLegendRow({ item }: ActivityLegendRowProps) {
         className="size-[7px] shrink-0 rounded-full"
         style={{ backgroundColor: item.color }}
       />
-      <span className="truncate text-[10px] tracking-[-0.01em] text-white/55">
+      <span className={cn("truncate text-[10px] tracking-[-0.01em]", glassText.secondary)}>
         {item.label}
       </span>
     </div>
@@ -151,7 +153,7 @@ export function MemberActivityExact() {
   return (
     <MemberActivityGlass>
       <div className="px-4 pb-4 pt-3.5 sm:px-5 sm:pb-5 sm:pt-4">
-        <h3 className="text-[13px] font-semibold tracking-[-0.03em] text-white/92 sm:text-sm">
+        <h3 className={cn(glassTextStyles.panelTitle, "text-[13px] tracking-[-0.03em] sm:text-sm")}>
           Member Activity
         </h3>
 

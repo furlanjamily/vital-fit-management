@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import { ClipboardList, Users } from "lucide-react";
 import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
+import { glassText, glassTextStyles } from "@/config/glass-typography";
+import { cn } from "@/lib/cn";
 
 type StatsCardIcon = "users" | "clipboard";
 
@@ -50,7 +52,7 @@ const STATS_CARDS: StatsCardItem[] = [
 ];
 
 function StatsCardIconGraphic({ icon }: { icon: StatsCardIcon }) {
-  const iconClassName = "size-[14px] text-[#1a1a1a]";
+  const iconClassName = "size-[14px] text-white";
 
   if (icon === "clipboard") {
     return <ClipboardList className={iconClassName} strokeWidth={2} />;
@@ -80,22 +82,22 @@ function StatsMetricCard({ card }: StatsMetricCardProps) {
   return (
     <StatsGlass className="rounded-[16px]">
       <div className="relative min-h-[112px] overflow-hidden rounded-[inherit] px-3.5 pb-3.5 pt-3 sm:min-h-[118px] sm:px-4 sm:pb-4 sm:pt-3.5">
-        <span className="inline-flex items-center rounded-md bg-white/12 px-1.5 py-px text-[10px] font-semibold tracking-[-0.02em] text-white/88">
+        <span className={cn("inline-flex items-center rounded-md bg-white/12 px-1.5 py-px text-[10px] font-semibold tracking-[-0.02em]", glassText.primary)}>
           {card.badge}
         </span>
 
         <div
           aria-hidden
-          className="pointer-events-none absolute -right-3.5 -top-3.5 grid size-[58px] place-items-center rounded-full bg-white shadow-[0_2px_8px_rgba(0,0,0,0.04)]"
+          className="pointer-events-none absolute -right-3.5 -top-3.5 grid size-[58px] place-items-center rounded-full bg-orange-500"
         >
           <StatsCardIconGraphic icon={card.icon} />
         </div>
 
         <div className="relative mt-3 max-w-[calc(100%-2.25rem)] sm:mt-3.5">
-          <h3 className="text-[13px] font-bold leading-tight tracking-[-0.03em] text-white sm:text-[14px]">
+          <h3 className={cn(glassTextStyles.kpiValue, "text-[13px] leading-tight sm:text-[14px]")}>
             {card.title}
           </h3>
-          <p className="mt-1 text-[10px] leading-[1.4] tracking-[-0.01em] text-white/42">
+          <p className={cn("mt-1 text-[10px] leading-[1.4] tracking-[-0.01em]", glassTextStyles.kpiLabel)}>
             {card.description}
           </p>
         </div>

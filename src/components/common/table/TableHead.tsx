@@ -1,6 +1,7 @@
 "use client";
 
 import type { TableColumn } from "@/components/common/table/table.types";
+import { glassTextStyles } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
 
 type TableHeadProps<T> = {
@@ -15,7 +16,8 @@ export function TableHead<T>({ columns }: TableHeadProps<T>) {
           <th
             key={column.key}
             className={cn(
-              "pb-3 pr-4 pt-1 text-left text-[9px] font-semibold uppercase tracking-[0.08em] text-white/35 last:pr-0",
+              "pb-3 pr-4 pt-1 text-left last:pr-0",
+              glassTextStyles.tableHeader,
               column.headerClassName,
             )}
           >

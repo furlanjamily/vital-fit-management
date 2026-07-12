@@ -24,6 +24,7 @@ import {
 } from "@/components/members/members.types";
 import { useMembersManagement } from "@/components/members/useMembersManagement";
 import { UserAvatar } from "@/components/users/UserAvatar";
+import { glassText, glassTextStyles } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
 
 type MembersContentClientProps = {
@@ -83,8 +84,8 @@ function MemberIdentityCell({ member }: { member: ManagedMember }) {
         textClassName="text-[10px]"
       />
       <div>
-        <p className="text-xs font-semibold text-white">{member.name}</p>
-        <p className="text-[10px] text-white/35">{member.email}</p>
+        <p className={glassTextStyles.entityName}>{member.name}</p>
+        <p className={glassTextStyles.entityEmail}>{member.email}</p>
       </div>
     </div>
   );
@@ -112,10 +113,10 @@ function MemberStatusBadge({ status }: { status: ManagedMember["status"] }) {
 
 function ProfessionalTrainerCell({ member }: { member: ManagedMember }) {
   if (!member.professionalName) {
-    return <span className="text-white/48">Não atribuído</span>;
+    return <span className={glassText.muted}>Não atribuído</span>;
   }
 
-  return <span className="text-white/75">{member.professionalName}</span>;
+  return <span className={glassText.secondary}>{member.professionalName}</span>;
 }
 
 export function MembersContentClient({
@@ -189,7 +190,7 @@ export function MembersContentClient({
       width: "14%",
       searchValue: (member) => originLabels[member.origin],
       render: (member) => (
-        <span className="inline-flex rounded-full border border-white/14 bg-white/8 px-2.5 py-1 text-[10px] font-medium text-white/65">
+        <span className={cn("inline-flex rounded-full border border-white/14 bg-white/8 px-2.5 py-1", glassTextStyles.badge)}>
           {originLabels[member.origin]}
         </span>
       ),
@@ -228,10 +229,8 @@ export function MembersContentClient({
     <div className="flex h-full min-h-0 w-full flex-col gap-6">
       <div className="mb-2 flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-[1.72rem] font-semibold tracking-[-0.055em] text-white">
-            Gestão de Alunos
-          </h1>
-          <p className="mt-1 text-sm text-white/48">
+          <h1 className={glassTextStyles.pageTitle}>Gestão de Alunos</h1>
+          <p className={glassTextStyles.pageSubtitle}>
             Cadastre e gerencie as matrículas da academia
           </p>
         </div>

@@ -1,5 +1,6 @@
 import type { AnchorHTMLAttributes } from "react";
 import { ArrowUpRight } from "lucide-react";
+import { glassText } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
 
 type PremiumButtonProps = AnchorHTMLAttributes<HTMLAnchorElement> & {
@@ -8,10 +9,14 @@ type PremiumButtonProps = AnchorHTMLAttributes<HTMLAnchorElement> & {
 };
 
 const variants = {
-  primary:
-    "border-white/10 bg-[#2777ff] text-white shadow-[0_18px_50px_rgba(39,119,255,0.34)] hover:bg-[#3f86ff] hover:shadow-[0_20px_68px_rgba(39,119,255,0.5)]",
-  secondary:
-    "border-white/[0.18] bg-white/[0.075] text-white/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-2xl hover:bg-white/[0.13] hover:text-white",
+  primary: cn(
+    "border-white/10 bg-gradient-to-r from-orange-500 to-orange-600 shadow-[0_18px_50px_rgba(249,115,22,0.34)] hover:from-orange-400 hover:to-orange-500 hover:shadow-[0_20px_68px_rgba(255,122,0,0.45)]",
+    glassText.primary,
+  ),
+  secondary: cn(
+    "border-white/[0.18] bg-white/[0.075] shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-2xl hover:bg-white/[0.13] hover:text-glass-primary",
+    glassText.secondary,
+  ),
 };
 
 export function PremiumButton({

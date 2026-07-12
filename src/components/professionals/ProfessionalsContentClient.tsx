@@ -20,6 +20,7 @@ import {
 } from "@/components/professionals/professionals.types";
 import { useProfessionalsManagement } from "@/components/professionals/useProfessionalsManagement";
 import { UserAvatar } from "@/components/users/UserAvatar";
+import { glassText, glassTextStyles } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
 
 type ProfessionalsContentClientProps = {
@@ -72,8 +73,8 @@ function ProfessionalIdentityCell({ professional }: { professional: ManagedProfe
         textClassName="text-[10px]"
       />
       <div>
-        <p className="text-xs font-semibold text-white">{professional.name}</p>
-        <p className="text-[10px] text-white/35">{professional.email}</p>
+        <p className={glassTextStyles.entityName}>{professional.name}</p>
+        <p className={glassTextStyles.entityEmail}>{professional.email}</p>
       </div>
     </div>
   );
@@ -101,7 +102,7 @@ function ProfessionalStatusBadge({ status }: { status: ManagedProfessional["stat
 
 function MemberCountBadge({ count }: { count: number }) {
   return (
-    <span className="inline-flex rounded-full border border-white/14 bg-white/8 px-2.5 py-1 text-[10px] font-medium text-white/65">
+    <span className={cn("inline-flex rounded-full border border-white/14 bg-white/8 px-2.5 py-1", glassTextStyles.badge)}>
       {count} {count === 1 ? "aluno" : "alunos"}
     </span>
   );
@@ -169,7 +170,7 @@ export function ProfessionalsContentClient({
       width: "16%",
       searchValue: (professional) => shiftLabels[professional.shift],
       render: (professional) => (
-        <span className="inline-flex rounded-full border border-white/14 bg-white/8 px-2.5 py-1 text-[10px] font-medium text-white/65">
+        <span className={cn("inline-flex rounded-full border border-white/14 bg-white/8 px-2.5 py-1", glassTextStyles.badge)}>
           {shiftLabels[professional.shift]}
         </span>
       ),
@@ -208,10 +209,8 @@ export function ProfessionalsContentClient({
     <div className="flex h-full min-h-0 w-full flex-col gap-6">
       <div className="mb-2 flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-[1.72rem] font-semibold tracking-[-0.055em] text-white">
-            Gestão de Profissionais
-          </h1>
-          <p className="mt-1 text-sm text-white/48">
+          <h1 className={glassTextStyles.pageTitle}>Gestão de Profissionais</h1>
+          <p className={glassTextStyles.pageSubtitle}>
             Cadastre e gerencie os personal trainers da academia
           </p>
         </div>

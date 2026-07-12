@@ -10,35 +10,34 @@ export function HeroBackground() {
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none absolute inset-0 -z-10 overflow-hidden bg-[#17120d]"
+      className="pointer-events-none fixed inset-0 z-0 overflow-hidden"
     >
       <motion.div
-        className="absolute inset-[-3%] scale-[1.04]"
-        initial={hydrated ? { opacity: 0, scale: 1.08 } : false}
-        animate={{ opacity: 1, scale: 1.04 }}
-        transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-        style={{
-          backgroundImage: `url(${sceneBackground.image})`,
-          backgroundPosition: sceneBackground.position,
-          backgroundSize: "cover",
-          filter: `blur(${sceneBackground.blur}) brightness(${sceneBackground.brightness}) saturate(0.94) contrast(1.02)`,
-        }}
-      />
-
-      <div
         className="absolute inset-0"
-        style={{ background: sceneBackground.overlay }}
-      />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,rgba(255,245,226,0.16),transparent_28%),radial-gradient(circle_at_53%_58%,rgba(39,119,255,0.08),transparent_42%),radial-gradient(circle_at_76%_52%,rgba(185,255,46,0.035),transparent_32%)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(43,31,20,0.08)_52%,rgba(12,9,6,0.3)_100%)]" />
-      <div className="absolute inset-x-0 top-0 h-32 bg-linear-to-b from-black/12 to-transparent" />
-      <div className="absolute inset-x-0 bottom-0 h-48 bg-linear-to-t from-[#070806]/42 via-[#070806]/12 to-transparent" />
+        initial={hydrated ? { opacity: 0, scale: 1.05 } : false}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={sceneBackground.image}
+          alt=""
+          className="absolute inset-[-3%] h-[106%] w-[106%] max-w-none object-cover"
+          style={{
+            objectPosition: sceneBackground.position,
+            filter: `blur(${sceneBackground.blur}) brightness(${sceneBackground.brightness}) saturate(1.05) contrast(1.04)`,
+          }}
+          fetchPriority="low"
+        />
+      </motion.div>
+
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_12%_42%,rgba(255,153,60,0.12),transparent_38%)]" />
       <motion.div
-        className="absolute left-1/2 top-[46%] h-[34rem] w-[58rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#fff3dc]/14 blur-[100px]"
+        className="absolute left-[9%] top-[44%] h-[30rem] w-[22rem] -translate-y-1/2 rounded-full bg-[#fff3dc]/12 blur-[90px]"
         initial={false}
         animate={{
-          opacity: [0.28, 0.42, 0.28],
-          scale: [1, 1.04, 1],
+          opacity: [0.18, 0.32, 0.18],
+          scale: [1, 1.05, 1],
           transition: { duration: 8.5, repeat: Infinity, ease: "easeInOut" },
         }}
       />

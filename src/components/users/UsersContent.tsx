@@ -11,6 +11,7 @@ import { UserAvatar } from "@/components/users/UserAvatar";
 import { UserForm } from "@/components/users/UserForm";
 import { roleLabels, type ManagedUser } from "@/components/users/users.types";
 import { useUsersManagement } from "@/components/users/useUsersManagement";
+import { glassText, glassTextStyles } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
 
 type UsersContentProps = {
@@ -28,8 +29,8 @@ function UserIdentityCell({ user }: { user: ManagedUser }) {
         textClassName="text-[10px]"
       />
       <div>
-        <p className="text-xs font-semibold text-white">{user.name}</p>
-        <p className="text-[10px] text-white/35">{user.email}</p>
+        <p className={glassTextStyles.entityName}>{user.name}</p>
+        <p className={glassTextStyles.entityEmail}>{user.email}</p>
       </div>
     </div>
   );
@@ -44,7 +45,7 @@ function UserStatusBadge({ status }: { status: ManagedUser["status"] }) {
         "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-medium",
         isActive
           ? "border-emerald-400/25 bg-emerald-400/10 text-emerald-300"
-          : "border-white/12 bg-white/6 text-white/45",
+          : cn("border-white/12 bg-white/6", glassText.muted),
       )}
     >
       <span className={cn("size-1.5 rounded-full", isActive ? "bg-emerald-400" : "bg-white/35")} />
@@ -104,7 +105,7 @@ export function UsersContent({ initialUsers, loadError = null }: UsersContentPro
       width: "24%",
       searchValue: (user) => roleLabels[user.role],
       render: (user) => (
-        <span className="inline-flex rounded-full border border-white/14 bg-white/8 px-2.5 py-1 text-[10px] font-medium text-white/65">
+        <span className={cn("inline-flex rounded-full border border-white/14 bg-white/8 px-2.5 py-1", glassTextStyles.badge)}>
           {roleLabels[user.role]}
         </span>
       ),
@@ -135,10 +136,8 @@ export function UsersContent({ initialUsers, loadError = null }: UsersContentPro
     <div className="flex h-full min-h-0 w-full flex-col gap-6">
       <div className="mb-2 flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-[1.72rem] font-semibold tracking-[-0.055em] text-white">
-            Gestão de Usuários
-          </h1>
-          <p className="mt-1 text-sm text-white/48">
+          <h1 className={glassTextStyles.pageTitle}>Gestão de Usuários</h1>
+          <p className={glassTextStyles.pageSubtitle}>
             Cadastre e gerencie os acessos ao sistema
           </p>
         </div>

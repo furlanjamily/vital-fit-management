@@ -15,6 +15,8 @@ import {
 import type { ReactNode } from "react";
 import { useHydrated } from "@/hooks/useHydrated";
 import { useLocalWeather } from "@/hooks/useLocalWeather";
+import { glassText, glassTextStyles } from "@/config/glass-typography";
+import { cn } from "@/lib/cn";
 
 function renderWeatherIcon(weatherCode: number, isDay: boolean): ReactNode {
   const className = "size-4";
@@ -59,13 +61,13 @@ export function HeaderDateWeather() {
   }
 
   return (
-    <div className="mt-1 flex items-center gap-2.5 text-sm text-white/48">
+    <div className={cn(glassTextStyles.pageSubtitle, "mt-1 flex items-center gap-2.5")}>
       <span>{formatToday()}</span>
 
       {loading ? (
         <span className="h-4 w-14 animate-pulse rounded-md bg-white/8" />
       ) : data ? (
-        <span className="flex items-center gap-1.5 font-semibold text-white/85">
+        <span className={cn("flex items-center gap-1.5 font-semibold", glassText.secondary)}>
           {renderWeatherIcon(data.weatherCode, data.isDay)}
           {data.temperature}°C
         </span>

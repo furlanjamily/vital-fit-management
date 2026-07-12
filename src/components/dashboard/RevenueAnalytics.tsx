@@ -1,5 +1,6 @@
 import { Flame } from "lucide-react";
 import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
+import { glassText, glassTextStyles } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
 
 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug"];
@@ -14,7 +15,7 @@ export function RevenueAnalytics() {
       elevation="floating"
       className="rounded-2xl p-5"
     >
-      <p className="mb-5 text-sm font-semibold text-white">Revenue Analytics</p>
+      <p className={cn(glassTextStyles.panelTitle, "mb-5")}>Revenue Analytics</p>
 
       <div className="relative flex h-[200px] items-end gap-2.5 px-1 pb-6">
         {barHeights.map((height, index) => {
@@ -30,14 +31,26 @@ export function RevenueAnalytics() {
                   elevation="modal"
                   intensity="medium"
                   variant="strong"
-                  className="absolute -top-1 left-1/2  z-20 w-[116px] -translate-x-1/2 rounded-xl bg-[#221d17]/90 px-3 py-2.5"
+                  className="absolute -top-1 left-1/2 z-20 w-[116px] -translate-x-1/2 rounded-xl px-3 py-2.5"
                 >
-                  <p className="text-[10px] font-semibold text-white">April 2024</p>
-                  <div className="mt-1.5 flex items-center gap-1.5 text-[9px] text-white/75">
+                  <p className={cn(glassText.primaryElevated, "text-[10px] font-semibold")}>
+                    April 2024
+                  </p>
+                  <div
+                    className={cn(
+                      "mt-1.5 flex items-center gap-1.5 text-[9px]",
+                      glassText.secondaryElevated,
+                    )}
+                  >
                     <span className="size-1.5 rounded-full bg-white" />
                     Revenue $564
                   </div>
-                  <div className="mt-0.5 flex items-center gap-1.5 text-[9px] text-white/55">
+                  <div
+                    className={cn(
+                      "mt-0.5 flex items-center gap-1.5 text-[9px]",
+                      glassText.secondary,
+                    )}
+                  >
                     <span className="size-1.5 rounded-full bg-white/40" />
                     Expense -$188
                   </div>
@@ -60,7 +73,7 @@ export function RevenueAnalytics() {
                   )}
                 />
               </div>
-              <span className="mt-2 text-[10px] font-medium text-white/35">
+              <span className={cn("mt-2 text-[10px] font-medium", glassText.muted)}>
                 {months[index]}
               </span>
             </div>

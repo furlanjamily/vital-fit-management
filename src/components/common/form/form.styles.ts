@@ -1,7 +1,7 @@
 export const formControlFocusClassName =
   "outline-none transition focus:border-white/28 focus-visible:ring-2 focus-visible:ring-[#8ad5ff]/20";
 
-export const formControlInvalidClassName = "border-orange-400/30";
+export const formControlInvalidClassName = "border-rose-500/30";
 
 export const inputSizeClasses = {
   sm: "py-1.5 text-[11px]",
@@ -20,7 +20,7 @@ export const inputPaddingPlain = {
 
 export const inputToneClasses = {
   default: "border-white/14 bg-white/5",
-  muted: "border-white/14 bg-black/20",
+  muted: "border-white/14 bg-white/8",
   login: "border-white/10 bg-white/5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] focus:border-white/30",
 } as const;
 

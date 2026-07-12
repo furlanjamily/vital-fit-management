@@ -1,5 +1,7 @@
 import { DollarSign, TrendingUp, UserCheck, Users, UsersRound } from "lucide-react";
 import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
+import { glassText, glassTextStyles } from "@/config/glass-typography";
+import { cn } from "@/lib/cn";
 
 const metrics = [
   {
@@ -39,13 +41,11 @@ export function MetricCards() {
           elevation="floating"
           className="rounded-2xl p-4"
         >
-          <div className="mb-3 grid size-8 place-items-center rounded-lg border border-white/10 bg-black/25">
-            <metric.icon className="size-3.5 text-white/60" />
+          <div className="mb-3 grid size-8 place-items-center rounded-lg border border-white/10 bg-white/10">
+            <metric.icon className={cn("size-3.5", glassText.secondary)} />
           </div>
-          <p className="text-xl font-semibold tracking-[-0.03em] text-white">
-            {metric.value}
-          </p>
-          <p className="mt-0.5 text-[11px] text-white/40">{metric.label}</p>
+          <p className={glassTextStyles.kpiValue}>{metric.value}</p>
+          <p className={cn("mt-0.5", glassTextStyles.kpiLabel)}>{metric.label}</p>
           <div className="mt-2 flex items-center gap-1 text-[11px] font-medium text-emerald-400">
             <TrendingUp className="size-3" />
             {metric.change}

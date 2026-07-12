@@ -13,6 +13,7 @@ import {
   resolveDisplayName,
 } from "@/lib/auth/resolve-user-display";
 import { createClient } from "@/lib/supabase/client";
+import { glassText } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
 
 type SessionUser = {
@@ -124,14 +125,15 @@ export function NavUserMenu() {
             textClassName="text-[10px]"
           />
 
-          <span className="min-w-0 flex-1 truncate text-sm font-semibold tracking-[-0.02em] text-white">
+          <span className={cn("min-w-0 flex-1 truncate text-sm font-semibold tracking-[-0.02em]", glassText.primary)}>
             {sessionUser.displayName}
           </span>
 
           <span
             className={cn(
-              "grid size-7 shrink-0 place-items-center rounded-full border border-white/14 bg-white/8 text-white/60 transition",
-              open && "bg-white/14 text-white",
+              "grid size-7 shrink-0 place-items-center rounded-full border border-white/14 bg-white/8 transition",
+              glassText.secondary,
+              open && cn("bg-white/14", glassText.primary),
             )}
           >
             <ChevronDown
@@ -143,15 +145,19 @@ export function NavUserMenu() {
 
       {open && (
         <GlassPanel
-          variant="subtle"
-          intensity="low"
-          elevation="base"
+          variant="strong"
+          intensity="high"
+          elevation="popover"
           className="rounded-2xl p-1.5"
         >
           <Link
             href={profileHref}
             onClick={() => setOpen(false)}
-            className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-xs font-medium text-white/75 transition hover:bg-white/8 hover:text-white"
+            className={cn(
+              "flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-xs font-medium transition hover:bg-white/10",
+              glassText.primaryElevated,
+              "hover:text-glass-primary",
+            )}
           >
             <User className="size-3.5" />
             Meu perfil
@@ -160,7 +166,7 @@ export function NavUserMenu() {
           <GhostButton
             onClick={handleLogout}
             disabled={loggingOut}
-            className="w-full justify-start gap-2.5 px-3 py-2.5 text-left text-red-300/90 hover:text-red-200"
+            className="w-full justify-start gap-2.5 px-3 py-2.5 text-left text-red-300 hover:bg-red-500/12 hover:text-red-200"
           >
             {loggingOut ? (
               <Loader2 className="size-3.5 animate-spin" />

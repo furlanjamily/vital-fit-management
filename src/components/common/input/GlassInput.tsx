@@ -10,6 +10,7 @@ import {
   type FormControlSize,
   type InputTone,
 } from "@/components/common/form/form.styles";
+import { glassText } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
 
 export type GlassInputProps = Omit<InputHTMLAttributes<HTMLInputElement>, "size"> & {
@@ -38,13 +39,14 @@ export function GlassInput({
   return (
     <div className={cn("relative", wrapperClassName)}>
       {LeftIcon ? (
-        <LeftIcon className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-white/35" />
+        <LeftIcon className={cn("pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2", glassText.tertiary)} />
       ) : null}
 
       <input
         disabled={disabled}
         className={cn(
-          "w-full rounded-xl border text-white placeholder:text-white/32",
+          "w-full rounded-xl border text-glass-primary",
+          glassText.placeholder,
           inputToneClasses[tone],
           inputSizeClasses[inputSize],
           hasLeftIcon ? inputPaddingWithIcon[inputSize] : inputPaddingPlain[inputSize],

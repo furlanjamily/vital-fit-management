@@ -9,6 +9,7 @@ import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
 import { GlassInput } from "@/components/common/input/GlassInput";
 import { GlassSelect } from "@/components/common/select/GlassSelect";
 import type { TableFilterDefinition } from "@/components/common/table/global-filters.types";
+import { glassText } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
 
 export type GlobalFiltersProps<T> = {
@@ -94,10 +95,10 @@ export function GlobalFilters<T>({
           onClick={() => setExpanded((current) => !current)}
           className="flex min-w-0 flex-1 items-center gap-2 text-left"
         >
-          <p className="shrink-0 text-sm font-medium text-white/55">Filtrar por</p>
+          <p className={cn("shrink-0 text-sm font-medium", glassText.secondary)}>Filtrar por</p>
 
           {!expanded && activeCount > 0 ? (
-            <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-white/12 px-1.5 py-0.5 text-[10px] font-semibold text-white/75">
+            <span className={cn("inline-flex min-w-5 items-center justify-center rounded-full bg-white/12 px-1.5 py-0.5 text-[10px] font-semibold", glassText.primary)}>
               {activeCount}
             </span>
           ) : null}
@@ -105,7 +106,8 @@ export function GlobalFilters<T>({
           <ChevronDown
             aria-hidden
             className={cn(
-              "ml-auto size-4 shrink-0 text-white/40 transition-transform duration-200",
+              "ml-auto size-4 shrink-0 transition-transform duration-200",
+              glassText.tertiary,
               expanded && "rotate-180",
             )}
           />

@@ -3,7 +3,6 @@
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { CenterPanelShell } from "@/components/app/CenterPanelShell";
-import { HeroBackground } from "@/components/landing/hero/HeroBackground";
 import { LeftSidebarPanel } from "@/components/landing/hero/panels/LeftSidebarPanel";
 import { RightProfilePanel } from "@/components/landing/hero/panels/RightProfilePanel";
 import { sceneMotion } from "@/components/landing/hero/motion/hero-scene.motion";
@@ -26,22 +25,11 @@ export function DesktopAppShell({ children }: DesktopAppShellProps) {
   const centerInitial = hydrated ? "hidden" : false;
 
   return (
-    <main className="relative hidden min-h-svh overflow-hidden bg-[#17120d] text-white lg:flex">
-      <HeroBackground />
-
+    <main className="relative hidden min-h-svh overflow-hidden text-white lg:flex">
       <div
         className="relative z-10 flex w-full items-center justify-center gap-[clamp(14px,1.4vw,24px)] px-6 py-10"
         style={stageStyle}
       >
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[44rem] w-[72rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.1),rgba(39,119,255,0.08)_36%,transparent_72%)] blur-[70px]"
-        />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute bottom-0 left-1/2 -z-10 h-16 w-[64%] -translate-x-1/2 rounded-full bg-black/30 blur-2xl"
-        />
-
         <motion.div
           variants={sceneMotion.left}
           initial={shellInitial}

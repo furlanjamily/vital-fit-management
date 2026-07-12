@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
+import { glassText, glassTextStyles } from "@/config/glass-typography";
+import { cn } from "@/lib/cn";
 
 export const metadata: Metadata = {
   title: "Login | VitalFit Management",
@@ -30,13 +32,13 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         className="relative z-10 max-w-sm sm:max-w-md lg:max-w-lg  rounded-[2rem]  shadow-[0_48px_150px_rgba(32,22,14,0.38)] p-10"
       >
         <header className="mb-8 text-center">
-          <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.28em] text-white/42">
+          <p className={cn(glassTextStyles.tableHeader, "mb-2 text-[10px] tracking-[0.28em]")}>
             VitalFit Management
           </p>
-          <h1 className="text-2xl font-semibold tracking-[-0.03em] text-white">
+          <h1 className={cn(glassText.primary, "text-2xl font-semibold tracking-[-0.03em]")}>
             Acesso Administrativo
           </h1>
-          <p className="mt-2 text-sm text-white/52">
+          <p className={cn(glassText.secondary, "mt-2 text-sm")}>
             Entre com suas credenciais para gerenciar a academia.
           </p>
         </header>

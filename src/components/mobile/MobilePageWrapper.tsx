@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
-import { HeroBackground } from "@/components/landing/hero/HeroBackground";
 
 type MobilePageWrapperProps = {
   children: ReactNode;
@@ -8,9 +7,7 @@ type MobilePageWrapperProps = {
 
 export function MobilePageWrapper({ children }: MobilePageWrapperProps) {
   return (
-    <main className="relative flex h-full max-h-full flex-col overflow-hidden  text-white lg:hidden">
-      <HeroBackground />
-
+    <main className="relative flex h-full max-h-full flex-col overflow-hidden text-white lg:hidden">
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden pt-[var(--mobile-content-top-gap)]">
         <div className="flex min-h-0 flex-1 px-[max(1rem,env(safe-area-inset-left),env(safe-area-inset-right))]">
           <GlassPanel

@@ -3,6 +3,8 @@
 import { ChevronDown } from "lucide-react";
 import { OutlineButton } from "@/components/common/form";
 import { Table, type TableColumn } from "@/components/common/table/Table";
+import { glassText, glassTextStyles } from "@/config/glass-typography";
+import { cn } from "@/lib/cn";
 
 type Member = {
   name: string;
@@ -74,8 +76,8 @@ const columns: TableColumn<Member>[] = [
           style={{ backgroundImage: `url(${member.avatar})` }}
         />
         <div>
-          <p className="text-xs font-semibold text-white">{member.name}</p>
-          <p className="text-[10px] text-white/35">{member.email}</p>
+          <p className={glassTextStyles.entityName}>{member.name}</p>
+          <p className={glassTextStyles.entityEmail}>{member.email}</p>
         </div>
       </div>
     ),
@@ -97,7 +99,7 @@ const columns: TableColumn<Member>[] = [
     header: "Status",
     searchValue: (member) => member.status,
     render: (member) => (
-      <span className="inline-flex rounded-full border border-white/12 bg-white/8 px-2.5 py-1 text-[10px] font-medium text-white/65">
+      <span className={cn("inline-flex rounded-full border border-white/12 bg-white/8 px-2.5 py-1", glassTextStyles.badge)}>
         {member.status}
       </span>
     ),
@@ -124,7 +126,7 @@ export function MembersTable() {
       title="All Members"
       searchPlaceholder="Search"
       headerActions={
-        <OutlineButton className="gap-2 px-3 py-2.5 font-normal text-white/60">
+        <OutlineButton className={cn("gap-2 px-3 py-2.5 font-normal", glassText.secondary)}>
           Sort by: Expired Soon
           <ChevronDown className="size-3.5" />
         </OutlineButton>

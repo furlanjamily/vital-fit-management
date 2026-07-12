@@ -10,6 +10,7 @@ import {
   type FormControlSize,
   type InputTone,
 } from "@/components/common/form/form.styles";
+import { glassText } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
 
 export type GlassSelectOption = {
@@ -45,17 +46,17 @@ export function GlassSelect({
   return (
     <div className={cn("relative", wrapperClassName)}>
       {LeftIcon ? (
-        <LeftIcon className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-white/35" />
+        <LeftIcon className={cn("pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2", glassText.tertiary)} />
       ) : null}
 
       <select
         disabled={disabled}
         className={cn(
-          "w-full appearance-none rounded-xl border text-white",
+          "w-full appearance-none rounded-xl border text-glass-primary",
           inputToneClasses[tone],
           inputSizeClasses[selectSize],
           hasLeftIcon ? inputPaddingWithIcon[selectSize] : inputPaddingPlain[selectSize],
-          "pr-9 [&>option]:bg-[#221d17]",
+          "pr-9 [&>option]:bg-[#3d2410]/95",
           formControlFocusClassName,
           invalid && formControlInvalidClassName,
           disabled && "cursor-not-allowed opacity-60",
@@ -78,7 +79,7 @@ export function GlassSelect({
       <ChevronDown
         aria-hidden
         className={cn(
-          "pointer-events-none absolute top-1/2 -translate-y-1/2 text-white/40",
+          cn("pointer-events-none absolute top-1/2 -translate-y-1/2", glassText.muted),
           chevronClassName,
         )}
       />
@@ -113,17 +114,17 @@ export function GlassSelectNative({
   return (
     <div className={cn("relative", wrapperClassName)}>
       {LeftIcon ? (
-        <LeftIcon className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-white/35" />
+        <LeftIcon className={cn("pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2", glassText.tertiary)} />
       ) : null}
 
       <select
         disabled={disabled}
         className={cn(
-          "w-full appearance-none rounded-xl border text-white",
+          "w-full appearance-none rounded-xl border text-glass-primary",
           inputToneClasses[tone],
           inputSizeClasses[selectSize],
           hasLeftIcon ? inputPaddingWithIcon[selectSize] : inputPaddingPlain[selectSize],
-          "pr-9 [&>option]:bg-[#221d17]",
+          "pr-9 [&>option]:bg-[#3d2410]/95",
           formControlFocusClassName,
           invalid && formControlInvalidClassName,
           disabled && "cursor-not-allowed opacity-60",
@@ -137,7 +138,7 @@ export function GlassSelectNative({
       <ChevronDown
         aria-hidden
         className={cn(
-          "pointer-events-none absolute top-1/2 -translate-y-1/2 text-white/40",
+          cn("pointer-events-none absolute top-1/2 -translate-y-1/2", glassText.muted),
           chevronClassName,
         )}
       />

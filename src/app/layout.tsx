@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { HeroBackground } from "@/components/landing/hero/HeroBackground";
 import { MobileBottomNav } from "@/components/landing/hero/MobileBottomNav";
 import "./globals.css";
 
@@ -38,9 +39,10 @@ export default function RootLayout({
     >
       <body
         suppressHydrationWarning
-        className="flex h-dvh flex-col gap-[var(--mobile-nav-content-gap)] overflow-hidden bg-[#070806] font-sans text-white lg:block lg:h-auto lg:min-h-full lg:gap-0 lg:overflow-x-hidden"
+        className="relative flex h-dvh flex-col gap-[var(--mobile-nav-content-gap)] overflow-hidden font-sans text-white lg:block lg:h-auto lg:min-h-full lg:gap-0 lg:overflow-x-hidden"
       >
-        <div className="min-h-0 flex-1 overflow-hidden lg:h-auto lg:flex-none lg:overflow-visible">
+        <HeroBackground />
+        <div className="relative z-10 min-h-0 flex-1 overflow-hidden lg:h-auto lg:flex-none lg:overflow-visible">
           {children}
         </div>
         <MobileBottomNav />

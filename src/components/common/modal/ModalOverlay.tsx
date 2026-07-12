@@ -11,6 +11,10 @@ type ModalOverlayProps = {
   scrollable?: boolean;
 };
 
+/**
+ * Camada 1 do glass-on-glass: véu quente fosco sobre o background,
+ * sem preto sólido — apenas blur + tint âmbar translúcido.
+ */
 export function ModalOverlay({ children, className, scrollable = false }: ModalOverlayProps) {
   const hydrated = useHydrated();
 
@@ -19,7 +23,8 @@ export function ModalOverlay({ children, className, scrollable = false }: ModalO
   return createPortal(
     <div
       className={cn(
-        "fixed inset-0 z-100 grid place-items-center bg-black/30 p-4 backdrop-blur-md backdrop-saturate-150",
+        "fixed inset-0 z-100 grid place-items-center p-4",
+        "bg-[rgba(38,20,8,0.46)] backdrop-blur-[22px] backdrop-brightness-[0.86] backdrop-saturate-150",
         scrollable && "overflow-y-auto",
         className,
       )}

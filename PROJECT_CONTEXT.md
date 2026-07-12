@@ -13,7 +13,8 @@ A experiência logada deve parecer uma interface fitness premium “flutuando”
 - painel central grande frontal em glass
 - painel lateral esquerdo em perspectiva, como menu/workspace (desktop)
 - painel lateral direito em perspectiva, como profile/calendar/challenges (desktop)
-- background ambientado com foto de interior
+- background ambientado com **imagem dourada customizada** (`public/system-background.png`) — fumaça/âmbar sobre fundo escuro, visível através dos painéis glass
+- **sem fundos sólidos pretos** no sistema — `html`/`body` transparentes; legibilidade via camadas glass (frost branco + underlay quente translúcido)
 - motion sequencial cinematográfica (desktop)
 - navegação inferior glass no mobile
 
@@ -146,10 +147,12 @@ page.tsx (RSC)
 
 O design system depende da **reutilização rigorosa** dos componentes globais. Nunca recriar padrões visuais manualmente quando já existem no design system:
 
-- `<GlassPanel>` — containers glass
+- `<GlassPanel>` — containers glass (elevations: `base`, `floating`, `popover`, `modal`)
+- `<ModalOverlay>` + `<ModalPanel>` — modais glass on glass
 - `<Table>` + `<GlobalFilters>` — listagens com filtros e paginação
 - Botões e inputs em `common/form/` (`GlassButton`, `GlassInput`, `GlassSelect`, etc.)
 - `<RowActionsMenu>`, `<ConfirmRemoveDialog>`, `<InlineAlert>` — padrões de UI recorrentes
+- **Tipografia glass:** `glassText` / `glassTextStyles` em `config/glass-typography.ts` — **nunca** hardcodar `text-white/XX` em superfícies glass
 
 ### Integração com API (Supabase)
 
@@ -169,7 +172,7 @@ Estrutura principal atual:
 src/
   app/
     globals.css
-    layout.tsx                    # root layout, viewport lock mobile, MobileBottomNav
+    layout.tsx                    # root layout, HeroBackground global, viewport lock mobile, MobileBottomNav
     page.tsx                      # redirect("/dashboard")
     login/page.tsx                # rota pública de autenticação
     (app)/
@@ -177,6 +180,7 @@ src/
       dashboard/page.tsx          # DashboardContent + getUser (nome do usuário)
       community/page.tsx
       analytics/page.tsx
+      finance/page.tsx            # dashboard financeiro (mock visual)
       members/page.tsx            # MembersContent (gestão de alunos — Supabase real)
       members/actions.ts          # Server Actions CRUD alunos (Supabase + Zod)
       users/page.tsx              # UsersContent (Super Admin only)
@@ -220,10 +224,11 @@ src/
       select/
         GlassSelect.tsx
       modal/
-        ModalOverlay.tsx
+        ModalOverlay.tsx          # camada 1: scrim âmbar fosco + blur (glass on glass)
+        ModalPanel.tsx            # camada 2: painel modal legível (wrapper GlassPanel modal)
         ConfirmRemoveDialog.tsx   # confirmação de remoção reutilizável
       menu/
-        RowActionsMenu.tsx        # menu ⋮ de ações por linha (Table)
+        RowActionsMenu.tsx        # menu ⋮ de ações por linha (elevation popover)
       glass-panel/
         GlassPanel.tsx
       table/
@@ -264,6 +269,12 @@ src/
       users.types.ts
       user.schema.ts              # schema Zod de validação server-side
       user.helpers.ts             # iniciais + cor avatar estilo Google
+    finance/
+      FinanceHeader.tsx
+      PortfolioSummaryCard.tsx
+      ProductChartCard.tsx
+      financial-health/           # FinancialHealthCard, HealthBarsChart
+      expense-breakdown/          # ExpenseBreakdownCard, doughnut + legend
     profile/ProfileContent.tsx
     mobile/MobilePageWrapper.tsx
     landing/hero/                 # cena visual (reutilizada pelo app)
@@ -279,7 +290,11 @@ src/
         CenterDashboardPanel.tsx  # legado
   config/
     app-nav.config.ts
-    theme.ts
+    brand-colors.ts               # paleta laranja/âmbar VitalFit (CTAs, gráficos, badges)
+    glass-typography.ts           # tokens de hierarquia de texto glass-on-glass
+    theme.ts                      # tokens visuais (glass.text documentado)
+  public/
+    system-background.png         # imagem de fundo do sistema (servida em /system-background.png)
   hooks/
     useHydrated.ts                # useSyncExternalStore (SSR-safe)
     useLocalWeather.ts            # Open-Meteo + geolocalização/IP
@@ -303,12 +318,15 @@ src/
 
 ```txt
 RootLayout (layout.tsx)
-  └─ children wrapper (flex-1, min-h-0)
+  ├─ HeroBackground               → fixed inset-0 z-0 (imagem + glow âmbar; global)
+  └─ children wrapper (relative z-10, flex-1, min-h-0)
        └─ (app)/layout.tsx
             ├─ MobilePageWrapper   → visível em < lg
             └─ DesktopAppShell     → visível em >= lg
   └─ MobileBottomNav               → shrink-0, fluxo normal (não fixed)
 ```
+
+`HeroBackground` vive **apenas** no root layout — não duplicar em `DesktopAppShell` ou `MobilePageWrapper`.
 
 Cada rota em `(app)/` exporta o conteúdo que aparece **dentro** do painel central (mobile e desktop).
 
@@ -397,6 +415,7 @@ Helpers: `actionSuccess(data)`, `actionFailure(error)`, `toActionError(error, fa
 | `/dashboard` | `dashboard/page.tsx` | `DashboardContent` + nome via `getUser()` |
 | `/community` | `community/page.tsx` | `RoutePlaceholder` |
 | `/analytics` | `analytics/page.tsx` | `RoutePlaceholder` |
+| `/finance` | `finance/page.tsx` | Dashboard financeiro mock (`FinanceHeader`, cards de portfolio, gráficos) |
 | `/members` | `members/page.tsx` | `MembersContent` — **Supabase `public.members`** |
 | `/users` | `users/page.tsx` | `UsersContent` (Super Admin) — **Supabase Auth** |
 | `/professionals` | `professionals/page.tsx` | placeholder (em desenvolvimento) |
@@ -407,7 +426,7 @@ Helpers: `actionSuccess(data)`, `actionFailure(error)`, `toActionError(error, fa
 
 Navegação centralizada em `src/config/app-nav.config.ts`:
 
-- `mainNavItems` — Dashboard, Community, Analytics, **Alunos** (`/members`), **Profissionais** (`/professionals`)
+- `mainNavItems` — Dashboard, Community, Analytics, **Alunos** (`/members`), **Profissionais** (`/professionals`), **Financeiro** (`/finance`)
 - `classNavItems` — Crossfit, TRX, Yoga
 - `utilityNavItems` — **Usuários** (`/users`), Help, Setting
 - `mobileNavItems` — combinação usada no `MobileBottomNav`
@@ -438,7 +457,8 @@ Arquivo orquestrador: `src/components/dashboard/DashboardContent.tsx`
 |---|---|---|
 | `BusinessHeader` | não | título + botões ação (sem glass manual) |
 | `GymCapacity` | subtle/floating | matriz de dots + Space Status |
-| `MetricCards` | 4× subtle/floating | KPIs 2×2 |
+| `MetricCards` | 4× subtle/floating | KPIs 2×2 — tipografia via `glassTextStyles.kpiValue` / `kpiLabel` |
+| `StatsOverviewExact` | subtle/floating | cards de estatísticas — tokens glass migrados |
 | `RevenueAnalytics` | subtle/floating | gráfico barras; tooltip Apr usa `elevation="modal"` |
 | `TrainerCards` | 2× subtle/floating | cards King Zarips |
 | `FavouritedWorkout` | subtle/floating | tags scatter + tabs |
@@ -516,7 +536,21 @@ Grid `md:grid-cols-2`:
 - Origem: Academia / Gympass / TotalPass
 - Plano: Mensal Base / Trimestral Premium / Anual Pro
 - Toggle iOS (`GlassSwitch`) para status Ativo/Inativo
-- Submit via `GlassButton`; modais usam `ModalOverlay` + `GlassPanel elevation="modal"`
+- Submit via `GlassButton`; modais usam `ModalOverlay` + `ModalPanel` (glass on glass)
+
+## Financeiro (`/finance`)
+
+Dashboard financeiro com dados mock (demonstração visual). Paleta **laranja/âmbar** obrigatória — ver `brand-colors.ts` e `.cursor/rules/design-system-colors.mdc`.
+
+| Componente | Descrição |
+|---|---|
+| `FinanceHeader` | título + filtros + CTAs gradiente laranja |
+| `PortfolioSummaryCard` | resumo de portfolio + ações |
+| `ProductChartCard` | gráfico de produtos |
+| `FinancialHealthCard` | barras de saúde financeira |
+| `ExpenseBreakdownCard` | doughnut + legenda de despesas |
+
+Layout: coluna esquerda ~70% (portfolio + chart), direita ~30% (health + breakdown). Todos os cards usam `GlassPanel` — **nunca roxo/ciano como destaque principal**.
 
 ## Componentes Compartilhados
 
@@ -568,6 +602,8 @@ const filters: TableFilterDefinition<ManagedMember>[] = [
 
 **Coluna (`TableColumn<T>`):** `key`, `header`, `render`, `searchValue?`, `width?`, `className?`
 
+**Tipografia padrão (via `glassTextStyles`):** título `panelTitle`, cabeçalhos `tableHeader`, células `tableCell`, empty state `tableEmpty`.
+
 **Subcomponentes:** `TableHead`, `TableFooter`, `TableColGroup`, `GlobalFilters`
 
 ### `GlobalFilters<T>` (`common/table/GlobalFilters.tsx`)
@@ -585,9 +621,34 @@ Tipos em `global-filters.types.ts`.
 
 Menu dropdown de ações por linha (ícone ⋮). Reutilizado em `/members` e `/users`.
 
+- Container: `GlassPanel elevation="popover"` (frost denso + underlay quente — legível sobre background dourado)
+- Ações padrão: `glassText.primaryElevated` + hover `bg-white/10`
+- Trigger (⋮): `text-glass-secondary` → hover `text-glass-primary`
+- Ação destrutiva: `text-red-300` + hover `bg-red-500/12`
+
+### `ModalOverlay` + `ModalPanel` (glass on glass)
+
+Padrão obrigatório para modais de formulário e confirmação — **sem preto sólido**.
+
+**Camada 1 — `ModalOverlay`:** scrim âmbar translúcido (`rgba(38,20,8,0.46)`) + `backdrop-blur-[22px]` + leve escurecimento. Separa o modal do background sem bloquear totalmente a imagem.
+
+**Camada 2 — `ModalPanel`:** wrapper sobre `GlassPanel elevation="modal"` com frost branco denso, underlay quente interno e `intensity="high"`. Aplica `text-glass-secondary` como cor base do painel.
+
+```tsx
+<ModalOverlay scrollable>
+  <ModalPanel className="w-full max-w-2xl">
+    <p className={glassTextStyles.modalTitle}>Título</p>
+    <p className={glassTextStyles.modalSubtitle}>Descrição de apoio</p>
+    {/* conteúdo */}
+  </ModalPanel>
+</ModalOverlay>
+```
+
+**Tipografia em modais:** usar `glassTextStyles.modalTitle` / `modalSubtitle` ou `glassText.primaryElevated` / `secondaryElevated` (inclui `font-medium` para compensar blur denso). Evitar `text-white/XX` hardcoded.
+
 ### `ConfirmRemoveDialog` (`common/modal/ConfirmRemoveDialog.tsx`)
 
-Modal de confirmação de remoção com `GlassPanel elevation="modal"`. Props: `title`, `subjectName`, `pending`, `onConfirm`, `onCancel`.
+Modal de confirmação de remoção com `ModalOverlay` + `ModalPanel`. Props: `title`, `subjectName`, `pending`, `onConfirm`, `onCancel`.
 
 ### `InlineAlert` (`common/feedback/InlineAlert.tsx`)
 
@@ -616,11 +677,14 @@ Barrel: `common/form/index.ts`
 | `GhostButton` | ação terciária / menu |
 | `DangerButton` | ações destrutivas |
 | `IconButton` | botão só ícone |
-| `FormField` | label + erro + children |
+| `FormField` | label + erro + children (labels: `text-glass-secondary`, hints: `text-glass-muted`) |
 | `GlassSwitch` | toggle iOS |
-| `ModalOverlay` | overlay de modal com scroll opcional |
+| `ModalOverlay` | scrim glass (camada 1) — blur + tint âmbar |
+| `ModalPanel` | painel modal legível (camada 2) — wrapper GlassPanel modal + base `text-glass-secondary` |
 
 Tokens compartilhados: `form.styles.ts` (`inputToneClasses`, `inputSizeClasses`, etc.)
+
+**Inputs:** `GlassInput` usa `text-glass-primary` + `placeholder:text-glass-placeholder`; ícones à esquerda usam `text-glass-tertiary`.
 
 ### `GlassButton` (`common/button/GlassButton.tsx`)
 
@@ -629,7 +693,7 @@ Botão **somente vidro** — sem fill colorido/sólido:
 - Variants: `subtle`, `default`, `strong` (intensidade do GlassPanel)
 - Shapes: `rounded`, `pill`
 - Props: `loading`, `fullWidth`, `leftIcon`, `rightIcon`, `href` (link)
-- Inner: `text-white` + `hover:bg-white/8`
+- Inner: `text-glass-primary` + `hover:bg-white/8`
 
 ### `GlassPanel` (`common/glass-panel/GlassPanel.tsx`)
 
@@ -647,15 +711,27 @@ Arquivo: `src/components/app/NavUserMenu.tsx`
 
 - Posição: final do `LeftSidebarPanel` (substitui link "Profile" estático)
 - Pill: `GlassPanel elevation="floating"`
-- Menu expandido: `GlassPanel elevation="base"` — **no fluxo do documento** (empurra itens acima, sem overlay absoluto entre camadas)
+- Menu expandido: `GlassPanel elevation="popover"` — **no fluxo do documento** (empurra itens acima, sem overlay absoluto entre camadas)
+- Texto do menu: `glassText.primaryElevated` + hover `bg-white/10`
 - Ações: Meu perfil (`/profile`), Sair (`signOut` → `/login`)
 - Lê sessão via `supabase.auth.getUser()` + `onAuthStateChange`
+
+## Background do Sistema
+
+Arquivo: `src/components/landing/hero/HeroBackground.tsx`  
+Config: `src/components/landing/hero/data/hero-scene.mock.ts` (`sceneBackground.image = "/system-background.png"`)
+
+- Renderizado **uma vez** no `RootLayout` (`fixed inset-0 z-0`)
+- Imagem estática em `public/system-background.png`
+- Overlays escuros removidos — apenas glow âmbar sutil opcional
+- **Nunca** usar `-z-10` no background nem `bg-[#070806]` sólido em `main`/`body` (esconde a imagem)
 
 ## Root Layout e Viewport Mobile
 
 Arquivo: `src/app/layout.tsx`
 
 - Exporta `viewport` com `viewportFit: "cover"` (safe areas em dispositivos com notch)
+- Renderiza `<HeroBackground />` global (`fixed inset-0 z-0`) antes do conteúdo (`relative z-10`)
 - **Mobile (`< lg`):** `html` e `body` com `h-dvh overflow-hidden` — trava o viewport, sem scroll na página
 - **Desktop (`>= lg`):** comportamento normal (`lg:h-full`, `lg:overflow-auto`)
 - `body` usa **flex column** no mobile:
@@ -666,19 +742,34 @@ Arquivo: `src/app/layout.tsx`
 ### Variáveis CSS mobile (`globals.css`)
 
 ```css
+--background: transparent;
+--foreground: #f7f7f2;
 --mobile-content-top-gap: 1.5rem;
 --mobile-nav-bottom-gap: 1.5rem;
 --mobile-nav-content-gap: 1.5rem;
 --mobile-nav-bar-height: 4.75rem;
 --mobile-nav-reserved-height: calc(...);
+
+/* Tipografia glass (Tailwind v4 @theme) */
+--color-glass-primary: #ffffff;
+--color-glass-secondary: rgb(255 255 255 / 0.63);
+--color-glass-tertiary: rgb(255 255 255 / 0.47);
+--color-glass-muted: rgb(255 255 255 / 0.47);
+--color-glass-placeholder: rgb(255 255 255 / 0.45);
 ```
+
+Utility opcional: `text-glass-contrast-shadow` — sombra sutil para texto primary em vidro muito claro (usar com parcimônia).
+
+Constantes TypeScript: `src/config/glass-typography.ts` (`glassText`, `glassTextStyles`).
+
+`html` e `body` usam `background: transparent` — o fundo visual vem exclusivamente de `HeroBackground`.
 
 ## Layout Mobile (`MobilePageWrapper`)
 
 Arquivo: `src/components/mobile/MobilePageWrapper.tsx`
 
 - ocupa `h-full` do wrapper flex-1 do root layout
-- `HeroBackground` como fundo ambientado
+- background vem do `HeroBackground` global (não renderiza fundo próprio)
 - `GlassPanel` variant `hero`, intensity `high`, elevation `base`
 - **scroll apenas dentro** do painel glass
 - sem perspectiva 3D, sem painéis laterais
@@ -690,7 +781,7 @@ Arquivo: `src/components/mobile/MobilePageWrapper.tsx`
 Arquivo: `src/components/app/DesktopAppShell.tsx`
 
 - visível apenas em `>= lg`
-- reutiliza `HeroBackground`, `LeftSidebarPanel`, `RightProfilePanel`
+- reutiliza `LeftSidebarPanel`, `RightProfilePanel` (background global via root layout)
 - painel central: `CenterPanelShell` com `{children}` da rota ativa
 - `key={pathname}` no painel central para re-animar transição de rota
 - `useHydrated()` evita flash de animação no SSR
@@ -729,7 +820,7 @@ Componente base: `src/components/common/glass-panel/GlassPanel.tsx`
 |---|---|---|
 | `variant` | `subtle`, `default`, `strong`, `hero` | `default` |
 | `intensity` | `low`, `medium`, `high` | `medium` |
-| `elevation` | `base`, `floating`, `modal` | `base` |
+| `elevation` | `base`, `floating`, `popover`, `modal` | `base` |
 
 ### Iluminação (preservada em todas as elevações)
 
@@ -740,20 +831,87 @@ Componente base: `src/components/common/glass-panel/GlassPanel.tsx`
 
 ### Física de empilhamento (`elevation`)
 
-Regra: camadas sobrepostas usam **menos blur** e **mais solidez** para não somar desfoque composto.
+Regra visionOS: camadas sobrepostas usam **menos blur** e **mais opacidade/frost** para legibilidade, sem preto sólido.
 
-| Elevation | Uso | Blur | Corpo |
+| Elevation | Uso | Blur | Corpo | Brightness |
+|---|---|---|---|---|
+| `base` | painéis de fundo, shells, conteúdo principal | alto do variant + saturate | gradiente branco translúcido do variant | `0.88` |
+| `floating` | cards internos, pills, seções leves | `12px` | `bg-white/5` | `0.90` |
+| `popover` | menus dropdown, ações de linha (⋮), NavUserMenu expandido | `12px` | frost branco ~30% + underlay quente interno | `0.85` |
+| `modal` | modais sobre `ModalOverlay` | `10px` | frost branco ~34% + underlay quente interno | `0.84` |
+
+Todas as elevações aplicam `backdrop-saturate` + `backdrop-brightness` para escurecer levemente o background dourado/âmbar e melhorar contraste do texto branco.
+
+Camadas internas de legibilidade (underlay quente) são injetadas automaticamente em `elevation="popover"` e `elevation="modal"` (gradiente âmbar escuro reforçado no rodapé do painel).
+
+### Glass on glass — modais
+
+1. `ModalOverlay` — scrim âmbar fosco + blur (camada 1)
+2. `ModalPanel` / `GlassPanel elevation="modal"` — frost denso (camada 2)
+3. Tipografia via `glassText` / `glassTextStyles` — ver seção **Tipografia Glass-on-Glass**
+
+### Tipografia Glass-on-Glass
+
+Sistema padronizado para legibilidade em composições glass sobre glass (especialmente sobre background dourado/âmbar de alta luminosidade).
+
+**Arquivos:** `src/app/globals.css` (`@theme` + utility `text-glass-contrast-shadow`), `src/config/glass-typography.ts`, `src/config/theme.ts` (`glass.text`).
+
+| Nível | Classe Tailwind | Valor | Uso |
 |---|---|---|---|
-| `base` | painéis de fundo, shells, menus no fluxo | alto do variant + saturate | gradiente do variant |
-| `floating` | cards internos, pills, popovers | `12px` | `bg-white/5` |
-| `modal` | modais, dropdowns, tooltips legíveis | `12px` | `bg-black/10` |
+| **Primary** | `text-glass-primary` | `#ffffff` | Títulos, valores principais, KPIs |
+| **Secondary** | `text-glass-secondary` | `white/63` | Labels, descrições, células de tabela, corpo de modal |
+| **Tertiary** | `text-glass-tertiary` | `white/47` | Cabeçalhos de tabela (uppercase), ícones decorativos |
+| **Muted** | `text-glass-muted` | `white/47` | Hints, empty states, footer de paginação |
+| **Placeholder** | `text-glass-placeholder` / `placeholder:text-glass-placeholder` | `white/45` | Placeholders de inputs |
+
+**Variantes elevadas** (popover/modal — vidro mais denso, blur maior):
+
+| Classe | Comportamento |
+|---|---|
+| `glassText.primaryElevated` | `text-glass-primary font-medium` |
+| `glassText.secondaryElevated` | `text-glass-secondary font-medium` |
+
+**Padrões compostos** (`glassTextStyles`):
+
+| Constante | Uso |
+|---|---|
+| `modalTitle` | Título de modal (`text-sm font-semibold`) |
+| `modalSubtitle` | Subtítulo de modal (`mt-1 text-[11px]`) |
+| `panelTitle` | Título de painel/tabela |
+| `tableHeader` | Cabeçalho de coluna |
+| `tableCell` | Célula de dados |
+| `tableEmpty` | Mensagem de lista vazia |
+| `kpiValue` / `kpiLabel` | Cards de métricas do dashboard |
+| `pageTitle` / `pageSubtitle` | Cabeçalhos de páginas CRUD |
+| `entityName` / `entityEmail` | Identidade em células de tabela |
+| `badge` | Badges de role/status em tabelas |
+
+**Uso recomendado:**
+
+```tsx
+import { glassText, glassTextStyles } from "@/config/glass-typography";
+
+<p className={glassTextStyles.kpiValue}>$4,53k</p>
+<p className={glassTextStyles.kpiLabel}>Month / July</p>
+<p className={glassTextStyles.modalTitle}>Cadastrar aluno</p>
+```
+
+**Regras:**
+
+- **Evitar** `text-white/35`, `text-white/40`, `text-white/48` etc. hardcoded — usar tokens semânticos
+- Em modais/popovers: preferir variantes `*Elevated` para compensar frost denso
+- `text-glass-contrast-shadow` apenas quando primary ainda falha em vidro muito claro (raro após `backdrop-brightness`)
+- Componentes já migrados: **todo o `src/`** — design system (`GhostButton`, `IconButton`, `GlassButton`, `GlassSelect`, `DatePicker`, `FormField`, `GlassInput`), CRUD (`UsersContent`, `MembersContentClient`, `ProfessionalsContentClient`), `NavUserMenu`, `Table` (+ Head/Footer/GlobalFilters), dashboard/*, finance/*, auth/login, profile, landing
+
+**Migração concluída (mar/2026):** todo o `src/` usa tokens `glassText` / `glassTextStyles`. Exceções intencionais: `text-white` na raiz (`layout.tsx`, shells) como cor base herdada; textos escuros em pills coloridos (`text-[#0a0a0a]`, `text-[#1a1d19]`).
 
 ### Regra crítica para cards internos
 
-`DashboardContent`, `/users` e `/members` renderizam-se **dentro** de `CenterPanelShell` (já glass `hero/base`).
+`DashboardContent`, `/users`, `/members` e `/finance` renderizam-se **dentro** de `CenterPanelShell` (já glass `hero/base`).
 
 - Cards da UI: `<GlassPanel variant="subtle" elevation="floating">`
-- Modais/formulários: `elevation="modal"` (+ `bg-[#221d17]/90` apenas quando legibilidade exige, ex.: tooltip sobre barra listrada)
+- Menus dropdown (⋮): `elevation="popover"` via `RowActionsMenu`
+- Modais/formulários: `ModalOverlay` + `ModalPanel` (não usar `bg-[#13111f]/94` nem `bg-black/*` sólido)
 - **Proibido:** `bg-white/5 backdrop-blur-md` manual em cards — causa blur composto
 
 ### Glass sobre glass no fluxo (NavUserMenu)
@@ -761,7 +919,7 @@ Regra: camadas sobrepostas usam **menos blur** e **mais solidez** para não soma
 Quando o menu expande **empurrando** itens da sidebar (sem overlay absoluto):
 
 1. Pill do usuário → `elevation="floating"`
-2. Menu de ações → `elevation="base"` (empilhado no fluxo, não floating sobre floating)
+2. Menu de ações → `elevation="popover"` (legível sobre background dourado)
 
 ## Hooks
 
@@ -780,8 +938,9 @@ O projeto **prioriza integração real com API**. Mocks permanecem apenas em:
 
 | Área | Arquivo | Escopo |
 |---|---|---|
-| Hero scene (legado) | `landing/hero/data/hero-scene.mock.ts` | background, painéis laterais, profile mock |
+| Hero scene (legado) | `landing/hero/data/hero-scene.mock.ts` | path da imagem de background; demais mocks da landing legada |
 | Dashboard KPIs | componentes em `dashboard/*` | `MembersTable`, `MetricCards`, `RevenueAnalytics`, etc. |
+| Financeiro | componentes em `finance/*` | portfolio, gráficos, breakdown — mock visual |
 
 **Rotas com dados reais (Supabase):**
 
@@ -794,21 +953,38 @@ O projeto **prioriza integração real com API**. Mocks permanecem apenas em:
 
 ## Direção Visual Obrigatória
 
+### Paleta da marca
+
+Tokens centralizados em `src/config/brand-colors.ts`. Regra Cursor: `.cursor/rules/design-system-colors.mdc`.
+
+| Papel | Tons |
+|---|---|
+| Primary | `#FF7A00` / `orange-500` → `orange-600` |
+| Secondary | `#FFB300` / `amber-500` |
+| Deep accent | `#FF4D3D` / `orange-700` |
+| CTAs / botões principais | gradiente laranja (`from-orange-500 to-orange-600`) |
+| Erros / perdas | `#FF5E4A` ou `red-500` — **nunca roxo** |
+
+Dashboards (`/dashboard`, `/finance`): gráficos, highlights e badges seguem laranja/âmbar.
+
 Manter:
 
-- composição centralizada, painéis glass, background ambientado
+- composição centralizada, painéis glass, **background dourado visível** através das camadas
 - perspectiva 3D controlada (desktop), motion sequencial premium
 - mobile: painel central legível + nav inferior glass + viewport lock
-- inputs escuros: `bg-white/5`, `border-white/14`, texto branco
-- textos secundários: `text-white/48`
+- inputs: `bg-white/5`–`bg-white/8`, `border-white/14`, texto `text-glass-primary`
+- **hierarquia de texto glass:** `text-glass-primary` → `text-glass-secondary` → `text-glass-tertiary` / `text-glass-muted` (ver `glass-typography.ts`)
 
 Evitar:
 
 - headline gigante à esquerda, navbar horizontal no topo
 - layout landing SaaS tradicional
+- **fundos sólidos pretos** (`bg-black`, `bg-[#070806]`, `bg-[#13111f]/94`) — usar glass frost + underlay quente
 - `backdrop-blur` manual em camadas sobre GlassPanel
 - scroll na página mobile (body/html)
 - botões coloridos sólidos onde o design system pede glass (`GlassButton`)
+- roxo/rosa/ciano como destaque principal em dashboards
+- **`text-white/XX` hardcoded** em superfícies glass — usar tokens `glassText` / `glassTextStyles`
 
 ## Responsividade — Resumo
 
@@ -824,10 +1000,16 @@ Evitar:
 - [ ] Tabelas usam `Table` + `GlobalFilters` (não glass manual no container)?
 - [ ] Filtros `select`/`date` têm `match(row)` correto?
 - [ ] Cards internos usam `<GlassPanel>` (não glass manual)?
-- [ ] Modais/dropdowns usam `elevation="floating"` ou `"modal"`?
+- [ ] Modais usam `ModalOverlay` + `ModalPanel` (glass on glass, sem preto sólido)?
+- [ ] Dropdowns/menus usam `elevation="popover"` (ex.: `RowActionsMenu`)?
 - [ ] Iluminação `before:`/`after:` preservada?
 - [ ] Menus de ação usam `<RowActionsMenu>` (não duplicar dropdown)?
 - [ ] Confirmações de remoção usam `<ConfirmRemoveDialog>`?
+- [ ] Background global via `HeroBackground` no root layout (não duplicar nos shells)?
+- [ ] Sem `bg-[#070806]` / `bg-black` sólido em fundos de página?
+- [ ] Destaques visuais usam paleta laranja/âmbar (`brand-colors.ts`)?
+- [ ] Texto em superfícies glass usa `glassText` / `glassTextStyles` (não `text-white/XX` hardcoded)?
+- [ ] Modais/popovers usam variantes `*Elevated` quando o vidro é denso?
 
 ### Arquitetura e Código
 
@@ -854,23 +1036,28 @@ Estou trabalhando no projeto VitalFit Management.
 
 Contexto: app premium autenticado (Supabase) em Next.js/React/Tailwind/Framer Motion.
 Desktop = cena 3D com painéis glass; mobile = painel central + nav inferior.
+Background = imagem dourada customizada (public/system-background.png) via HeroBackground no root layout.
 Rota inicial: /dashboard. Login: /login.
 
 Arquitetura:
 - Auth: src/proxy.ts + lib/supabase/middleware.ts + LoginForm + user_metadata (name, role)
+- Background: HeroBackground em layout.tsx (fixed z-0); html/body transparentes
 - Shell mobile: MobilePageWrapper | desktop: DesktopAppShell
 - Painel central: CenterPanelShell (scroll interno)
 - Dashboard: src/components/dashboard/* (GlassPanel em todos os cards; KPIs mock)
+- Financeiro: /finance + src/components/finance/* (mock visual; paleta laranja/âmbar)
 - Usuários: /users (Super Admin) — Supabase Admin API + useUsersManagement
 - Alunos: /members — Supabase public.members + useMembersManagement
 - Server Actions: ActionResult<T> (lib/action-result.ts) + Zod (*.schema.ts)
 - Tabela: src/components/common/table/Table.tsx
 - Filtros: GlobalFilters (colapsável, acima do GlassPanel) + DatePicker
 - Formulários: common/form/index.ts (GlassInput, GlassSelect, botões...)
-- UI compartilhada: RowActionsMenu, ConfirmRemoveDialog, InlineAlert
-- Glass: src/components/common/glass-panel/GlassPanel.tsx
+- Modais: ModalOverlay (scrim) + ModalPanel (painel legível)
+- UI compartilhada: RowActionsMenu (popover), ConfirmRemoveDialog, InlineAlert
+- Glass: GlassPanel (elevations: base | floating | popover | modal; backdrop-brightness por elevação)
+- Tipografia glass: src/config/glass-typography.ts (glassText, glassTextStyles) + tokens em globals.css
+- Paleta: src/config/brand-colors.ts + .cursor/rules/design-system-colors.mdc
 - Nav: src/config/app-nav.config.ts + NavUserMenu (logout)
-- Clima header: useLocalWeather.ts + HeaderDateWeather.tsx
 
 Regras de código:
 - Identificadores em inglês; UI e erros em pt-BR
@@ -880,10 +1067,13 @@ Regras de código:
 
 Regras glass:
 - NUNCA backdrop-blur manual nos cards internos
+- NUNCA fundos pretos sólidos — usar frost branco + underlay quente translúcido
 - Cards: GlassPanel variant subtle + elevation floating
-- Modais: elevation modal
+- Modais: ModalOverlay + ModalPanel (glass on glass)
+- Dropdowns/menus: elevation popover (RowActionsMenu, NavUserMenu expandido)
 - GlobalFilters: glass próprio acima da tabela; corpo da tabela em GlassPanel separado
-- NavUserMenu expandido: glass no fluxo (base), não overlay absoluto
+- HeroBackground só no root layout — não duplicar nos shells
+- Tipografia: glassText / glassTextStyles — evitar text-white/XX hardcoded; modais usam *Elevated
 
 Tarefa:
 [descreva aqui]

@@ -1,3 +1,4 @@
+import { glassText } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
 import { getAvatarColor, getInitials } from "@/components/users/user.helpers";
 
@@ -28,7 +29,8 @@ export function UserAvatar({ name, avatarUrl, className, textClassName }: UserAv
   return (
     <span
       className={cn(
-        "grid shrink-0 place-items-center rounded-full border border-white/14 font-semibold text-white",
+        "grid shrink-0 place-items-center rounded-full border border-white/14 font-semibold",
+        glassText.primary,
         className,
       )}
       style={{ backgroundColor: initials ? getAvatarColor(name) : "rgba(255,255,255,0.08)" }}

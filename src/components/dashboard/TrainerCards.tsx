@@ -1,6 +1,8 @@
 import { ArrowUpRight } from "lucide-react";
 import { IconButton } from "@/components/common/form";
 import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
+import { glassTextStyles } from "@/config/glass-typography";
+import { cn } from "@/lib/cn";
 
 const trainerAvatar =
   "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=96&q=80";
@@ -20,14 +22,14 @@ function TrainerCard() {
             style={{ backgroundImage: `url(${trainerAvatar})` }}
           />
           <div>
-            <p className="text-sm font-semibold text-white">King Zarips</p>
-            <p className="text-[11px] text-white/40">Personal Trainer</p>
+            <p className={glassTextStyles.panelTitle}>King Zarips</p>
+            <p className={glassTextStyles.kpiLabel}>Personal Trainer</p>
           </div>
         </div>
         <IconButton
           size="sm"
           aria-label="Ver perfil do personal"
-          className="size-7 bg-white/7 text-white/70 hover:bg-white/13 hover:text-white"
+          className="size-7 bg-white/7 hover:bg-white/13 hover:text-glass-primary"
         >
           <ArrowUpRight className="size-3" />
         </IconButton>
@@ -35,12 +37,12 @@ function TrainerCard() {
 
       <div className="mb-3 flex gap-4">
         <div>
-          <p className="text-sm font-semibold text-white">3+</p>
-          <p className="text-[10px] text-white/40">Clients</p>
+          <p className={glassTextStyles.panelTitle}>3+</p>
+          <p className={cn(glassTextStyles.kpiLabel, "text-[10px]")}>Clients</p>
         </div>
         <div>
-          <p className="text-sm font-semibold text-white">2+</p>
-          <p className="text-[10px] text-white/40">Years</p>
+          <p className={glassTextStyles.panelTitle}>2+</p>
+          <p className={cn(glassTextStyles.kpiLabel, "text-[10px]")}>Years</p>
         </div>
       </div>
 
@@ -48,7 +50,7 @@ function TrainerCard() {
         {["Calisthenic", "Mentality", "+2"].map((tag) => (
           <span
             key={tag}
-            className="rounded-full border border-white/12 bg-white/8 px-2.5 py-1 text-[10px] font-medium text-white/70"
+            className={cn("rounded-full border border-white/12 bg-white/8 px-2.5 py-1", glassTextStyles.badge)}
           >
             {tag}
           </span>

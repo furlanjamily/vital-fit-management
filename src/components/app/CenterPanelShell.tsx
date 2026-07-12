@@ -10,7 +10,7 @@ export function CenterPanelShell({ children }: CenterPanelShellProps) {
     <GlassPanel
       variant="hero"
       intensity="high"
-      className="h-[calc(100dvh-152px)] w-full rounded-[2rem] p-5 shadow-[0_34px_120px_rgba(42,28,17,0.34)] sm:p-6 lg:h-[clamp(600px,85vh,880px)] lg:w-[clamp(500px,52vw,1000px)] lg:rounded-[34px]"
+      className="h-[calc(100dvh-152px)] w-full rounded-[2rem] p-5  sm:p-6 lg:h-[clamp(600px,85vh,880px)] lg:w-[clamp(500px,52vw,1000px)] lg:rounded-[34px]"
     >
       <div className="flex h-full min-h-0 flex-col overflow-y-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {children}

@@ -6,6 +6,8 @@ import {
   modalFields,
   trainerAvatars,
 } from "@/components/landing/hero/data/hero-scene.mock";
+import { glassText } from "@/config/glass-typography";
+import { cn } from "@/lib/cn";
 
 function StackedAvatars({ avatars }: { avatars: string[] }) {
   return (
@@ -17,7 +19,7 @@ function StackedAvatars({ avatars }: { avatars: string[] }) {
           style={{ backgroundImage: `url(${avatar})` }}
         />
       ))}
-      <span className="grid size-7 place-items-center rounded-full border border-dashed border-white/30 bg-white/8 text-white/62">
+      <span className={cn("grid size-7 place-items-center rounded-full border border-dashed border-white/30 bg-white/8", glassText.secondary)}>
         <Plus className="size-3" />
       </span>
     </div>
@@ -34,11 +36,11 @@ export function FrontFloatingModal() {
       className="w-[90vw] rounded-[24px] p-4 shadow-[0_44px_130px_rgba(33,22,14,0.56),0_24px_60px_rgba(0,0,0,0.24)] sm:w-[400px]"
     >
       <div className="mb-4 flex items-center justify-between border-b border-white/12 pb-3">
-        <div className="flex items-center gap-4 text-[10px] text-white/58">
+        <div className={cn("flex items-center gap-4 text-[10px]", glassText.secondary)}>
           <span>Class</span>
           <span>Body</span>
         </div>
-        <X className="size-3.5 text-white/58" />
+        <X className={cn("size-3.5", glassText.secondary)} />
       </div>
 
       <div className="mb-4 flex flex-wrap gap-2">
@@ -54,33 +56,43 @@ export function FrontFloatingModal() {
 
       <div className="grid gap-3">
         <div className="grid grid-cols-[64px_1fr] items-center gap-3">
-          <p className="text-[10px] font-semibold text-white/44">Date</p>
-          <div className="rounded-xl border border-white/14 bg-white/8 px-3 py-2 text-[10px] text-white/76 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+          <p className={cn(glassText.muted, "text-[10px] font-semibold")}>Date</p>
+          <div className={cn("rounded-xl border border-white/14 bg-white/8 px-3 py-2 text-[10px] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]", glassText.secondaryElevated)}>
             {fieldMap.Date}
           </div>
         </div>
         <div className="grid grid-cols-[64px_1fr] items-center gap-3">
-          <p className="text-[10px] font-semibold text-white/44">Location</p>
-          <div className="w-fit rounded-xl border border-white/14 bg-white/8 px-3 py-2 text-[10px] text-white/76 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+          <p className={cn(glassText.muted, "text-[10px] font-semibold")}>Location</p>
+          <div className={cn("w-fit rounded-xl border border-white/14 bg-white/8 px-3 py-2 text-[10px] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]", glassText.secondaryElevated)}>
             {fieldMap.Location}
           </div>
         </div>
         <div className="grid grid-cols-[64px_1fr] items-center gap-3">
-          <p className="text-[10px] font-semibold text-white/44">Trainers</p>
+          <p className={cn(glassText.muted, "text-[10px] font-semibold")}>Trainers</p>
           <StackedAvatars avatars={trainerAvatars} />
         </div>
       </div>
 
       <div className="mt-4 grid grid-cols-[64px_1fr] items-center gap-3">
-        <p className="text-[10px] font-semibold text-white/44">Members</p>
+        <p className={cn(glassText.muted, "text-[10px] font-semibold")}>Members</p>
         <StackedAvatars avatars={memberAvatars} />
       </div>
 
       <div className="mt-5 flex items-center justify-end gap-3">
-        <GhostButton className="text-[10px] font-semibold text-white/66 hover:bg-transparent hover:text-white/85">
+        <GhostButton
+          className={cn(
+            "text-[10px] font-semibold hover:bg-transparent hover:text-glass-primary",
+            glassText.secondary,
+          )}
+        >
           Cancel
         </GhostButton>
-        <GhostButton className="rounded-full bg-[#176dff] px-6 py-2 text-[10px] font-bold text-white shadow-[0_16px_40px_rgba(23,109,255,0.42)] hover:bg-[#176dff]/90 hover:text-white">
+        <GhostButton
+          className={cn(
+            "rounded-full bg-[#176dff] px-6 py-2 text-[10px] font-bold shadow-[0_16px_40px_rgba(23,109,255,0.42)] hover:bg-[#176dff]/90 hover:text-glass-primary",
+            glassText.primary,
+          )}
+        >
           OK
         </GhostButton>
       </div>

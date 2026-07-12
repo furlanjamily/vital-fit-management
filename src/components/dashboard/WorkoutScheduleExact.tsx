@@ -7,9 +7,10 @@ import {
   MoreHorizontal,
 } from "lucide-react";
 import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
+import { glassText, glassTextStyles } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
 
-type WorkoutScheduleVariant = "purple" | "yellow";
+type WorkoutScheduleVariant = "orange" | "amber";
 
 type WorkoutSchedulePosition = "top" | "middle" | "bottom";
 
@@ -50,7 +51,7 @@ const WORKOUT_ITEMS: WorkoutScheduleItem[] = [
     id: "speed-power",
     title: "Speed & Power Training",
     dateRange: "21 Jul - 25 Jul",
-    variant: "purple",
+    variant: "orange",
     position: "top",
     startDayIndex: 1.35,
     endDayIndex: 4,
@@ -61,7 +62,7 @@ const WORKOUT_ITEMS: WorkoutScheduleItem[] = [
     id: "pace",
     title: "Pace Training",
     dateRange: "20 Jul - 23 Jul",
-    variant: "yellow",
+    variant: "amber",
     position: "middle",
     startDayIndex: 0.15,
     endDayIndex: 3.55,
@@ -73,7 +74,7 @@ const WORKOUT_ITEMS: WorkoutScheduleItem[] = [
     id: "boxing",
     title: "Boxing",
     dateRange: "23 Jul - 25 Jul",
-    variant: "purple",
+    variant: "orange",
     position: "bottom",
     startDayIndex: 2.85,
     endDayIndex: 4,
@@ -83,7 +84,7 @@ const WORKOUT_ITEMS: WorkoutScheduleItem[] = [
   },
 ];
 
-const AVATAR_COLORS = ["#F2994A", "#56CCF2"] as const;
+const AVATAR_COLORS = ["#FF7A4A", "#FFB300"] as const;
 
 const ghostStripeStyle: CSSProperties = {
   backgroundImage: `repeating-linear-gradient(
@@ -117,14 +118,17 @@ type OverlappingAvatarsProps = {
 };
 
 function OverlappingAvatars({ variant }: OverlappingAvatarsProps) {
-  const borderColor = variant === "yellow" ? "#FFF2AF" : "#B8B2FF";
+  const borderColor = variant === "amber" ? "#FFF2AF" : "#FF9A4A";
 
   return (
     <div className="flex shrink-0 -space-x-1.5">
       {AVATAR_COLORS.map((color, index) => (
         <span
           key={color}
-          className="relative inline-flex size-[18px] items-center justify-center rounded-full border-[1.5px] text-[7px] font-semibold text-white"
+          className={cn(
+            "relative inline-flex size-[18px] items-center justify-center rounded-full border-[1.5px] text-[7px] font-semibold",
+            glassText.primary,
+          )}
           style={{
             backgroundColor: color,
             borderColor,
@@ -147,7 +151,7 @@ function EllipsisBubble({ variant }: EllipsisBubbleProps) {
     <span
       className={cn(
         "inline-flex size-[22px] shrink-0 items-center justify-center rounded-full shadow-[0_1px_4px_rgba(0,0,0,0.08)]",
-        variant === "yellow" ? "bg-white/95" : "bg-white",
+        variant === "amber" ? "bg-white/95" : "bg-white",
       )}
     >
       <MoreHorizontal className="size-3 text-[#1a1a1a]/70" strokeWidth={2.5} />
@@ -169,8 +173,8 @@ function WorkoutBlock({ item }: WorkoutBlockProps) {
   const solidWidthPercent =
     ((solidRightPercent - leftPercent) / widthPercent) * 100;
 
-  const isPurple = item.variant === "purple";
-  const bgColor = isPurple ? "#B8B2FF" : "#FFF2AF";
+  const isOrange = item.variant === "orange";
+  const bgColor = isOrange ? "#FF9A4A" : "#FFF2AF";
   const textColor = "#1a1a1a";
   const subtitleColor = "#6B7280";
   const blockHeight = item.height ?? 38;
@@ -244,14 +248,14 @@ function WorkoutBlock({ item }: WorkoutBlockProps) {
 
       {item.showPointer && (
         <MousePointer2
-          className="absolute z-30 size-[14px] text-[#9B51E0]"
+          className="absolute z-30 size-[14px] text-[#FF7A00]"
           style={{
             left: `${leftPercent + widthPercent * 0.42}%`,
             top: "54%",
             transform: "rotate(-12deg)",
           }}
           strokeWidth={2.25}
-          fill="#9B51E0"
+          fill="#FF7A00"
         />
       )}
     </>
@@ -286,7 +290,7 @@ function CurrentDayMarker() {
       style={{ left: `${leftPercent}%`, transform: "translateX(-50%)" }}
     >
       <span className="flex size-[18px] items-center justify-center rounded-full border border-white/20 bg-white/12 shadow-[0_1px_3px_rgba(0,0,0,0.12)]">
-        <MapPin className="size-[9px] text-white/88" strokeWidth={2.25} />
+        <MapPin className={cn("size-[9px]", glassText.secondary)} strokeWidth={2.25} />
       </span>
       <div className="mt-0.5 w-px flex-1 border-l border-dashed border-white/38" />
     </div>
@@ -302,8 +306,8 @@ function DateAxis() {
           className={cn(
             "text-center text-[9px] tracking-[-0.01em]",
             index === CURRENT_DAY_INDEX
-              ? "font-semibold text-white/88"
-              : "font-normal text-white/42",
+              ? cn("font-semibold", glassText.secondary)
+              : cn("font-normal", glassText.muted),
           )}
         >
           {date}
@@ -322,11 +326,11 @@ export function WorkoutScheduleExact() {
           <div className="flex items-center gap-2">
             <span className="flex size-[26px] items-center justify-center rounded-full bg-white/10">
               <CalendarDays
-                className="size-[13px] text-white/80"
+                className={cn("size-[13px]", glassText.secondary)}
                 strokeWidth={2}
               />
             </span>
-            <h3 className="text-[13px] font-bold tracking-[-0.03em] text-white/92 sm:text-sm">
+            <h3 className={cn(glassTextStyles.panelTitle, "text-[13px] font-bold tracking-[-0.03em] sm:text-sm")}>
               Workout Schedule
             </h3>
           </div>
@@ -338,7 +342,7 @@ export function WorkoutScheduleExact() {
               className="flex size-[26px] items-center justify-center rounded-full bg-white/10 transition-colors hover:bg-white/16"
             >
               <MoreHorizontal
-                className="size-[13px] text-white/72"
+                className={cn("size-[13px]", glassText.secondary)}
                 strokeWidth={2.25}
               />
             </button>
@@ -348,7 +352,7 @@ export function WorkoutScheduleExact() {
               className="flex size-[26px] items-center justify-center rounded-full bg-white/10 transition-colors hover:bg-white/16"
             >
               <ArrowUpRight
-                className="size-[13px] text-white/72"
+                className={cn("size-[13px]", glassText.secondary)}
                 strokeWidth={2.25}
               />
             </button>

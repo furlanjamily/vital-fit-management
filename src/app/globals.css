@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --background: #070806;
+  --background: transparent;
   --foreground: #f7f7f2;
   --mobile-content-top-gap: 1.5rem;
   --mobile-nav-bottom-gap: 1.5rem;
@@ -18,6 +18,17 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Glass-on-glass text hierarchy */
+  --color-glass-primary: #ffffff;
+  --color-glass-secondary: rgb(255 255 255 / 0.63);
+  --color-glass-tertiary: rgb(255 255 255 / 0.47);
+  --color-glass-muted: rgb(255 255 255 / 0.47);
+  --color-glass-placeholder: rgb(255 255 255 / 0.45);
+}
+
+@utility text-glass-contrast-shadow {
+  text-shadow: 0 1px 3px rgb(20 12 6 / 0.32);
 }
 
 * {
@@ -25,20 +36,16 @@
 }
 
 html {
-  background: var(--background);
+  background: transparent;
 }
 
 body {
-  background:
-    radial-gradient(circle at 18% 20%, rgba(138, 213, 255, 0.1), transparent 30%),
-    radial-gradient(circle at 72% 38%, rgba(39, 119, 255, 0.13), transparent 34%),
-    linear-gradient(135deg, #050605 0%, #090b0a 46%, #050605 100%),
-    var(--background);
+  background: transparent;
   color: var(--foreground);
 }
 
 ::selection {
-  background: rgba(39, 119, 255, 0.36);
+  background: rgba(255, 122, 0, 0.36);
   color: #ffffff;
 }
 

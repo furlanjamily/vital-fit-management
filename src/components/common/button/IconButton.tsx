@@ -1,4 +1,5 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
+import { glassText } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
 
 type IconButtonShape = "round" | "square";
@@ -32,7 +33,11 @@ export function IconButton({
     <button
       type={type}
       className={cn(
-        "grid place-items-center border border-white/14 bg-white/5 text-white/60 transition hover:border-white/22 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-40",
+        cn(
+          "grid place-items-center border border-white/14 bg-white/5 transition hover:border-white/22 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40",
+          glassText.secondary,
+          "hover:text-glass-primary",
+        ),
         sizeClasses[size],
         shapeClasses[shape],
         className,

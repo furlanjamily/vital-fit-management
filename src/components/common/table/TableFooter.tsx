@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { GhostButton, IconButton } from "@/components/common/form";
 import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
 import { GlassSelect } from "@/components/common/select/GlassSelect";
+import { glassText } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
 
 export type TableFooterProps = {
@@ -54,7 +55,7 @@ export function TableFooter({
   return (
     <div className={cn("flex flex-col gap-3 py-3 lg:flex-row lg:items-center lg:justify-between", className)}>
       <div className="flex items-center gap-2">
-        <p className="text-[11px] text-white/40">Exibir</p>
+        <p className={cn("text-[11px]", glassText.muted)}>Exibir</p>
         <GlassSelect
           selectSize="sm"
           tone="muted"
@@ -66,9 +67,9 @@ export function TableFooter({
             label: String(option),
           }))}
           wrapperClassName="inline-block"
-          className="w-auto rounded-lg pr-7 text-white/75"
+          className="w-auto rounded-lg pr-7 text-glass-secondary"
         />
-        <p className="text-[11px] text-white/40">de {totalItems} resultados</p>
+        <p className={cn("text-[11px]", glassText.muted)}>de {totalItems} resultados</p>
       </div>
       {showPageControls && (
         <nav
@@ -80,7 +81,7 @@ export function TableFooter({
             onClick={() => onPageChange(currentPage - 1)}
             disabled={currentPage <= 1}
             aria-label="Página anterior"
-            className="text-white/55 disabled:opacity-35"
+            className={cn(glassText.secondary, "disabled:opacity-35")}
           >
             <ChevronLeft className="size-3.5" />
           </IconButton>
@@ -89,7 +90,7 @@ export function TableFooter({
               <span
                 key={`ellipsis-${index}`}
                 aria-hidden
-                className="px-1 text-xs font-medium tracking-widest text-white/35"
+                className={cn("px-1 text-xs font-medium tracking-widest", glassText.tertiary)}
               >
                 ...
               </span>
@@ -101,7 +102,7 @@ export function TableFooter({
                 elevation="floating"
                 className="h-full w-full flex flex-col size-8 rounded-lg"
               >
-                <span className="flex h-full text-xs font-semibold text-white justify-center items-center">{item}</span>
+                <span className={cn("flex h-full justify-center items-center text-xs font-semibold", glassText.primary)}>{item}</span>
               </GlassPanel>
             ) : (
               <GhostButton
@@ -119,7 +120,7 @@ export function TableFooter({
             onClick={() => onPageChange(currentPage + 1)}
             disabled={currentPage >= totalPages}
             aria-label="Próxima página"
-            className="text-white/55 disabled:opacity-35"
+            className={cn(glassText.secondary, "disabled:opacity-35")}
           >
             <ChevronRight className="size-3.5" />
           </IconButton>

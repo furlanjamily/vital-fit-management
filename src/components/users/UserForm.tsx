@@ -10,12 +10,14 @@ import {
   GlassSelect,
   IconButton,
 } from "@/components/common/form";
-import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
+import { ModalPanel } from "@/components/common/modal/ModalPanel";
 import {
   roleOptions,
   type ManagedUser,
   type UserFormValues,
 } from "@/components/users/users.types";
+import { glassText, glassTextStyles } from "@/config/glass-typography";
+import { cn } from "@/lib/cn";
 
 const EMPTY_VALUES: UserFormValues = {
   name: "",
@@ -73,18 +75,13 @@ export function UserForm({
   }
 
   return (
-    <GlassPanel
-      variant="strong"
-      intensity="medium"
-      elevation="modal"
-      className="w-full max-w-md rounded-2xl bg-[#221d17]/94 p-6"
-    >
+    <ModalPanel className="w-full max-w-md">
       <div className="mb-5 flex items-center justify-between">
         <div>
-          <p className="text-sm font-semibold text-white">
+          <p className={glassTextStyles.modalTitle}>
             {isEditing ? "Editar usuário" : "Cadastrar usuário"}
           </p>
-          <p className="mt-1 text-[11px] text-white/48">
+          <p className={glassTextStyles.modalSubtitle}>
             {isEditing
               ? `Alterando dados de ${editingUser.name}`
               : "Novo acesso ao VitalFit Management"}
@@ -93,7 +90,9 @@ export function UserForm({
 
         <IconButton
           aria-label="Fechar"
-          className="bg-white/7 text-white/70 hover:bg-white/13 hover:text-white"
+          className={cn(
+            "bg-white/7 text-glass-secondary hover:bg-white/13 hover:text-glass-primary",
+          )}
           onClick={onCancelEdit}
         >
           <X className="size-3.5" />
@@ -140,7 +139,11 @@ export function UserForm({
               shape="round"
               size="sm"
               aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
-              className="mr-1 size-8 border-0 bg-transparent text-white/40 hover:bg-transparent hover:text-white/75"
+              className={cn(
+                "mr-1 size-8 border-0 bg-transparent hover:bg-transparent",
+                glassText.tertiary,
+                "hover:text-glass-secondary",
+              )}
               onClick={() => setShowPassword((current) => !current)}
             >
               {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
@@ -173,6 +176,6 @@ export function UserForm({
           </GlassButton>
         </div>
       </form>
-    </GlassPanel>
+    </ModalPanel>
   );
 }

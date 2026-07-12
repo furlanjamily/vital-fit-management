@@ -1,5 +1,6 @@
 import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode } from "react";
 import { Loader2 } from "lucide-react";
+import { glassText } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
 import { GlassPanel } from "../glass-panel/GlassPanel";
 
@@ -122,7 +123,8 @@ export function GlassButton({
   );
 
   const innerClassName = cn(
-    "inline-flex w-full items-center justify-center font-semibold tracking-[-0.01em] text-white transition",
+    "inline-flex w-full items-center justify-center font-semibold tracking-[-0.01em] transition",
+    glassText.primary,
     "hover:bg-white/8 active:bg-white/10 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60",
     sizeClasses[size],
     radius,

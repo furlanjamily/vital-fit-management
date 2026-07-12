@@ -10,6 +10,8 @@ import {
   GlassInput,
   IconButton,
 } from "@/components/common/form";
+import { glassText } from "@/config/glass-typography";
+import { cn } from "@/lib/cn";
 
 const DEFAULT_REDIRECT_PATH = "/dashboard";
 
@@ -51,7 +53,10 @@ export function LoginForm({ redirectPath = DEFAULT_REDIRECT_PATH }: LoginFormPro
               shape="round"
               size="sm"
               aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
-              className="mr-1 size-8 border-0 bg-transparent text-white/45 hover:bg-transparent hover:text-white/75"
+              className={cn(
+                "mr-1 size-8 border-0 bg-transparent hover:bg-transparent hover:text-glass-secondary",
+                glassText.tertiary,
+              )}
               onClick={() => setShowPassword((current) => !current)}
             >
               {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}

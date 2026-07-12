@@ -25,7 +25,7 @@ import {
   GlassSwitch,
   IconButton,
 } from "@/components/common/form";
-import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
+import { ModalPanel } from "@/components/common/modal/ModalPanel";
 import {
   formatBirthDate,
   formatCref,
@@ -36,6 +36,8 @@ import {
   type ManagedProfessional,
   type ProfessionalFormValues,
 } from "@/components/professionals/professionals.types";
+import { glassText, glassTextStyles } from "@/config/glass-typography";
+import { cn } from "@/lib/cn";
 
 const EMPTY_VALUES: ProfessionalFormValues = {
   name: "",
@@ -107,18 +109,13 @@ export function ProfessionalRegistrationForm({
   }
 
   return (
-    <GlassPanel
-      variant="strong"
-      intensity="medium"
-      elevation="modal"
-      className="relative z-50 w-full max-w-2xl rounded-2xl bg-[#221d17]/94 p-6"
-    >
+    <ModalPanel className="relative z-50 w-full max-w-2xl">
       <div className="mb-5 flex items-center justify-between">
         <div>
-          <p className="text-sm font-semibold text-white">
+          <p className={glassTextStyles.modalTitle}>
             {isEditing ? "Editar profissional" : "Cadastrar profissional"}
           </p>
-          <p className="mt-1 text-[11px] text-white/48">
+          <p className={glassTextStyles.modalSubtitle}>
             {isEditing
               ? `Alterando cadastro de ${editingProfessional.name}`
               : "Novo personal trainer na academia"}
@@ -128,7 +125,9 @@ export function ProfessionalRegistrationForm({
         <IconButton
           aria-label="Fechar"
           disabled={isPending}
-          className="bg-white/7 text-white/70 hover:bg-white/13 hover:text-white"
+          className={cn(
+            "bg-white/7 text-glass-secondary hover:bg-white/13 hover:text-glass-primary",
+          )}
           onClick={onCancel}
         >
           <X className="size-3.5" />
@@ -203,8 +202,8 @@ export function ProfessionalRegistrationForm({
 
         <div className="flex items-center justify-between rounded-xl border border-white/14 bg-white/5 px-4 py-3">
           <div>
-            <p className="text-sm font-medium text-white">Status do profissional</p>
-            <p className="text-[11px] text-white/40">
+            <p className={cn("text-sm font-medium", glassText.primaryElevated)}>Status do profissional</p>
+            <p className={cn("text-[11px]", glassText.muted)}>
               {values.status === "active" ? "Profissional ativo" : "Profissional inativo"}
             </p>
           </div>
@@ -237,6 +236,6 @@ export function ProfessionalRegistrationForm({
           </GlassButton>
         </div>
       </form>
-    </GlassPanel>
+    </ModalPanel>
   );
 }
