@@ -7,12 +7,12 @@ export type PortfolioMetric = {
   value: string;
   variation: number;
   trend: "up" | "down";
+  hideTrend?: boolean;
 };
 
 type PortfolioSummaryCardProps = {
   metrics?: PortfolioMetric[];
-  onWithdraw?: () => void;
-  onDeposit?: () => void;
+  onNewTransaction?: () => void;
   className?: string;
 };
 
@@ -98,7 +98,9 @@ function PortfolioMetricItem({ metric }: PortfolioMetricItemProps) {
         <span className={cn("truncate text-[12px] font-medium leading-none tracking-[-0.02em]", glassText.secondary)}>
           {metric.title}
         </span>
-        <MetricTrend variation={metric.variation} trend={metric.trend} />
+        {!metric.hideTrend ? (
+          <MetricTrend variation={metric.variation} trend={metric.trend} />
+        ) : null}
       </div>
       <MetricValue value={metric.value} />
     </div>
@@ -107,8 +109,7 @@ function PortfolioMetricItem({ metric }: PortfolioMetricItemProps) {
 
 export function PortfolioSummaryCard({
   metrics = MOCK_METRICS,
-  onWithdraw,
-  onDeposit,
+  onNewTransaction,
   className,
 }: PortfolioSummaryCardProps) {
   return (
@@ -119,25 +120,16 @@ export function PortfolioSummaryCard({
             Resumo Geral
           </h2>
 
-          <div className="flex shrink-0 items-center gap-3">
-            <button
-              type="button"
-              onClick={onWithdraw}
-              className="inline-flex h-9 items-center justify-center rounded-full border border-[#FF5E4A] px-5 text-[13px] font-medium tracking-[-0.02em] text-[#FF5E4A] transition hover:bg-[#FF5E4A]/10"
-            >
-              Sacar
-            </button>
-            <button
-              type="button"
-              onClick={onDeposit}
-              className={cn(
-                "inline-flex h-9 items-center justify-center rounded-full bg-[linear-gradient(90deg,#FF7A4A_0%,#FF4D3D_100%)] px-5 text-[13px] font-semibold tracking-[-0.02em] shadow-[0_4px_18px_rgba(255,77,61,0.35)] transition hover:brightness-110",
-                glassText.primary,
-              )}
-            >
-              Depositar +
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={onNewTransaction}
+            className={cn(
+              "inline-flex h-9 items-center justify-center rounded-full bg-[linear-gradient(90deg,#FF7A4A_0%,#FF4D3D_100%)] px-5 text-[13px] font-semibold tracking-[-0.02em] shadow-[0_4px_18px_rgba(255,77,61,0.35)] transition hover:brightness-110",
+              glassText.primary,
+            )}
+          >
+            Nova Transação +
+          </button>
         </div>
 
         <div className="mt-8 flex flex-col gap-6 sm:mt-9 md:flex-row md:gap-5 lg:gap-8">

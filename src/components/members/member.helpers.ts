@@ -21,6 +21,56 @@ export function formatBirthDate(value: string): string {
   return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
 }
 
+/** Valor monetário pt-BR (sem prefixo R$). */
+export function formatCurrencyBrl(value: number): string {
+  return value.toLocaleString("pt-BR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
+
+export type MembershipPaymentDisplayStatus = "Pendente" | "Em dia";
+
+/** Data local YYYY-MM-DD (sem UTC) para comparar vencimentos. */
+export function toLocalIsoDate(date: Date = new Date()): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * Status visual da mensalidade com base no vencimento.
+ * Se next_due_date < hoje → Pendente (inadimplente), mesmo com payment_status true.
+ */
+export function getPaymentStatus(
+  nextDueDate: string | null,
+  paymentStatus: boolean,
+  referenceDate: Date = new Date(),
+): MembershipPaymentDisplayStatus {
+  void paymentStatus;
+
+  if (!nextDueDate) return "Pendente";
+
+  const today = toLocalIsoDate(referenceDate);
+  if (nextDueDate < today) return "Pendente";
+
+  return "Em dia";
+}
+
+export function isMembershipPaymentCurrent(
+  nextDueDate: string | null,
+  paymentStatus: boolean,
+  referenceDate: Date = new Date(),
+): boolean {
+  return getPaymentStatus(nextDueDate, paymentStatus, referenceDate) === "Em dia";
+}
+
+/** Formata YYYY-MM-DD → DD/MM/YYYY. */
+export function formatIsoDateToDisplay(isoDate: string): string {
+  return formatBirthDateFromIso(isoDate);
+}
+
 export function stripCpf(value: string): string {
   return value.replace(/\D/g, "").slice(0, 11);
 }

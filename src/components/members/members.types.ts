@@ -16,6 +16,10 @@ export type MemberRow = {
   origin: EnrollmentOrigin;
   plan: MemberPlan | null;
   status: boolean;
+  payment_status: boolean;
+  last_payment_date: string | null;
+  next_due_date: string | null;
+  last_payment_method: string | null;
   avatar_url: string | null;
   professional_id: string | null;
   created_at: string;
@@ -51,6 +55,10 @@ export type ManagedMember = {
   avatarUrl: string | null;
   professionalId: string | null;
   professionalName: string | null;
+  paymentStatus: boolean;
+  lastPaymentDate: string | null;
+  nextDueDate: string | null;
+  planPrice: number;
 };
 
 export const originLabels: Record<EnrollmentOrigin, string> = {
@@ -69,6 +77,14 @@ export const statusLabels: Record<MemberStatus, string> = {
   active: "Ativo",
   inactive: "Inativo",
 };
+
+export const membershipPaymentLabels = {
+  pending: "Pendente",
+  current: "Em dia",
+} as const;
+
+/** @deprecated Use membershipPaymentLabels */
+export const paymentStatusLabels = membershipPaymentLabels;
 
 export const UNASSIGNED_PROFESSIONAL_VALUE = "";
 

@@ -1,16 +1,21 @@
 "use client";
 
 import { Calendar, Download } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { GlassButton } from "@/components/common/button/GlassButton";
+import { DatePicker } from "@/components/common/date-picker/DatePicker";
+import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
+import type { FinanceFilter, FinancePeriod } from "@/components/finance/finance.types";
+import { toIsoDate } from "@/components/finance/finance.helpers";
 import { glassText } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
 
-export type FinancePeriod = "today" | "thisMonth";
+type FinanceHeaderPeriod = Extract<FinancePeriod, "today" | "thisWeek" | "thisMonth">;
 
 type FinanceHeaderProps = {
-  defaultPeriod?: FinancePeriod;
-  onPeriodChange?: (period: FinancePeriod) => void;
-  onDateClick?: () => void;
+  activeFilter: FinanceFilter;
+  onPeriodChange?: (period: FinanceHeaderPeriod) => void;
+  onDateRangeChange?: (range: { start: string; end: string }) => void;
   onExportClick?: () => void;
 };
 
@@ -24,17 +29,59 @@ const activePeriodClass = cn(
   glassText.primary,
 );
 
+const PERIOD_OPTIONS: { value: FinanceHeaderPeriod; label: string }[] = [
+  { value: "today", label: "Hoje" },
+  { value: "thisWeek", label: "Esta semana" },
+  { value: "thisMonth", label: "Este mês" },
+];
+
 export function FinanceHeader({
-  defaultPeriod = "thisMonth",
+  activeFilter,
   onPeriodChange,
-  onDateClick,
+  onDateRangeChange,
   onExportClick,
 }: FinanceHeaderProps) {
-  const [activePeriod, setActivePeriod] = useState<FinancePeriod>(defaultPeriod);
+  const [datePanelOpen, setDatePanelOpen] = useState(false);
+  const [draftStart, setDraftStart] = useState("");
+  const [draftEnd, setDraftEnd] = useState("");
+  const datePanelRef = useRef<HTMLDivElement>(null);
 
-  function handlePeriodChange(period: FinancePeriod) {
-    setActivePeriod(period);
-    onPeriodChange?.(period);
+  const isCustomRangeActive = activeFilter.kind === "range";
+
+  useEffect(() => {
+    if (!datePanelOpen) return;
+
+    function handlePointerDown(event: MouseEvent) {
+      if (!datePanelRef.current?.contains(event.target as Node)) {
+        setDatePanelOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handlePointerDown);
+    return () => document.removeEventListener("mousedown", handlePointerDown);
+  }, [datePanelOpen]);
+
+  function openDatePanel() {
+    if (activeFilter.kind === "range") {
+      setDraftStart(activeFilter.start);
+      setDraftEnd(activeFilter.end);
+    } else {
+      const today = toIsoDate(new Date());
+      setDraftStart(today);
+      setDraftEnd(today);
+    }
+
+    setDatePanelOpen((current) => !current);
+  }
+
+  function handleApplyDateRange() {
+    if (!draftStart || !draftEnd) return;
+
+    const start = draftStart <= draftEnd ? draftStart : draftEnd;
+    const end = draftStart <= draftEnd ? draftEnd : draftStart;
+
+    onDateRangeChange?.({ start, end });
+    setDatePanelOpen(false);
   }
 
   return (
@@ -49,40 +96,84 @@ export function FinanceHeader({
       </div>
 
       <div className="flex flex-wrap items-center gap-4 sm:gap-5 lg:gap-6">
-        <button
-          type="button"
-          onClick={() => handlePeriodChange("today")}
-          className={cn(
-            "text-sm transition",
-            activePeriod === "today"
-              ? activePeriodClass
-              : cn("font-normal hover:text-glass-primary", glassText.secondary),
-          )}
-        >
-          Hoje
-        </button>
+        {PERIOD_OPTIONS.map(({ value, label }) => {
+          const isActive = activeFilter.kind === "period" && activeFilter.period === value;
 
-        <button
-          type="button"
-          onClick={() => handlePeriodChange("thisMonth")}
-          className={cn(
-            "text-sm transition",
-            activePeriod === "thisMonth"
-              ? activePeriodClass
-              : cn("font-normal hover:text-glass-primary", glassText.secondary),
-          )}
-        >
-          Este mês
-        </button>
+          return (
+            <button
+              key={value}
+              type="button"
+              onClick={() => onPeriodChange?.(value)}
+              className={cn(
+                "text-sm transition",
+                isActive
+                  ? activePeriodClass
+                  : cn("font-normal hover:text-glass-primary", glassText.secondary),
+              )}
+            >
+              {label}
+            </button>
+          );
+        })}
 
-        <button
-          type="button"
-          onClick={onDateClick}
-          className={cn(controlButtonClass, "gap-2 rounded-xl px-4 py-2 font-medium")}
-        >
-          <Calendar className={cn("size-4 shrink-0", glassText.secondary)} strokeWidth={2} />
-          Data
-        </button>
+        <div ref={datePanelRef} className="relative">
+          <button
+            type="button"
+            onClick={openDatePanel}
+            aria-expanded={datePanelOpen}
+            className={cn(
+              controlButtonClass,
+              "gap-2 rounded-xl px-4 py-2 font-medium",
+              isCustomRangeActive &&
+                "border-transparent bg-gradient-to-r from-orange-500 to-orange-600 shadow-[0_4px_16px_rgba(249,115,22,0.32)]",
+            )}
+          >
+            <Calendar className={cn("size-4 shrink-0", glassText.secondary)} strokeWidth={2} />
+            Data
+          </button>
+
+          {datePanelOpen ? (
+            <GlassPanel
+              elevation="popover"
+              intensity="medium"
+              className="absolute right-0 top-[calc(100%+0.5rem)] z-20 w-[min(20rem,calc(100vw-2rem))] rounded-2xl p-4"
+            >
+              <div className="flex flex-col gap-4">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <label className="flex flex-col gap-1.5">
+                    <span className={cn("text-xs font-medium", glassText.secondary)}>De</span>
+                    <DatePicker
+                      value={draftStart}
+                      onChange={setDraftStart}
+                      pickerSize="sm"
+                      tone="muted"
+                    />
+                  </label>
+
+                  <label className="flex flex-col gap-1.5">
+                    <span className={cn("text-xs font-medium", glassText.secondary)}>Até</span>
+                    <DatePicker
+                      value={draftEnd}
+                      onChange={setDraftEnd}
+                      pickerSize="sm"
+                      tone="muted"
+                    />
+                  </label>
+                </div>
+
+                <GlassButton
+                  size="sm"
+                  shape="pill"
+                  className="self-end bg-gradient-to-r from-orange-500 to-orange-600 px-5 font-semibold"
+                  onClick={handleApplyDateRange}
+                  disabled={!draftStart || !draftEnd}
+                >
+                  Aplicar
+                </GlassButton>
+              </div>
+            </GlassPanel>
+          ) : null}
+        </div>
 
         <button
           type="button"

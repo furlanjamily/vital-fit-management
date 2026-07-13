@@ -25,10 +25,6 @@ export type ClassNavItem = {
 
 export const mainNavItems: AppNavItem[] = [
   { icon: Grid2X2, label: "Dashboard", href: "/dashboard" },
-  { icon: UsersRound, label: "Community", href: "/community", badge: "3" },
-  { icon: LineChart, label: "Analytics", href: "/analytics" },
-  { icon: UsersRound, label: "Alunos", href: "/members" },
-  { icon: UsersRound, label: "Profissionais", href: "/professionals" },
   {icon: CircleDollarSignIcon, label: "Financeiro", href: "/finance" }
 ];
 
@@ -39,8 +35,9 @@ export const classNavItems: ClassNavItem[] = [
 ];
 
 export const utilityNavItems: AppNavItem[] = [
+  { icon: UsersRound, label: "Alunos", href: "/members" },
+  { icon: UsersRound, label: "Profissionais", href: "/professionals" },
   { icon: User2Icon, label: "Usuários", href: "/users" },
-  { icon: HelpCircle, label: "Help", href: "/help" },
   { icon: Settings, label: "Setting", href: "/settings" },
 ];
 

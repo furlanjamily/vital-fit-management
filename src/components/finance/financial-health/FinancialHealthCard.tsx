@@ -3,8 +3,7 @@ import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
 import { glassText, glassTextStyles } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
 import { HealthBarsChart } from "./HealthBarsChart";
-import { MOCK_FINANCIAL_HEALTH } from "./mock-data";
-import type { FinancialHealthData } from "./types";
+import type { FinancialChartBar, FinancialHealthData } from "./types";
 
 const HEALTH_GLASS = {
   variant: "subtle" as const,
@@ -13,7 +12,9 @@ const HEALTH_GLASS = {
 };
 
 export type FinancialHealthCardProps = {
-  data?: FinancialHealthData;
+  data: FinancialHealthData;
+  bars: FinancialChartBar[];
+  wideBarSpacing?: boolean;
   onMenuClick?: () => void;
   className?: string;
 };
@@ -27,7 +28,9 @@ function splitAmount(amount: number): { whole: string; fraction: string } {
 }
 
 export function FinancialHealthCard({
-  data = MOCK_FINANCIAL_HEALTH,
+  data,
+  bars,
+  wideBarSpacing = false,
   onMenuClick,
   className,
 }: FinancialHealthCardProps) {
@@ -77,21 +80,25 @@ export function FinancialHealthCard({
           </p>
 
           <p className="text-[11px] tracking-[-0.01em] sm:text-[12px]">
-            <span
-              className={cn(
-                "font-medium",
-                isNegative ? "text-red-400" : "text-[#6EE7B7]",
-              )}
-            >
-              {data.changePercent > 0
-                ? `+${data.changePercent}%`
-                : `${data.changePercent}%`}
-            </span>{" "}
+            {!data.hideChange ? (
+              <>
+                <span
+                  className={cn(
+                    "font-medium",
+                    isNegative ? "text-red-400" : "text-[#6EE7B7]",
+                  )}
+                >
+                  {data.changePercent > 0
+                    ? `+${data.changePercent}%`
+                    : `${data.changePercent}%`}
+                </span>{" "}
+              </>
+            ) : null}
             <span className={glassText.muted}>{data.changePeriodLabel}</span>
           </p>
         </div>
 
-        <HealthBarsChart bars={data.bars} />
+        <HealthBarsChart bars={bars} wideColumns={wideBarSpacing} />
 
         <div className="flex items-start gap-2 rounded-xl bg-white/[0.04] px-2.5 py-2 sm:px-3">
           <Info

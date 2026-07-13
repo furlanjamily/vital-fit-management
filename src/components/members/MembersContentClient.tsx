@@ -1,6 +1,6 @@
 "use client";
 
-import { Edit3, Trash2, UserCheck, UserMinus, UserPlus } from "lucide-react";
+import { Edit3, Trash2, UserCheck, UserMinus, UserPlus, Wallet } from "lucide-react";
 import { InlineAlert } from "@/components/common/feedback/InlineAlert";
 import { GlassButton } from "@/components/common/form";
 import { RowActionsMenu, type RowAction } from "@/components/common/menu/RowActionsMenu";
@@ -11,10 +11,12 @@ import {
   type TableColumn,
   type TableFilterDefinition,
 } from "@/components/common/table/Table";
+import { MemberPaymentForm } from "@/components/members/MemberPaymentForm";
 import { MemberRegistrationForm } from "@/components/members/MemberRegistrationForm";
-import { parseBirthDateToIso } from "@/components/members/member.helpers";
+import { parseBirthDateToIso, getPaymentStatus } from "@/components/members/member.helpers";
 import {
   originLabels,
+  membershipPaymentLabels,
   planLabels,
   statusLabels,
   UNASSIGNED_PROFESSIONAL_VALUE,
@@ -32,6 +34,12 @@ type MembersContentClientProps = {
   professionalOptions: ProfessionalOption[];
   loadError?: string | null;
 };
+
+function membershipPaymentFilterValue(member: ManagedMember): "pending" | "current" {
+  return getPaymentStatus(member.nextDueDate, member.paymentStatus) === "Em dia"
+    ? "current"
+    : "pending";
+}
 
 function buildMemberFilters(
   professionalOptions: ProfessionalOption[],
@@ -64,6 +72,16 @@ function buildMemberFilters(
         })),
       ],
       match: (member) => member.professionalId ?? UNASSIGNED_PROFESSIONAL_VALUE,
+    },
+    {
+      type: "select",
+      key: "paymentStatus",
+      placeholder: "Mensalidade",
+      options: [
+        { value: "current", label: membershipPaymentLabels.current },
+        { value: "pending", label: membershipPaymentLabels.pending },
+      ],
+      match: (member) => membershipPaymentFilterValue(member),
     },
     {
       type: "date",
@@ -111,6 +129,27 @@ function MemberStatusBadge({ status }: { status: ManagedMember["status"] }) {
   );
 }
 
+function MemberPaymentBadge({ member }: { member: ManagedMember }) {
+  const displayStatus = getPaymentStatus(member.nextDueDate, member.paymentStatus);
+  const isCurrent = displayStatus === "Em dia";
+
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-medium",
+        isCurrent
+          ? "border-emerald-400/30 bg-emerald-500/15 text-emerald-200"
+          : "border-amber-400/25 bg-amber-400/10 text-amber-200/90",
+      )}
+    >
+      <span
+        className={cn("size-1.5 rounded-full", isCurrent ? "bg-emerald-400" : "bg-amber-400/80")}
+      />
+      {displayStatus}
+    </span>
+  );
+}
+
 function ProfessionalTrainerCell({ member }: { member: ManagedMember }) {
   if (!member.professionalName) {
     return <span className={glassText.muted}>Não atribuído</span>;
@@ -129,25 +168,37 @@ export function MembersContentClient({
     formOpen,
     editingMember,
     removingMember,
+    payingMember,
     actionError,
     isPending,
     openCreateForm,
     openEditForm,
     closeForm,
     handleFormSuccess,
+    handlePaymentSuccess,
     toggleStatus,
     removeMember,
     requestRemove,
     cancelRemove,
+    openPaymentForm,
+    closePaymentForm,
   } = useMembersManagement(initialMembers);
 
   const memberFilters = buildMemberFilters(professionalOptions);
 
   function buildRowActions(member: ManagedMember): RowAction[] {
     const isActive = member.status === "active";
+    const isPaymentCurrent =
+      getPaymentStatus(member.nextDueDate, member.paymentStatus) === "Em dia";
 
     return [
       { label: "Editar", icon: Edit3, onSelect: () => openEditForm(member) },
+      {
+        label: isPaymentCurrent ? "Mensalidade em dia" : "Confirmar pagamento",
+        icon: Wallet,
+        disabled: isPaymentCurrent,
+        onSelect: () => openPaymentForm(member),
+      },
       {
         label: isActive ? "Inativar" : "Reativar",
         icon: isActive ? UserMinus : UserCheck,
@@ -166,7 +217,7 @@ export function MembersContentClient({
     {
       key: "name",
       header: "Aluno",
-      width: "24%",
+      width: "22%",
       searchValue: (member) => `${member.name} ${member.email} ${member.cpf}`,
       render: (member) => <MemberIdentityCell member={member} />,
     },
@@ -198,14 +249,22 @@ export function MembersContentClient({
     {
       key: "plan",
       header: "Plano",
-      width: "13%",
+      width: "11%",
       searchValue: (member) => planLabels[member.plan],
       render: (member) => planLabels[member.plan],
     },
     {
+      key: "paymentStatus",
+      header: "Mensalidade",
+      width: "11%",
+      searchValue: (member) =>
+        getPaymentStatus(member.nextDueDate, member.paymentStatus),
+      render: (member) => <MemberPaymentBadge member={member} />,
+    },
+    {
       key: "status",
       header: "Status",
-      width: "12%",
+      width: "10%",
       searchValue: (member) => statusLabels[member.status],
       render: (member) => <MemberStatusBadge status={member.status} />,
     },
@@ -279,6 +338,16 @@ export function MembersContentClient({
           onConfirm={() => removeMember(removingMember.id)}
           onCancel={cancelRemove}
         />
+      )}
+
+      {payingMember && (
+        <ModalOverlay scrollable>
+          <MemberPaymentForm
+            member={payingMember}
+            onSuccess={handlePaymentSuccess}
+            onCancel={closePaymentForm}
+          />
+        </ModalOverlay>
       )}
     </div>
   );

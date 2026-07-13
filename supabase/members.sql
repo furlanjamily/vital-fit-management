@@ -19,6 +19,14 @@ create table if not exists public.members (
   plan text
     check (plan is null or plan in ('MENSAL_BASE', 'TRIMESTRAL_PREMIUM', 'ANUAL_PRO')),
   status boolean not null default true,
+  payment_status boolean not null default false,
+  last_payment_date date,
+  next_due_date date,
+  last_payment_method text
+    check (
+      last_payment_method is null
+      or last_payment_method in ('PIX', 'CARTAO_CREDITO', 'CARTAO_DEBITO', 'DINHEIRO', 'BOLETO')
+    ),
   avatar_url text,
   created_at timestamptz not null default now(),
   constraint members_email_unique unique (email),
@@ -31,6 +39,10 @@ create index if not exists members_created_at_idx on public.members (created_at 
 comment on table public.members is 'Matrículas / alunos da academia';
 comment on column public.members.cpf is 'CPF armazenado apenas com dígitos (11 caracteres)';
 comment on column public.members.status is 'true = ativo, false = inativo';
+comment on column public.members.payment_status is 'true = mensalidade paga no ciclo atual';
+comment on column public.members.last_payment_date is 'Data do último pagamento de mensalidade confirmado';
+comment on column public.members.next_due_date is 'Próximo vencimento calculado conforme o plano';
+comment on column public.members.last_payment_method is 'Forma de pagamento usada na última confirmação de mensalidade';
 
 -- Permissões de tabela (obrigatório para RLS funcionar com role authenticated)
 grant usage on schema public to authenticated, service_role;

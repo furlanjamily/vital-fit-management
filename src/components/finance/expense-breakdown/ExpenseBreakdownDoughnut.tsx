@@ -1,5 +1,6 @@
 import { cn } from "@/lib/cn";
 import { glassText } from "@/config/glass-typography";
+import { formatBrlAmount } from "@/components/finance/finance.helpers";
 import type { ExpenseBreakdownItem } from "./types";
 
 const CHART_SIZE = 170;
@@ -11,23 +12,28 @@ const INNER_RADIUS = RADIUS - STROKE_WIDTH / 2;
 const INNER_DIAMETER_RATIO = (INNER_RADIUS * 2) / CHART_SIZE;
 
 type ArcSegment = {
+  id: string;
   color: string;
   dashLength: number;
   rotation: number;
 };
 
 function buildArcSegments(items: ExpenseBreakdownItem[]): ArcSegment[] {
-  const total = items.reduce((sum, item) => sum + item.value, 0);
+  const activeItems = items.filter((item) => item.value > 0);
+  const total = activeItems.reduce((sum, item) => sum + item.value, 0);
+  if (total <= 0) return [];
+
   const circumference = 2 * Math.PI * RADIUS;
-  const totalGapDegrees = GAP_DEGREES * items.length;
+  const totalGapDegrees = GAP_DEGREES * activeItems.length;
   const availableDegrees = 360 - totalGapDegrees;
 
   let rotation = -90 + GAP_DEGREES / 2;
 
-  return items.map((item) => {
+  return activeItems.map((item) => {
     const segmentDegrees = (item.value / total) * availableDegrees;
     const dashLength = (segmentDegrees / 360) * circumference;
     const arc: ArcSegment = {
+      id: item.id,
       color: item.color,
       dashLength,
       rotation,
@@ -35,15 +41,6 @@ function buildArcSegments(items: ExpenseBreakdownItem[]): ArcSegment[] {
 
     rotation += segmentDegrees + GAP_DEGREES;
     return arc;
-  });
-}
-
-function formatTotalAmount(total: number): string {
-  return total.toLocaleString("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
   });
 }
 
@@ -59,7 +56,8 @@ export function ExpenseBreakdownDoughnut({
   className,
 }: ExpenseBreakdownDoughnutProps) {
   const total = items.reduce((sum, item) => sum + item.value, 0);
-  const segments = buildArcSegments(items);
+  const isEmpty = total <= 0;
+  const segments = isEmpty ? [] : buildArcSegments(items);
   const circumference = 2 * Math.PI * RADIUS;
 
   return (
@@ -69,43 +67,74 @@ export function ExpenseBreakdownDoughnut({
         className,
       )}
       role="img"
-      aria-label={`Despesas totais ${formatTotalAmount(total)}`}
+      aria-label={
+        isEmpty
+          ? "Nenhuma despesa registrada no período"
+          : `Despesas totais R$ ${formatBrlAmount(total)}`
+      }
     >
-      <svg
-        viewBox={`0 0 ${CHART_SIZE} ${CHART_SIZE}`}
-        className="block size-full"
-        aria-hidden
-        preserveAspectRatio="xMidYMid meet"
-      >
-        {segments.map((segment, index) => (
-          <circle
-            key={`${segment.color}-${index}`}
-            cx={CENTER}
-            cy={CENTER}
-            r={RADIUS}
-            fill="none"
-            stroke={segment.color}
-            strokeWidth={STROKE_WIDTH}
-            strokeLinecap="butt"
-            strokeDasharray={`${segment.dashLength} ${circumference - segment.dashLength}`}
-            transform={`rotate(${segment.rotation} ${CENTER} ${CENTER})`}
-          />
-        ))}
-      </svg>
+      {!isEmpty ? (
+        <svg
+          viewBox={`0 0 ${CHART_SIZE} ${CHART_SIZE}`}
+          className="block size-full"
+          aria-hidden
+          preserveAspectRatio="xMidYMid meet"
+        >
+          {segments.map((segment) => (
+            <circle
+              key={segment.id}
+              cx={CENTER}
+              cy={CENTER}
+              r={RADIUS}
+              fill="none"
+              stroke={segment.color}
+              strokeWidth={STROKE_WIDTH}
+              strokeLinecap="butt"
+              strokeDasharray={`${segment.dashLength} ${circumference - segment.dashLength}`}
+              transform={`rotate(${segment.rotation} ${CENTER} ${CENTER})`}
+            />
+          ))}
+        </svg>
+      ) : (
+        <div
+          className="absolute inset-0 rounded-full border border-white/10 bg-white/[0.03]"
+          aria-hidden
+        />
+      )}
 
       <div
-        className="pointer-events-none absolute left-1/2 top-1/2 flex aspect-square -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center overflow-hidden rounded-full"
+        className="pointer-events-none absolute left-1/2 top-1/2 flex aspect-square -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center overflow-hidden rounded-full px-2"
         style={{
           width: `${INNER_DIAMETER_RATIO * 100}%`,
           height: `${INNER_DIAMETER_RATIO * 100}%`,
         }}
       >
-        <span className={cn("w-full px-0.5 text-center text-[clamp(9px,10.5cqw,16px)] font-bold leading-none tracking-[-0.03em]", glassText.primary)}>
-          {formatTotalAmount(total)}
-        </span>
-        <span className={cn("mt-[0.35em] text-[clamp(8px,6.5cqw,12px)] leading-none", glassText.secondary)}>
-          {totalLabel}
-        </span>
+        {isEmpty ? (
+          <span
+            className={cn(
+              "text-center text-[clamp(9px,8cqw,13px)] leading-snug",
+              glassText.muted,
+            )}
+          >
+            Sem despesas no período
+          </span>
+        ) : (
+          <>
+            <span
+              className={cn(
+                "w-full px-0.5 text-center text-[clamp(9px,10.5cqw,16px)] font-bold leading-none tracking-[-0.03em]",
+                glassText.primary,
+              )}
+            >
+              R$ {formatBrlAmount(total)}
+            </span>
+            <span
+              className={cn("mt-[0.35em] text-[clamp(8px,6.5cqw,12px)] leading-none", glassText.secondary)}
+            >
+              {totalLabel}
+            </span>
+          </>
+        )}
       </div>
     </div>
   );

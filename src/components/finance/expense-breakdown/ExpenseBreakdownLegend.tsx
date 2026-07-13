@@ -18,18 +18,33 @@ export function ExpenseBreakdownLegend({
         className,
       )}
     >
-      {items.map((item) => (
-        <li key={item.name} className="flex shrink-0 items-center gap-2">
-          <span
-            className="size-2 shrink-0 rounded-[2px]"
-            style={{ backgroundColor: item.color }}
-            aria-hidden
-          />
-          <span className={cn("whitespace-nowrap text-[13px] leading-none sm:text-[14px]", glassText.secondary)}>
-            {item.name}
-          </span>
-        </li>
-      ))}
+      {items.map((item) => {
+        const isZero = item.value <= 0;
+
+        return (
+          <li
+            key={item.id}
+            className={cn(
+              "flex shrink-0 items-center gap-2 transition-opacity",
+              isZero && "opacity-45",
+            )}
+          >
+            <span
+              className="size-2 shrink-0 rounded-[2px]"
+              style={{ backgroundColor: item.color }}
+              aria-hidden
+            />
+            <span
+              className={cn(
+                "whitespace-nowrap text-[13px] leading-none sm:text-[14px]",
+                glassText.secondary,
+              )}
+            >
+              {item.name}
+            </span>
+          </li>
+        );
+      })}
     </ul>
   );
 }

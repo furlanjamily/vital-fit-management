@@ -9,6 +9,11 @@ import { TableColGroup } from "@/components/common/table/TableColGroup";
 import { TableFooter } from "@/components/common/table/TableFooter";
 import { TableHead } from "@/components/common/table/TableHead";
 import type { TableColumn } from "@/components/common/table/table.types";
+import {
+  getTableAlignClassName,
+  getTableCellContentClassName,
+  getTableEdgeCellClassName,
+} from "@/components/common/table/table.helpers";
 import { glassTextStyles } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
 
@@ -37,6 +42,8 @@ type TableProps<T> = {
   headerActions?: ReactNode;
   rowClassName?: (row: T) => string | undefined;
   className?: string;
+  /** Classes extras no GlassPanel que envolve a tabela (ex.: padding horizontal). */
+  panelClassName?: string;
   defaultPageSize?: number;
   /** Opções exibidas no seletor de itens por página. */
   pageSizeOptions?: number[];
@@ -98,6 +105,7 @@ export function Table<T>({
   headerActions,
   rowClassName,
   className,
+  panelClassName,
   defaultPageSize = DEFAULT_PAGE_SIZE,
   pageSizeOptions = DEFAULT_PAGE_SIZE_OPTIONS,
 }: TableProps<T>) {
@@ -192,7 +200,10 @@ export function Table<T>({
         variant="subtle"
         intensity="low"
         elevation="floating"
-        className="flex min-h-0 flex-1 flex-col rounded-2xl px-3 pt-3"
+        className={cn(
+          "flex min-h-0 flex-1 flex-col rounded-2xl px-4 pt-3 sm:px-5",
+          panelClassName,
+        )}
       >
         {title ? (
           <div className="mb-5 flex shrink-0 items-center justify-between gap-4">
@@ -207,14 +218,14 @@ export function Table<T>({
           )}
         >
           <div className="shrink-0">
-            <table className="w-full min-w-[640px] table-fixed border-separate border-spacing-0">
+            <table className="w-full table-fixed border-separate border-spacing-0">
               <TableColGroup columns={columns} />
               <TableHead columns={columns} />
             </table>
           </div>
 
-          <div className="min-h-0 flex-1 overflow-y-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <table className="w-full min-w-[640px] table-fixed border-separate border-spacing-0">
+          <div className="min-h-0 flex-1 overflow-y-auto overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <table className="w-full table-fixed border-separate border-spacing-0">
               <TableColGroup columns={columns} />
               <tbody>
                 {filteredData.length === 0 ? (
@@ -235,16 +246,20 @@ export function Table<T>({
                         rowClassName?.(row),
                       )}
                     >
-                      {columns.map((column) => (
+                      {columns.map((column, columnIndex) => (
                         <td
                           key={column.key}
                           className={cn(
-                            "py-3.5 pr-4 last:pr-0",
+                            "py-3.5",
+                            getTableEdgeCellClassName(columnIndex, columns.length),
+                            getTableAlignClassName(column.align),
                             glassTextStyles.tableCell,
                             column.className,
                           )}
                         >
-                          {column.render(row)}
+                          <div className={getTableCellContentClassName(column.align)}>
+                            {column.render(row)}
+                          </div>
                         </td>
                       ))}
                     </tr>

@@ -3,7 +3,6 @@ import { glassText } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
 import { ExpenseBreakdownDoughnut } from "./ExpenseBreakdownDoughnut";
 import { ExpenseBreakdownLegend } from "./ExpenseBreakdownLegend";
-import { MOCK_EXPENSE_BREAKDOWN } from "./mock-data";
 import type { ExpenseBreakdownData } from "./types";
 
 const EXPENSE_GLASS = {
@@ -13,14 +12,11 @@ const EXPENSE_GLASS = {
 };
 
 export type ExpenseBreakdownCardProps = {
-  data?: ExpenseBreakdownData;
+  data: ExpenseBreakdownData;
   className?: string;
 };
 
-export function ExpenseBreakdownCard({
-  data = MOCK_EXPENSE_BREAKDOWN,
-  className,
-}: ExpenseBreakdownCardProps) {
+export function ExpenseBreakdownCard({ data, className }: ExpenseBreakdownCardProps) {
   return (
     <GlassPanel
       {...EXPENSE_GLASS}
@@ -30,7 +26,12 @@ export function ExpenseBreakdownCard({
       )}
     >
       <div className="flex h-full min-h-[300px] flex-col p-4 sm:min-h-[320px] sm:p-5 md:p-6 lg:min-h-0">
-        <h2 className={cn(glassText.primary, "shrink-0 text-center text-[16px] font-semibold tracking-normal sm:text-left sm:text-[17px] md:text-[18px]")}>
+        <h2
+          className={cn(
+            glassText.primary,
+            "shrink-0 text-center text-[16px] font-semibold tracking-normal sm:text-left sm:text-[17px] md:text-[18px]",
+          )}
+        >
           {data.title}
         </h2>
 
@@ -41,7 +42,9 @@ export function ExpenseBreakdownCard({
             className="w-[130px] sm:w-[145px] md:w-[160px] lg:w-[130px] xl:w-[150px] 2xl:w-[170px]"
           />
 
-          <ExpenseBreakdownLegend items={data.items} className="max-w-full px-1" />
+          {data.items.length > 0 ? (
+            <ExpenseBreakdownLegend items={data.items} className="max-w-full px-1" />
+          ) : null}
         </div>
       </div>
     </GlassPanel>

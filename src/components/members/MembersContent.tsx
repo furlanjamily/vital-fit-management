@@ -7,7 +7,10 @@ import type { ManagedMember } from "@/components/members/members.types";
 
 function membersCacheKey(members: ManagedMember[]) {
   return members
-    .map((member) => `${member.id}:${member.status}:${member.professionalId ?? "none"}`)
+    .map(
+      (member) =>
+        `${member.id}:${member.status}:${member.paymentStatus}:${member.nextDueDate ?? "none"}:${member.professionalId ?? "none"}`,
+    )
     .join("|");
 }
 

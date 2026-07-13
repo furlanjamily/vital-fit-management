@@ -1,10 +1,8 @@
 export type FinancialHealthStatus = "on_track" | "at_risk" | "off_track";
 
-export type HealthBarColor = "lavender" | "mint";
-
-export interface FinancialHealthBar {
-  height: number;
-  color: HealthBarColor;
+export interface FinancialChartBar {
+  label: string;
+  value: number;
 }
 
 export interface FinancialHealthData {
@@ -16,6 +14,6 @@ export interface FinancialHealthData {
   currencySymbol: string;
   changePercent: number;
   changePeriodLabel: string;
-  bars: FinancialHealthBar[];
   footerNote: string;
+  hideChange?: boolean;
 }

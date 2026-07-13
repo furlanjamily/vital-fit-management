@@ -14,6 +14,7 @@ export function useMembersManagement(initialMembers: ManagedMember[]) {
   const [formOpen, setFormOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<ManagedMember | null>(null);
   const [removingMember, setRemovingMember] = useState<ManagedMember | null>(null);
+  const [payingMember, setPayingMember] = useState<ManagedMember | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -84,20 +85,32 @@ export function useMembersManagement(initialMembers: ManagedMember[]) {
     });
   }
 
+  function handlePaymentSuccess(member: ManagedMember) {
+    setMembers((current) =>
+      current.map((item) => (item.id === member.id ? member : item)),
+    );
+    setPayingMember(null);
+    router.refresh();
+  }
+
   return {
     members,
     formOpen,
     editingMember,
     removingMember,
+    payingMember,
     actionError,
     isPending,
     openCreateForm,
     openEditForm,
     closeForm,
     handleFormSuccess,
+    handlePaymentSuccess,
     toggleStatus,
     removeMember,
     requestRemove: setRemovingMember,
     cancelRemove: () => setRemovingMember(null),
+    openPaymentForm: setPayingMember,
+    closePaymentForm: () => setPayingMember(null),
   };
 }

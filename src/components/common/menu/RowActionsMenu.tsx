@@ -12,6 +12,7 @@ export type RowAction = {
   icon: LucideIcon;
   onSelect: () => void;
   tone?: "default" | "danger";
+  disabled?: boolean;
 };
 
 type RowActionsMenuProps = {
@@ -50,6 +51,7 @@ export function RowActionsMenu({
   }, [open]);
 
   function handleSelect(action: RowAction) {
+    if (action.disabled) return;
     setOpen(false);
     action.onSelect();
   }
@@ -77,10 +79,11 @@ export function RowActionsMenu({
           {actions.map((action) => (
             <GhostButton
               key={action.label}
-              disabled={disabled}
+              disabled={disabled || action.disabled}
               className={cn(
                 "w-full justify-start gap-2.5 px-3 py-2 text-left",
                 ACTION_TONE_CLASSES[action.tone ?? "default"],
+                action.disabled && "cursor-not-allowed opacity-45 hover:bg-transparent",
               )}
               onClick={() => handleSelect(action)}
             >

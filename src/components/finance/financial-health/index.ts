@@ -1,9 +1,17 @@
 export { FinancialHealthCard } from "./FinancialHealthCard";
 export type { FinancialHealthCardProps } from "./FinancialHealthCard";
 export { HealthBarsChart } from "./HealthBarsChart";
+export {
+  buildChartBarsForFilter,
+  buildFinancialChartBars,
+  dailyMovementsToTransactions,
+  resolveChartPeriod,
+  useFinancialChartData,
+  useFinancialHealthChartBars,
+} from "./useFinancialChartData";
+export type { ChartPeriod, FinancialTransaction } from "./useFinancialChartData";
 export type {
-  FinancialHealthBar,
+  FinancialChartBar,
   FinancialHealthData,
   FinancialHealthStatus,
-  HealthBarColor,
 } from "./types";
