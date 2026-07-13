@@ -252,6 +252,147 @@ function balanceForPeriod(summary: FinanceSummary, period: FinancePeriod): Finan
   return summary.month;
 }
 
+export type RevenueChartBar = {
+  label: string;
+  value: number;
+  /** Data ISO (ou primeiro dia do mês no filtro anual) para tooltip. */
+  date: string;
+};
+
+const REVENUE_YEARLY_MONTH_LABELS = [
+  "Jan",
+  "Fev",
+  "Mar",
+  "Abr",
+  "Mai",
+  "Jun",
+  "Jul",
+  "Ago",
+  "Set",
+  "Out",
+  "Nov",
+  "Dez",
+] as const;
+
+function receitasByDateFromMovements(movements: DailyMovement[]): Map<string, number> {
+  return new Map(movements.map((movement) => [movement.date, movement.receitas]));
+}
+
+/** Mesma agregação usada no gráfico de receitas do dashboard e no fluxo de caixa do financeiro. */
+export function buildRevenueChartBars(
+  period: FinancialOverviewPeriod,
+  movements: DailyMovement[],
+): RevenueChartBar[] {
+  const receitasByDate = receitasByDateFromMovements(movements);
+  const now = new Date();
+
+  if (period === "daily") {
+    const today = toIsoDate(now);
+    return [{ label: "Hoje", value: receitasByDate.get(today) ?? 0, date: today }];
+  }
+
+  if (period === "weekly") {
+    const monday = getMondayOfWeek(now);
+
+    return WEEKDAY_LABELS.map((label, index) => {
+      const day = new Date(monday);
+      day.setDate(monday.getDate() + index);
+      const iso = toIsoDate(day);
+      return { label, value: receitasByDate.get(iso) ?? 0, date: iso };
+    });
+  }
+
+  if (period === "yearly") {
+    const year = now.getFullYear();
+    const receitasByMonth = new Array<number>(12).fill(0);
+
+    for (const [date, value] of receitasByDate) {
+      if (!date.startsWith(String(year))) continue;
+
+      const monthIndex = Number.parseInt(date.slice(5, 7), 10) - 1;
+      receitasByMonth[monthIndex] += value;
+    }
+
+    return REVENUE_YEARLY_MONTH_LABELS.map((label, index) => ({
+      label,
+      value: receitasByMonth[index] ?? 0,
+      date: `${year}-${String(index + 1).padStart(2, "0")}-01`,
+    }));
+  }
+
+  const { start, end } = getPeriodDateRange("thisMonth");
+
+  return eachDayInRange(start, end).map((date) => {
+    const [, month, day] = date.split("-");
+
+    return {
+      label: `${day}/${month}`,
+      value: receitasByDate.get(date) ?? 0,
+      date,
+    };
+  });
+}
+
+export function formatRevenueTooltipLabel(
+  date: string,
+  period: FinancialOverviewPeriod,
+): string {
+  if (period === "daily") return "Hoje";
+
+  if (period === "yearly") {
+    const year = date.slice(0, 4);
+    const monthIndex = Number.parseInt(date.slice(5, 7), 10) - 1;
+    const monthLabel = REVENUE_YEARLY_MONTH_LABELS[monthIndex] ?? date.slice(5, 7);
+    return `${monthLabel} ${year}`;
+  }
+
+  const [, month, day] = date.split("-");
+  return `${day}/${month}`;
+}
+
+export function sumRevenueFromMovements(movements: DailyMovement[]): number {
+  return movements.reduce((total, movement) => total + movement.receitas, 0);
+}
+
+export function computeRevenueVariation(current: number, previous: number): number {
+  if (previous === 0) return current === 0 ? 0 : 100;
+  return ((current - previous) / previous) * 100;
+}
+
+export const REVENUE_CHART_COLUMN_WIDTH: Record<FinancialOverviewPeriod, number> = {
+  daily: 44,
+  weekly: 34,
+  monthly: 30,
+  yearly: 34,
+};
+
+export const REVENUE_CHART_COLUMN_GAP: Record<FinancialOverviewPeriod, number> = {
+  daily: 0,
+  weekly: 8,
+  monthly: 8,
+  yearly: 10,
+};
+
+export function resolveRevenueChartLayout(
+  period: FinancialOverviewPeriod,
+  barCount: number,
+  containerWidth: number,
+) {
+  const columnWidth = REVENUE_CHART_COLUMN_WIDTH[period];
+  const gap = REVENUE_CHART_COLUMN_GAP[period];
+  const totalGapWidth = Math.max(barCount - 1, 0) * gap;
+  const contentWidth = barCount * columnWidth + totalGapWidth;
+  const forceScroll = period === "monthly" || period === "yearly";
+  const isScrollable = forceScroll || (containerWidth > 0 && contentWidth > containerWidth);
+
+  return {
+    columnWidth,
+    gap,
+    contentWidth,
+    isScrollable,
+  };
+}
+
 export function buildGeneralPortfolioMetrics(summary: FinanceSummary): PortfolioMetric[] {
   const balance = summary.total;
 

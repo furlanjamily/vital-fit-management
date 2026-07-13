@@ -44,7 +44,7 @@ export function LeftSidebarPanel() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center justify-between rounded-2xl px-2 py-2.5 text-xs font-semibold transition hover:bg-white/8",
+                  "flex items-center justify-between rounded-2xl px-4 py-4.5 text-xs font-semibold transition hover:bg-white/8",
                   glassText.secondary,
                   active && cn("bg-white/8", glassText.primary),
                 )}
@@ -100,29 +100,30 @@ export function LeftSidebarPanel() {
           </GhostButton>
         </div>
 
-        <div className="mt-auto grid shrink-0 gap-2">
-          {utilityNavItems.map((item) => {
-            const active = isNavActive(pathname, item.href);
+        {utilityNavItems.map((item) => {
+          const active = isNavActive(pathname, item.href);
 
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "flex items-center gap-3 rounded-2xl px-2 py-2.5 text-xs font-semibold transition hover:bg-white/8",
-                  glassText.secondary,
-                  active && cn("bg-white/8", glassText.primary),
-                )}
-              >
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                "flex items-center justify-between rounded-2xl px-4 py-4.5 text-xs font-semibold transition hover:bg-white/8",
+                glassText.secondary,
+                active && cn("bg-white/8", glassText.primary),
+              )}
+            >
+              <span className="flex items-center gap-3">
                 <item.icon className="size-4" />
                 {item.label}
-              </Link>
-            );
-          })}
+              </span>
 
-          <NavUserMenu />
+            </Link>
+          );
+        })}
 
-        </div>
+        <NavUserMenu />
+
       </div>
     </div>
   );

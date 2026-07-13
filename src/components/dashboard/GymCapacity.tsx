@@ -1,26 +1,30 @@
+"use client";
+
 import { ArrowUpRight } from "lucide-react";
 import { IconButton } from "@/components/common/form";
 import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
 import { glassText, glassTextStyles } from "@/config/glass-typography";
+import { GymCapacitySkeleton } from "@/components/dashboard/GymCapacitySkeleton";
+import type { GymCapacityViewData } from "@/hooks/use-dashboard-data";
 import { cn } from "@/lib/cn";
+
+export { GymCapacitySkeleton as GymCapacityLoading } from "@/components/dashboard/GymCapacitySkeleton";
 
 const ROWS = 10;
 const COLS = 14;
 
-const activeDots = new Set([
-  "0-2", "0-5", "0-9", "0-12",
-  "1-1", "1-4", "1-7", "1-10",
-  "2-0", "2-3", "2-6", "2-8", "2-11", "2-13",
-  "3-2", "3-5", "3-9", "3-12",
-  "4-1", "4-4", "4-7", "4-10",
-  "5-0", "5-3", "5-6", "5-8", "5-11",
-  "6-2", "6-5", "6-9", "6-12",
-  "7-1", "7-4", "7-7", "7-10", "7-13",
-  "8-0", "8-3", "8-6", "8-8", "8-11",
-  "9-2", "9-5", "9-9", "9-12",
-]);
+type GymCapacityProps = {
+  data: GymCapacityViewData;
+  isLoading?: boolean;
+};
 
-export function GymCapacity() {
+export function GymCapacity({ data, isLoading = false }: GymCapacityProps) {
+  if (isLoading) {
+    return <GymCapacitySkeleton />;
+  }
+
+  const activeDotKeys = new Set(data.dots.filter((dot) => dot.isActive).map((dot) => dot.key));
+
   return (
     <GlassPanel
       variant="subtle"
@@ -31,7 +35,9 @@ export function GymCapacity() {
       <div className="mb-4 flex items-start justify-between">
         <div>
           <p className={glassTextStyles.panelTitle}>Gym Capacity</p>
-          <p className={cn(glassTextStyles.kpiLabel, "mt-1")}>Indoor and outdoor</p>
+          <p className={cn(glassTextStyles.kpiLabel, "mt-1")}>
+            {data.used} de {data.total} vagas (últimas 2h)
+          </p>
         </div>
         <IconButton
           aria-label="Ver detalhes da capacidade"
@@ -49,7 +55,7 @@ export function GymCapacity() {
           const row = Math.floor(index / COLS);
           const col = index % COLS;
           const key = `${row}-${col}`;
-          const isActive = activeDots.has(key);
+          const isActive = activeDotKeys.has(key);
 
           return (
             <div
@@ -65,7 +71,7 @@ export function GymCapacity() {
 
       <div className="mt-4 flex items-center justify-between text-sm">
         <span className={glassText.secondary}>Space Status</span>
-        <span className={cn(glassText.primary, "font-semibold")}>56%</span>
+        <span className={cn(glassText.primary, "font-semibold")}>{data.occupancyPercent}%</span>
       </div>
     </GlassPanel>
   );

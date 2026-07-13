@@ -6,7 +6,7 @@ import { InlineAlert } from "@/components/common/feedback/InlineAlert";
 import { ConfirmRemoveDialog } from "@/components/common/modal/ConfirmRemoveDialog";
 import { ModalOverlay } from "@/components/common/modal/ModalOverlay";
 import { Table } from "@/components/common/table/Table";
-import { ExpenseBreakdownCard } from "@/components/finance/expense-breakdown";
+import { ExpenseBreakdownCard, ExpenseBreakdownCardLoading } from "@/components/finance/expense-breakdown";
 import {
   buildFinancialTransactionColumns,
   financialTransactionFilters,
@@ -179,12 +179,7 @@ export function FinanceContentClient({
 
       {errorMessage ? <InlineAlert>{errorMessage}</InlineAlert> : null}
 
-      <div
-        className={cn(
-          "flex flex-col gap-6 lg:flex-row lg:items-stretch",
-          isBusy && "pointer-events-none opacity-70",
-        )}
-      >
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-stretch">
         <div className="flex w-full min-h-0 min-w-0 flex-col gap-6 lg:w-[70%]">
           <PortfolioSummaryCard
             metrics={portfolioMetrics}
@@ -196,6 +191,7 @@ export function FinanceContentClient({
             period={chartPeriod}
             range={chartRange}
             showLabels={chartPeriod !== "daily"}
+            isLoading={isBusy}
           />
         </div>
 
@@ -205,7 +201,11 @@ export function FinanceContentClient({
             bars={healthChartBars}
             wideBarSpacing={filter.kind === "range"}
           />
-          <ExpenseBreakdownCard className="min-h-0 flex-1" data={expenseData} />
+          {isBusy ? (
+            <ExpenseBreakdownCardLoading className="min-h-0 flex-1" />
+          ) : (
+            <ExpenseBreakdownCard className="min-h-0 flex-1" data={expenseData} />
+          )}
         </div>
       </div>
 

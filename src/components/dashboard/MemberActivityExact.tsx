@@ -1,88 +1,17 @@
 import type { CSSProperties, ReactNode } from "react";
 import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
 import { glassText, glassTextStyles } from "@/config/glass-typography";
+import { MemberActivityExactSkeleton } from "@/components/dashboard/MemberActivityExactSkeleton";
+import type { MemberActivityViewData } from "@/hooks/use-dashboard-data";
 import { cn } from "@/lib/cn";
 
-type ActivityBubble = {
-  id: string;
-  percentage: number;
-  color: string;
-  textColor: string;
-  size: number;
-  zIndex: number;
-  position: CSSProperties;
-};
-
-type ActivityLegendItem = {
-  id: string;
-  label: string;
-  color: string;
-};
+export { MemberActivityExactSkeleton as MemberActivityExactLoading } from "@/components/dashboard/MemberActivityExactSkeleton";
 
 const MEMBER_ACTIVITY_GLASS = {
   variant: "subtle" as const,
   intensity: "low" as const,
   elevation: "floating" as const,
 };
-
-const ACTIVITY_BUBBLES: ActivityBubble[] = [
-  {
-    id: "primary",
-    percentage: 90,
-    color: "#FF7A00",
-    textColor: "#FFFFFF",
-    size: 132,
-    zIndex: 10,
-    position: {
-      left: "0%",
-      top: "50%",
-      transform: "translateY(-50%)",
-    },
-  },
-  {
-    id: "amber",
-    percentage: 89,
-    color: "#FFB300",
-    textColor: "#ffffff",
-    size: 102,
-    zIndex: 20,
-    position: {
-      left: "36%",
-      top: "2%",
-    },
-  },
-  {
-    id: "green",
-    percentage: 65,
-    color: "#FF9800",
-    textColor: "#FFFFFF",
-    size: 78,
-    zIndex: 30,
-    position: {
-      left: "40%",
-      top: "48%",
-    },
-  },
-  {
-    id: "blue",
-    percentage: 30,
-    color: "#FF7A4A",
-    textColor: "#FFFFFF",
-    size: 52,
-    zIndex: 40,
-    position: {
-      left: "58%",
-      top: "32%",
-    },
-  },
-];
-
-const ACTIVITY_LEGEND: ActivityLegendItem[] = [
-  { id: "morning", label: "08:00-10:00", color: "#FF7A4A" },
-  { id: "midday-a", label: "10:00-14:00", color: "#FFB300" },
-  { id: "midday-b", label: "10:00-14:00", color: "#FF9800" },
-  { id: "midday-c", label: "10:00-14:00", color: "#FF9800" },
-];
 
 type MemberActivityGlassProps = {
   children: ReactNode;
@@ -104,23 +33,23 @@ function getBubbleFontSize(size: number): string {
 }
 
 type ActivityBubbleGraphicProps = {
-  bubble: ActivityBubble;
+  bubble: MemberActivityViewData["bubbles"][number];
 };
 
 function ActivityBubbleGraphic({ bubble }: ActivityBubbleGraphicProps) {
   const fontSizeClass = getBubbleFontSize(bubble.size);
+  const position: CSSProperties = {
+    width: bubble.size,
+    height: bubble.size,
+    backgroundColor: bubble.color,
+    zIndex: bubble.zIndex,
+    left: bubble.position.left,
+    top: bubble.position.top,
+    transform: bubble.position.transform,
+  };
 
   return (
-    <div
-      className="absolute grid place-items-center rounded-full"
-      style={{
-        width: bubble.size,
-        height: bubble.size,
-        backgroundColor: bubble.color,
-        zIndex: bubble.zIndex,
-        ...bubble.position,
-      }}
-    >
+    <div className="absolute grid place-items-center rounded-full" style={position}>
       <span
         className={`${fontSizeClass} font-semibold leading-none tracking-[-0.03em]`}
         style={{ color: bubble.textColor }}
@@ -132,7 +61,7 @@ function ActivityBubbleGraphic({ bubble }: ActivityBubbleGraphicProps) {
 }
 
 type ActivityLegendRowProps = {
-  item: ActivityLegendItem;
+  item: MemberActivityViewData["legend"][number];
 };
 
 function ActivityLegendRow({ item }: ActivityLegendRowProps) {
@@ -149,7 +78,16 @@ function ActivityLegendRow({ item }: ActivityLegendRowProps) {
   );
 }
 
-export function MemberActivityExact() {
+type MemberActivityExactProps = {
+  data: MemberActivityViewData;
+  isLoading?: boolean;
+};
+
+export function MemberActivityExact({ data, isLoading = false }: MemberActivityExactProps) {
+  if (isLoading) {
+    return <MemberActivityExactSkeleton />;
+  }
+
   return (
     <MemberActivityGlass>
       <div className="px-4 pb-4 pt-3.5 sm:px-5 sm:pb-5 sm:pt-4">
@@ -158,13 +96,13 @@ export function MemberActivityExact() {
         </h3>
 
         <div className="relative mx-auto mt-3 h-[168px] w-full max-w-[280px] sm:mt-4 sm:h-[188px] sm:max-w-[300px]">
-          {ACTIVITY_BUBBLES.map((bubble) => (
+          {data.bubbles.map((bubble) => (
             <ActivityBubbleGraphic key={bubble.id} bubble={bubble} />
           ))}
         </div>
 
         <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 sm:mt-4 sm:grid-cols-4 sm:gap-x-2">
-          {ACTIVITY_LEGEND.map((item) => (
+          {data.legend.map((item) => (
             <ActivityLegendRow key={item.id} item={item} />
           ))}
         </div>

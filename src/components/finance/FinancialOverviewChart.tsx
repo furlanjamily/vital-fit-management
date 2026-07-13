@@ -23,10 +23,11 @@ export type FinancialData = {
 };
 
 type FinancialOverviewChartProps = {
-  data?: FinancialData[];
+  data: FinancialData[];
   period?: FinancialOverviewPeriod;
   range?: { start: string; end: string };
   showLabels?: boolean;
+  isLoading?: boolean;
   onMenuClick?: () => void;
   className?: string;
 };
@@ -57,16 +58,6 @@ const LEGEND_ITEMS: { color: FinancialChartColor; label: string }[] = [
   { color: "green", label: "Receita" },
   { color: "orange", label: "Despesa" },
   { color: "white", label: "Saldo" },
-];
-
-const MOCK_DATA: FinancialData[] = [
-  { date: "2026-07-06", revenue: 5200, expense: 3100, balance: 2100 },
-  { date: "2026-07-07", revenue: 9600, expense: 2500, balance: 7100 },
-  { date: "2026-07-08", revenue: 4800, expense: 5100, balance: -300 },
-  { date: "2026-07-09", revenue: 8000, expense: 4900, balance: 3100 },
-  { date: "2026-07-10", revenue: 3400, expense: 6700, balance: -3300 },
-  { date: "2026-07-11", revenue: 9200, expense: 2800, balance: 6400 },
-  { date: "2026-07-12", revenue: 5800, expense: 2000, balance: 3800 },
 ];
 
 const Y_TICK_COUNT = 5;
@@ -408,10 +399,11 @@ function LegendRadio({ color }: LegendRadioProps) {
 }
 
 export function FinancialOverviewChart({
-  data = MOCK_DATA,
+  data,
   period = "weekly",
   range,
   showLabels = true,
+  isLoading = false,
   onMenuClick,
   className,
 }: FinancialOverviewChartProps) {
@@ -470,7 +462,11 @@ export function FinancialOverviewChart({
   return (
     <GlassPanel
       {...CHART_GLASS}
-      className={cn("h-full w-full min-w-0 overflow-hidden rounded-[20px]", className)}
+      className={cn(
+        "h-full w-full min-w-0 overflow-hidden rounded-[20px]",
+        isLoading && "pointer-events-none opacity-70",
+        className,
+      )}
     >
       <div className="flex min-w-0 flex-1 flex-col gap-6 px-6 py-6 sm:gap-7 sm:px-8 sm:py-7">
         <div className="flex items-center justify-between">
