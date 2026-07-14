@@ -33,6 +33,7 @@ import {
 import {
   genderOptions,
   shiftOptions,
+  specialtyOptions,
   type ManagedProfessional,
   type ProfessionalFormValues,
 } from "@/components/professionals/professionals.types";
@@ -46,6 +47,7 @@ const EMPTY_VALUES: ProfessionalFormValues = {
   birthDate: "",
   gender: "Male",
   shift: "Morning",
+  specialty: "Crossfit",
   status: "active",
   avatarUrl: null,
 };
@@ -55,10 +57,10 @@ function buildInitialValues(
 ): ProfessionalFormValues {
   if (!editingProfessional) return EMPTY_VALUES;
 
-  const { name, email, cref, birthDate, gender, shift, status, avatarUrl } =
+  const { name, email, cref, birthDate, gender, shift, specialty, status, avatarUrl } =
     editingProfessional;
 
-  return { name, email, cref, birthDate, gender, shift, status, avatarUrl };
+  return { name, email, cref, birthDate, gender, shift, specialty, status, avatarUrl };
 }
 
 type ProfessionalRegistrationFormProps = {
@@ -197,6 +199,16 @@ export function ProfessionalRegistrationForm({
               setField("shift", event.target.value as ProfessionalFormValues["shift"])
             }
             wrapperClassName="z-20"
+          />
+
+          <GlassSelect
+            options={specialtyOptions}
+            value={values.specialty}
+            onChange={(event) =>
+              setField("specialty", event.target.value as ProfessionalFormValues["specialty"])
+            }
+            placeholder="Especialidade"
+            wrapperClassName="md:col-span-2 z-10"
           />
         </div>
 

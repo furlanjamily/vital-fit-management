@@ -120,9 +120,10 @@ export function CategoriesContentClient({
     {
       key: "actions",
       header: "",
-      className: "w-12",
-      headerClassName: "w-12",
-      width: "3rem",
+      align: "right",
+      className: "w-16",
+      headerClassName: "w-16",
+      width: "4rem",
       render: (category) => {
         const actions: RowAction[] = [
           {

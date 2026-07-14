@@ -180,7 +180,7 @@ export function buildFinancialTransactionColumns({
     {
       key: "actions",
       header: "",
-      width: "3.5rem",
+      width: "4rem",
       align: "right",
       render: (transaction) => {
         const actions = buildRowActions(transaction, onEdit, onRemove);

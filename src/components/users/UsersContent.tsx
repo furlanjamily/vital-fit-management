@@ -120,9 +120,10 @@ export function UsersContent({ initialUsers, loadError = null }: UsersContentPro
     {
       key: "actions",
       header: "",
-      width: "3rem",
-      headerClassName: "w-12",
-      className: "w-12",
+      align: "right",
+      width: "4rem",
+      headerClassName: "w-16",
+      className: "w-16",
       render: (user) => (
         <RowActionsMenu
           ariaLabel={`Ações para ${user.name}`}

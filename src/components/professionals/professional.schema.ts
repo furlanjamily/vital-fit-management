@@ -7,6 +7,7 @@ import {
 import {
   PROFESSIONAL_GENDERS,
   PROFESSIONAL_SHIFTS,
+  PROFESSIONAL_SPECIALTIES,
   PROFESSIONAL_STATUSES,
 } from "@/components/professionals/professionals.types";
 
@@ -27,6 +28,7 @@ export const professionalFormSchema = z.object({
     .pipe(z.string("Informe uma data de nascimento válida (DD/MM/AAAA).")),
   gender: z.enum(PROFESSIONAL_GENDERS, "Sexo inválido."),
   shift: z.enum(PROFESSIONAL_SHIFTS, "Turno inválido."),
+  specialty: z.enum(PROFESSIONAL_SPECIALTIES, "Selecione uma especialidade válida."),
   status: z.enum(PROFESSIONAL_STATUSES, "Status inválido."),
   avatarUrl: z
     .string()

@@ -14,7 +14,9 @@ import type {
   ProfessionalFormValues,
   ProfessionalRow,
   ProfessionalRowWithMemberCount,
+  ScheduleProfessionalOption,
 } from "@/components/professionals/professionals.types";
+import type { ProfessionalSpecialty } from "@/config/professional-specialties";
 import {
   actionFailure,
   actionSuccess,
@@ -52,6 +54,7 @@ function mapRowToManaged(
     birthDate: formatBirthDateFromIso(row.birth_date),
     gender: row.gender,
     shift: row.shift,
+    specialty: row.specialty,
     status: row.status ? "active" : "inactive",
     avatarUrl: row.avatar_url,
     memberCount,
@@ -66,6 +69,7 @@ function toProfessionalRowPayload(values: ValidatedProfessionalForm) {
     birth_date: values.birthDate,
     gender: values.gender,
     shift: values.shift,
+    specialty: values.specialty,
     status: values.status === "active",
     avatar_url: values.avatarUrl,
   };
@@ -103,6 +107,10 @@ function mapDatabaseError(message: string): string {
     message.includes("schema cache");
 
   if (isMissingTable) return MISSING_PROFESSIONALS_TABLE_MESSAGE;
+
+  if (message.includes("specialty") && message.includes("does not exist")) {
+    return "Coluna specialty não existe. Execute supabase/schedule-professionals-integration.sql no Supabase.";
+  }
 
   return message;
 }
@@ -226,6 +234,35 @@ export async function updateProfessionalStatusAction(
     );
   } catch (error) {
     return actionFailure(toActionError(error, "Erro ao alterar status."));
+  }
+}
+
+export async function getScheduleProfessionalsAction(): Promise<
+  ActionResult<ScheduleProfessionalOption[]>
+> {
+  try {
+    const session = await requireAuthenticatedClient();
+    if (!session.authenticated) return actionFailure(session.error);
+
+    const { data, error } = await session.supabase
+      .from(PROFESSIONALS_TABLE)
+      .select("id, full_name, specialty, status")
+      .order("full_name", { ascending: true });
+
+    if (error) return actionFailure(mapDatabaseError(error.message));
+
+    const rows = data ?? [];
+
+    return actionSuccess(
+      rows.map((row) => ({
+        id: row.id as string,
+        name: row.full_name as string,
+        specialty: (row.specialty ?? "Crossfit") as ProfessionalSpecialty,
+        status: (row.status ? "active" : "inactive") as "active" | "inactive",
+      })),
+    );
+  } catch (error) {
+    return actionFailure(toActionError(error, "Erro ao buscar profissionais para a grade."));
   }
 }
 

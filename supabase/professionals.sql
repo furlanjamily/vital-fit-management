@@ -15,13 +15,18 @@ create table if not exists public.professionals (
   gender text not null
     check (gender in ('Male', 'Female', 'Other')),
   shift text not null
-    check (shift in ('Morning', 'Afternoon', 'Night')),
+    check (shift in ('Morning', 'Afternoon', 'Night', 'FullTime')),
+  specialty text not null
+    check (specialty in (
+      'Musculação', 'Dança', 'Yoga', 'Spinning', 'Jump', 'Pilates', 'Crossfit', 'TRX'
+    )),
   status boolean not null default true,
   created_at timestamptz not null default now(),
   constraint professionals_email_unique unique (email),
   constraint professionals_cref_unique unique (cref)
 );
 
+create index if not exists professionals_specialty_idx on public.professionals (specialty);
 create index if not exists professionals_status_idx on public.professionals (status);
 create index if not exists professionals_shift_idx on public.professionals (shift);
 create index if not exists professionals_created_at_idx on public.professionals (created_at desc);
@@ -29,7 +34,8 @@ create index if not exists professionals_created_at_idx on public.professionals 
 comment on table public.professionals is 'Personal trainers / profissionais da academia';
 comment on column public.professionals.cref is 'Registro CREF (Conselho Regional de Educação Física)';
 comment on column public.professionals.gender is 'Male | Female | Other';
-comment on column public.professionals.shift is 'Morning | Afternoon | Night';
+comment on column public.professionals.shift is 'Morning | Afternoon | Night | FullTime (Integral)';
+comment on column public.professionals.specialty is 'Modalidade/especialidade (Musculação, Dança, Yoga, etc.)';
 comment on column public.professionals.status is 'true = ativo, false = inativo';
 
 alter table public.members

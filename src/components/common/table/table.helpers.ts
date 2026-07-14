@@ -18,14 +18,24 @@ export function getTableCellContentClassName(align: TableColumnAlign = "left") {
   );
 }
 
-export function getTableEdgeCellClassName(index: number, total: number) {
+export function getTableEdgeCellClassName(
+  index: number,
+  total: number,
+  align: TableColumnAlign = "left",
+) {
+  if (index === total - 1) {
+    return align === "right" ? "pl-1 pr-1" : "pl-5 pr-0";
+  }
+
   if (index === 0) return "pl-0 pr-5";
-  if (index === total - 1) return "pl-5 pr-0";
+
   return "px-5";
 }
 
-export function getTableEdgeHeaderClassName(index: number, total: number) {
-  if (index === 0) return "pl-0 pr-5";
-  if (index === total - 1) return "pl-5 pr-0";
-  return "pr-5";
+export function getTableEdgeHeaderClassName(
+  index: number,
+  total: number,
+  align: TableColumnAlign = "left",
+) {
+  return getTableEdgeCellClassName(index, total, align);
 }

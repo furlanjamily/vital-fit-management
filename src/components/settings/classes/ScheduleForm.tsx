@@ -1,0 +1,346 @@
+"use client";
+
+import { useEffect, useMemo, useState, useTransition, type FormEvent } from "react";
+import { Clock, Loader2, User, X } from "lucide-react";
+import { listAllClassesAction } from "@/app/(app)/classes/actions";
+import { getScheduleProfessionalsAction } from "@/app/(app)/professionals/actions";
+import { InlineAlert } from "@/components/common/feedback/InlineAlert";
+import {
+  FormField,
+  GlassButton,
+  GlassInput,
+  GlassSelect,
+  IconButton,
+} from "@/components/common/form";
+import { ModalPanel } from "@/components/common/modal/ModalPanel";
+import type { ScheduleProfessionalOption } from "@/components/professionals/professionals.types";
+import {
+  classScheduleNameOptions,
+  WEEKDAY_OPTIONS,
+  type ClassSchedule,
+  type ClassScheduleFormValues,
+} from "@/components/settings/classes/schedule.types";
+import { specialtyMatchesClass } from "@/config/professional-specialties";
+import { glassText, glassTextStyles } from "@/config/glass-typography";
+import { cn } from "@/lib/cn";
+
+const EMPTY_VALUES: ClassScheduleFormValues = {
+  className: "Crossfit",
+  professionalId: "",
+  dayOfWeek: "1",
+  startTime: "",
+  maxCapacity: "",
+};
+
+function buildInitialValues(schedule: ClassSchedule | null): ClassScheduleFormValues {
+  if (!schedule) return EMPTY_VALUES;
+
+  return {
+    className: schedule.className,
+    professionalId: schedule.professionalId,
+    dayOfWeek: String(schedule.dayOfWeek),
+    startTime: schedule.startTime,
+    maxCapacity: String(schedule.maxCapacity),
+  };
+}
+
+type ScheduleFormProps = {
+  editingSchedule: ClassSchedule | null;
+  onSuccess: (schedule: ClassSchedule) => void;
+  onCancel: () => void;
+  createAction: typeof import("@/app/(app)/settings/classes/actions").createClassScheduleAction;
+  updateAction: typeof import("@/app/(app)/settings/classes/actions").updateClassScheduleAction;
+};
+
+export function ScheduleForm({
+  editingSchedule,
+  onSuccess,
+  onCancel,
+  createAction,
+  updateAction,
+}: ScheduleFormProps) {
+  const [values, setValues] = useState<ClassScheduleFormValues>(() =>
+    buildInitialValues(editingSchedule),
+  );
+  const [dbClassOptions, setDbClassOptions] = useState<{ value: string; label: string }[]>([]);
+  const [professionals, setProfessionals] = useState<ScheduleProfessionalOption[]>([]);
+  const [isLoadingOptions, setIsLoadingOptions] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isSubmitting, startSubmitTransition] = useTransition();
+
+  const isEditing = Boolean(editingSchedule);
+
+  const classNameOptions = useMemo(() => {
+    const names = new Set<string>([
+      ...classScheduleNameOptions.map((option) => option.value),
+      ...dbClassOptions.map((option) => option.value),
+    ]);
+
+    if (isEditing && editingSchedule?.className) {
+      names.add(editingSchedule.className);
+    }
+
+    return [...names]
+      .sort((a, b) => a.localeCompare(b, "pt-BR"))
+      .map((name) => ({ value: name, label: name }));
+  }, [dbClassOptions, isEditing, editingSchedule?.className]);
+
+  const eligibleProfessionals = useMemo(
+    () =>
+      professionals.filter(
+        (professional) =>
+          professional.status === "active" &&
+          specialtyMatchesClass(professional.specialty, values.className),
+      ),
+    [professionals, values.className],
+  );
+
+  const professionalOptions = useMemo(() => {
+    if (isLoadingOptions) {
+      return [{ value: "", label: "Carregando profissionais…" }];
+    }
+
+    if (eligibleProfessionals.length === 0) {
+      return [
+        {
+          value: "",
+          label: `Nenhum profissional de ${values.className} cadastrado`,
+        },
+      ];
+    }
+
+    return eligibleProfessionals.map((professional) => ({
+      value: professional.id,
+      label: `${professional.name} — ${professional.specialty}`,
+    }));
+  }, [eligibleProfessionals, isLoadingOptions, values.className]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadOptions() {
+      setIsLoadingOptions(true);
+      setErrorMessage(null);
+
+      const [classesResult, professionalsResult] = await Promise.all([
+        listAllClassesAction(),
+        getScheduleProfessionalsAction(),
+      ]);
+
+      if (cancelled) return;
+
+      if (classesResult.success) {
+        setDbClassOptions(
+          classesResult.data.map((item) => ({ value: item.name, label: item.name })),
+        );
+      }
+
+      if (professionalsResult.success) {
+        setProfessionals(professionalsResult.data);
+      } else {
+        setErrorMessage(professionalsResult.error);
+      }
+
+      setIsLoadingOptions(false);
+    }
+
+    void loadOptions();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (isLoadingOptions || eligibleProfessionals.length === 0) return;
+
+    setValues((current) => {
+      const stillEligible = eligibleProfessionals.some(
+        (professional) => professional.id === current.professionalId,
+      );
+
+      if (stillEligible) return current;
+
+      return {
+        ...current,
+        professionalId: eligibleProfessionals[0]?.id ?? "",
+      };
+    });
+  }, [eligibleProfessionals, isLoadingOptions]);
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setErrorMessage(null);
+
+    if (!values.professionalId) {
+      setErrorMessage(
+        `Cadastre um profissional ativo com especialidade em ${values.className} em Profissionais antes de adicionar este horário.`,
+      );
+      return;
+    }
+
+    if (!values.startTime || !values.maxCapacity) {
+      setErrorMessage("Preencha horário e capacidade máxima.");
+      return;
+    }
+
+    startSubmitTransition(async () => {
+      const payload: ClassScheduleFormValues = {
+        ...values,
+        startTime: values.startTime.slice(0, 5),
+      };
+
+      const result = isEditing
+        ? await updateAction(editingSchedule!.id, payload)
+        : await createAction(payload);
+
+      if (!result.success) {
+        setErrorMessage(result.error);
+        return;
+      }
+
+      onSuccess(result.data);
+    });
+  }
+
+  const canSubmit =
+    !isSubmitting &&
+    !isLoadingOptions &&
+    Boolean(values.professionalId) &&
+    Boolean(values.startTime) &&
+    Boolean(values.maxCapacity);
+
+  return (
+    <ModalPanel className="relative w-full max-w-md">
+      <div className="mb-5 flex items-start justify-between gap-4">
+        <div>
+          <h2 className={glassTextStyles.modalTitle}>
+            {isEditing ? "Editar aula" : "Adicionar aula"}
+          </h2>
+          <p className={cn("mt-1 text-sm", glassText.muted)}>
+            Vincule a modalidade a um profissional habilitado na grade
+          </p>
+        </div>
+
+        <IconButton
+          shape="round"
+          size="sm"
+          aria-label="Fechar"
+          onClick={onCancel}
+          disabled={isSubmitting}
+        >
+          <X className="size-4" />
+        </IconButton>
+      </div>
+
+      {errorMessage ? <InlineAlert className="mb-4 text-xs">{errorMessage}</InlineAlert> : null}
+
+      <form className="space-y-4" onSubmit={handleSubmit} noValidate>
+        <FormField label="Aula" htmlFor="className">
+          <GlassSelect
+            id="className"
+            options={classNameOptions}
+            value={values.className}
+            disabled={isSubmitting}
+            onChange={(event) =>
+              setValues((current) => ({
+                ...current,
+                className: event.target.value,
+                professionalId: "",
+              }))
+            }
+          />
+        </FormField>
+
+        <FormField label="Professor" htmlFor="professionalId">
+          <GlassSelect
+            id="professionalId"
+            options={professionalOptions}
+            value={values.professionalId}
+            disabled={isLoadingOptions || isSubmitting || eligibleProfessionals.length === 0}
+            onChange={(event) =>
+              setValues((current) => ({ ...current, professionalId: event.target.value }))
+            }
+            leftIcon={User}
+          />
+          <p className={cn("mt-1.5 text-xs", glassText.muted)}>
+            {isLoadingOptions
+              ? "Carregando profissionais…"
+              : `Apenas profissionais com especialidade em ${values.className}`}
+          </p>
+        </FormField>
+
+        <FormField label="Dia da Semana" htmlFor="dayOfWeek">
+          <GlassSelect
+            id="dayOfWeek"
+            options={[...WEEKDAY_OPTIONS]}
+            value={values.dayOfWeek}
+            disabled={isSubmitting}
+            onChange={(event) =>
+              setValues((current) => ({ ...current, dayOfWeek: event.target.value }))
+            }
+          />
+        </FormField>
+
+        <FormField label="Horário" htmlFor="startTime">
+          <GlassInput
+            id="startTime"
+            type="time"
+            leftIcon={Clock}
+            value={values.startTime}
+            disabled={isSubmitting}
+            onChange={(event) =>
+              setValues((current) => ({ ...current, startTime: event.target.value }))
+            }
+            required
+          />
+        </FormField>
+
+        <FormField label="Capacidade Máxima" htmlFor="maxCapacity">
+          <GlassInput
+            id="maxCapacity"
+            type="number"
+            min={1}
+            placeholder="Ex.: 12"
+            value={values.maxCapacity}
+            disabled={isSubmitting}
+            onChange={(event) =>
+              setValues((current) => ({ ...current, maxCapacity: event.target.value }))
+            }
+            required
+          />
+        </FormField>
+
+        <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
+          <GlassButton
+            variant="subtle"
+            size="sm"
+            type="button"
+            onClick={onCancel}
+            disabled={isSubmitting}
+          >
+            Cancelar
+          </GlassButton>
+
+          <GlassButton
+            type="submit"
+            size="sm"
+            disabled={!canSubmit}
+            className="bg-gradient-to-r from-orange-500 to-orange-600"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                Salvando…
+              </>
+            ) : isEditing ? (
+              "Salvar alterações"
+            ) : (
+              "Salvar"
+            )}
+          </GlassButton>
+        </div>
+      </form>
+    </ModalPanel>
+  );
+}

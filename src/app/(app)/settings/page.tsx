@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronRight, Tag } from "lucide-react";
+import { CalendarDays, ChevronRight, Tag } from "lucide-react";
 import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
 import { glassText, glassTextStyles } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
@@ -10,6 +10,12 @@ const SETTINGS_LINKS = [
     title: "Categorias financeiras",
     description: "Receitas e despesas usadas no dashboard e nos lançamentos",
     icon: Tag,
+  },
+  {
+    href: "/settings/classes",
+    title: "Grade de Aulas",
+    description: "Gerenciamento de horários, professores e capacidade das turmas",
+    icon: CalendarDays,
   },
 ] as const;
 

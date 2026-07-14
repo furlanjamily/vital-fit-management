@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Search } from "lucide-react";
 import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
 import { GlobalFilters } from "@/components/common/table/GlobalFilters";
@@ -25,6 +25,11 @@ const DEFAULT_PAGE_SIZE_OPTIONS = [5, 10, 20, 50];
 const DEFAULT_EMPTY_MESSAGE = "Nenhum registro encontrado.";
 const DEFAULT_SEARCH_PLACEHOLDER = "Search";
 
+type TableGroupBy<T> = {
+  key: (row: T) => string;
+  renderHeader: (groupKey: string) => ReactNode;
+};
+
 type TableProps<T> = {
   data: T[];
   columns: TableColumn<T>[];
@@ -40,6 +45,10 @@ type TableProps<T> = {
   emptyMessage?: string;
   /** Conteúdo extra alinhado à direita do cabeçalho (botões, dropdowns de ordenação, etc). */
   headerActions?: ReactNode;
+  /** Conteúdo renderizado entre os filtros e a tabela (ex.: AgendaDateFilter). */
+  filterAccessory?: ReactNode;
+  /** Agrupa linhas com cabeçalho de seção (ex.: por dia na agenda). */
+  groupBy?: TableGroupBy<T>;
   rowClassName?: (row: T) => string | undefined;
   className?: string;
   /** Classes extras no GlassPanel que envolve a tabela (ex.: padding horizontal). */
@@ -103,6 +112,8 @@ export function Table<T>({
   searchPlaceholder = DEFAULT_SEARCH_PLACEHOLDER,
   emptyMessage = DEFAULT_EMPTY_MESSAGE,
   headerActions,
+  filterAccessory,
+  groupBy,
   rowClassName,
   className,
   panelClassName,
@@ -135,10 +146,34 @@ export function Table<T>({
   const totalPages = Math.max(1, Math.ceil(filteredData.length / pageSize));
   const currentPage = Math.min(page, totalPages);
 
+  useEffect(() => {
+    setPage(1);
+  }, [data.length]);
+
   const paginatedData = useMemo(() => {
     const start = (currentPage - 1) * pageSize;
     return filteredData.slice(start, start + pageSize);
   }, [filteredData, currentPage, pageSize]);
+
+  const tableBodyRows = useMemo(() => {
+    if (!groupBy) {
+      return paginatedData.map((row) => ({ type: "row" as const, row }));
+    }
+
+    const items: Array<{ type: "header"; groupKey: string } | { type: "row"; row: T }> = [];
+    let lastGroupKey: string | null = null;
+
+    for (const row of paginatedData) {
+      const groupKey = groupBy.key(row);
+      if (groupKey !== lastGroupKey) {
+        items.push({ type: "header", groupKey });
+        lastGroupKey = groupKey;
+      }
+      items.push({ type: "row", row });
+    }
+
+    return items;
+  }, [groupBy, paginatedData]);
 
   const rangeStart = filteredData.length === 0 ? 0 : (currentPage - 1) * pageSize + 1;
   const rangeEnd = Math.min(currentPage * pageSize, filteredData.length);
@@ -196,6 +231,8 @@ export function Table<T>({
         ) : null}
       </div>
 
+      {filterAccessory ? <div className="shrink-0">{filterAccessory}</div> : null}
+
       <GlassPanel
         variant="subtle"
         intensity="low"
@@ -224,49 +261,74 @@ export function Table<T>({
             </table>
           </div>
 
-          <div className="min-h-0 flex-1 overflow-y-auto overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <table className="w-full table-fixed border-separate border-spacing-0">
-              <TableColGroup columns={columns} />
-              <tbody>
-                {filteredData.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={columns.length}
-                      className={cn("py-10 text-center", glassTextStyles.tableEmpty)}
-                    >
-                      {emptyMessage}
-                    </td>
-                  </tr>
-                ) : (
-                  paginatedData.map((row) => (
-                    <tr
-                      key={getRowId(row)}
-                      className={cn(
-                        "border-b border-white/6 transition hover:bg-white/4",
-                        rowClassName?.(row),
-                      )}
-                    >
-                      {columns.map((column, columnIndex) => (
-                        <td
-                          key={column.key}
-                          className={cn(
-                            "py-3.5",
-                            getTableEdgeCellClassName(columnIndex, columns.length),
-                            getTableAlignClassName(column.align),
-                            glassTextStyles.tableCell,
-                            column.className,
-                          )}
-                        >
-                          <div className={getTableCellContentClassName(column.align)}>
-                            {column.render(row)}
+          <div
+            className={cn(
+              "min-h-0 flex-1 overflow-x-auto",
+              fillsParent
+                ? "flex flex-col overflow-y-auto scrollbar-none"
+                : "overflow-y-auto scrollbar-none",
+            )}
+          >
+            {filteredData.length === 0 ? (
+              <div
+                className={cn(
+                  "flex items-center justify-center px-4 py-10 text-center",
+                  fillsParent && "flex-1",
+                  glassTextStyles.tableEmpty,
+                )}
+              >
+                {emptyMessage}
+              </div>
+            ) : (
+              <table className="w-full table-fixed border-separate border-spacing-0">
+                <TableColGroup columns={columns} />
+                <tbody>
+                  {tableBodyRows.map((item) =>
+                    item.type === "header" ? (
+                      <tr key={`group-${item.groupKey}`}>
+                        <td colSpan={columns.length} className="px-0 pb-2 pt-3">
+                          <div className="border-l-2 border-orange-500/70 bg-transparent px-3 py-2">
+                            <span
+                              className={cn(
+                                "block text-xs font-semibold capitalize tracking-wide",
+                                glassTextStyles.tableHeader,
+                              )}
+                            >
+                              {groupBy!.renderHeader(item.groupKey)}
+                            </span>
                           </div>
                         </td>
-                      ))}
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                      </tr>
+                    ) : (
+                      <tr
+                        key={getRowId(item.row)}
+                        className={cn(
+                          "border-b rounded-xl border-white/6 transition hover:bg-white/4",
+                          rowClassName?.(item.row),
+                        )}
+                      >
+                        {columns.map((column, columnIndex) => (
+                          <td
+                            key={column.key}
+                            className={cn(
+                              "py-3.5",
+                              getTableEdgeCellClassName(columnIndex, columns.length, column.align),
+                              getTableAlignClassName(column.align),
+                              glassTextStyles.tableCell,
+                              column.className,
+                            )}
+                          >
+                            <div className={getTableCellContentClassName(column.align)}>
+                              {column.render(item.row)}
+                            </div>
+                          </td>
+                        ))}
+                      </tr>
+                    ),
+                  )}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
 

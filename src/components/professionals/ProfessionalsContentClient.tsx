@@ -16,6 +16,7 @@ import { parseBirthDateToIso } from "@/components/professionals/professional.hel
 import {
   shiftLabels,
   statusLabels,
+  shiftOptions,
   type ManagedProfessional,
 } from "@/components/professionals/professionals.types";
 import { useProfessionalsManagement } from "@/components/professionals/useProfessionalsManagement";
@@ -48,11 +49,7 @@ const professionalFilters: TableFilterDefinition<ManagedProfessional>[] = [
     type: "select",
     key: "shift",
     placeholder: "Turno",
-    options: [
-      { value: "Morning", label: shiftLabels.Morning },
-      { value: "Afternoon", label: shiftLabels.Afternoon },
-      { value: "Night", label: shiftLabels.Night },
-    ],
+    options: shiftOptions.map(({ value, label }) => ({ value, label })),
     match: (professional) => professional.shift,
   },
   {
@@ -165,6 +162,17 @@ export function ProfessionalsContentClient({
       render: (professional) => professional.cref,
     },
     {
+      key: "specialty",
+      header: "Especialidade",
+      width: "14%",
+      searchValue: (professional) => professional.specialty,
+      render: (professional) => (
+        <span className="inline-flex rounded-full border border-orange-400/20 bg-orange-400/10 px-2.5 py-1 text-[10px] font-medium text-orange-200">
+          {professional.specialty}
+        </span>
+      ),
+    },
+    {
       key: "shift",
       header: "Turno",
       width: "16%",
@@ -192,9 +200,10 @@ export function ProfessionalsContentClient({
     {
       key: "actions",
       header: "",
-      width: "3rem",
-      headerClassName: "w-12",
-      className: "w-12",
+      align: "right",
+      width: "4rem",
+      headerClassName: "w-16",
+      className: "w-16",
       render: (professional) => (
         <RowActionsMenu
           ariaLabel={`Ações para ${professional.name}`}

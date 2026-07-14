@@ -1,7 +1,12 @@
 "use client";
 
 import type { TableColumn } from "@/components/common/table/table.types";
-import { getTableAlignClassName, getTableEdgeHeaderClassName } from "@/components/common/table/table.helpers";
+import {
+  getTableAlignClassName,
+  getTableCellContentClassName,
+  getTableEdgeCellClassName,
+  getTableEdgeHeaderClassName,
+} from "@/components/common/table/table.helpers";
 import { glassTextStyles } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
 
@@ -19,12 +24,14 @@ export function TableHead<T>({ columns }: TableHeadProps<T>) {
             className={cn(
               "pb-3 pt-1",
               getTableAlignClassName(column.align),
-              getTableEdgeHeaderClassName(index, columns.length),
+              getTableEdgeHeaderClassName(index, columns.length, column.align),
               glassTextStyles.tableHeader,
               column.headerClassName,
             )}
           >
-            {column.header}
+            <div className={getTableCellContentClassName(column.align)}>
+              {column.header}
+            </div>
           </th>
         ))}
       </tr>

@@ -2,11 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronDown } from "lucide-react";
 import { NavUserMenu } from "@/components/app/NavUserMenu";
-import { GhostButton } from "@/components/common/form";
+import { ClassesSidebarSection } from "@/components/classes/ClassesSidebarSection";
 import {
-  classNavItems,
   isNavActive,
   mainNavItems,
   utilityNavItems,
@@ -63,42 +61,7 @@ export function LeftSidebarPanel() {
           })}
         </nav>
 
-        <div className="mt-3 shrink-0">
-          <p className={cn(glassText.secondary, "mb-3 text-xs font-semibold")}>Classes</p>
-          <div className="grid gap-2">
-            {classNavItems.map((item) => {
-              const active = isNavActive(pathname, item.href);
-
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    "flex items-center justify-between rounded-2xl px-2 py-2 text-xs transition",
-                    active ? cn("bg-white/8", glassText.primary) : glassText.muted,
-                  )}
-                >
-                  <span className="flex items-center gap-3">
-                    <span className="size-3 rounded-full border border-white/22" />
-                    {item.label}
-                  </span>
-                  <span className={cn("grid size-5 place-items-center rounded-full bg-orange-500 text-[10px] font-bold", glassText.primary)}>
-                    {item.count}
-                  </span>
-                </Link>
-              );
-            })}
-          </div>
-          <GhostButton
-            className={cn(
-              "mt-4 justify-start gap-3 px-2 text-xs font-semibold hover:bg-transparent hover:text-glass-secondary",
-              glassText.secondary,
-            )}
-          >
-            <ChevronDown className="size-4" />
-            Show more
-          </GhostButton>
-        </div>
+        <ClassesSidebarSection />
 
         {utilityNavItems.map((item) => {
           const active = isNavActive(pathname, item.href);
@@ -121,8 +84,9 @@ export function LeftSidebarPanel() {
             </Link>
           );
         })}
-
-        <NavUserMenu />
+        <div className="mt-4">
+          <NavUserMenu />
+        </div>
 
       </div>
     </div>

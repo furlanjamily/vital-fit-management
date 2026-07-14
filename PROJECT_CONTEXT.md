@@ -52,6 +52,9 @@ npm run lint
 npm run build
 npm run start
 npm run seed:members   # popula tabela public.members (script local)
+npm run seed           # seed completo: membros, financeiro e check-ins
+npm run seed:bulk      # seed de alta densidade para teste de carga
+npm run seed:classes   # profissionais, grade e agendamentos de aulas
 ```
 
 ### Variáveis de ambiente (`.env`)
@@ -185,11 +188,13 @@ src/
       members/actions.ts          # Server Actions CRUD alunos (Supabase + Zod)
       users/page.tsx              # UsersContent (Super Admin only)
       users/actions.ts            # Server Actions CRUD usuários (Admin API + Zod)
-      professionals/page.tsx      # placeholder (em desenvolvimento)
+      professionals/page.tsx      # ProfessionalsContent (gestão de profissionais — Supabase real)
       profile/page.tsx
       help/page.tsx
       settings/page.tsx
-      classes/crossfit|trx|yoga/page.tsx
+      classes/[slug]/page.tsx     # agenda dinâmica por modalidade
+      settings/classes/page.tsx   # grade de aulas
+      settings/categories/page.tsx
   components/
     app/
       CenterPanelShell.tsx        # GlassPanel wrapper do painel central
@@ -260,6 +265,27 @@ src/
       members.types.ts            # tipos de domínio (ManagedMember, MemberRow...)
       member.schema.ts            # schema Zod de validação server-side
       member.helpers.ts           # máscaras CPF/data + parse ISO
+    professionals/
+      ProfessionalsContent.tsx    # RSC — getProfessionalsAction()
+      ProfessionalsContentClient.tsx
+      ProfessionalRegistrationForm.tsx
+      useProfessionalsManagement.ts
+      professional-specialties.ts # especialidades e comparação com modalidade
+    classes/
+      ClassScheduleContent.tsx    # RSC — modalidade, grade e agenda inicial
+      ClassScheduleContentClient.tsx
+      ScheduleModal.tsx           # criação de agendamento global ou por modalidade
+      ScheduleModalProvider.tsx   # contexto global do modal
+      AgendaDateFilter.tsx        # filtros Dia / Semana / Mês
+      ClassesSidebarSection.tsx   # navegação dinâmica de modalidades
+      useClassSchedule.ts         # busca client da agenda por período
+      ClassGradeTooltip.tsx       # visualização da grade no cabeçalho
+    settings/classes/
+      ClassesScheduleContent.tsx
+      ClassesScheduleContentClient.tsx
+      ScheduleForm.tsx            # CRUD da grade
+      useScheduleManagement.ts
+      schedule.types.ts
     users/
       UsersContent.tsx            # gestão de usuários do sistema
       UserForm.tsx
@@ -418,16 +444,18 @@ Helpers: `actionSuccess(data)`, `actionFailure(error)`, `toActionError(error, fa
 | `/finance` | `finance/page.tsx` | Dashboard financeiro mock (`FinanceHeader`, cards de portfolio, gráficos) |
 | `/members` | `members/page.tsx` | `MembersContent` — **Supabase `public.members`** |
 | `/users` | `users/page.tsx` | `UsersContent` (Super Admin) — **Supabase Auth** |
-| `/professionals` | `professionals/page.tsx` | placeholder (em desenvolvimento) |
+| `/professionals` | `professionals/page.tsx` | `ProfessionalsContent` — Supabase `public.professionals` |
 | `/profile` | `profile/page.tsx` | `ProfileContent` |
 | `/help` | `help/page.tsx` | `RoutePlaceholder` |
 | `/settings` | `settings/page.tsx` | `RoutePlaceholder` |
-| `/classes/*` | `classes/*/page.tsx` | `RoutePlaceholder` |
+| `/classes/[slug]` | `classes/[slug]/page.tsx` | Agenda dinâmica da modalidade, grade e agendamentos |
+| `/settings/classes` | `settings/classes/page.tsx` | CRUD da grade de aulas, professores e capacidade |
+| `/settings/categories` | `settings/categories/page.tsx` | Gestão de categorias financeiras |
 
 Navegação centralizada em `src/config/app-nav.config.ts`:
 
 - `mainNavItems` — Dashboard, Community, Analytics, **Alunos** (`/members`), **Profissionais** (`/professionals`), **Financeiro** (`/finance`)
-- `classNavItems` — Crossfit, TRX, Yoga
+- `ClassesSidebarSection` — modalidades dinâmicas vindas do banco, com contagem de agendamentos e ação **Show More**
 - `utilityNavItems` — **Usuários** (`/users`), Help, Setting
 - `mobileNavItems` — combinação usada no `MobileBottomNav`
 - `profileHref` — `/profile`
@@ -538,6 +566,73 @@ Grid `md:grid-cols-2`:
 - Toggle iOS (`GlassSwitch`) para status Ativo/Inativo
 - Submit via `GlassButton`; modais usam `ModalOverlay` + `ModalPanel` (glass on glass)
 
+## Gestão de Classes e Agendamentos (`/classes/[slug]`)
+
+Módulo com dados reais do Supabase. A modalidade é identificada por slug derivado de `classes.name` via `src/lib/class-slug.ts`; não criar páginas estáticas por modalidade.
+
+### Modelagem de dados
+
+| Tabela | Campos e constraints relevantes | Relações |
+|---|---|---|
+| `classes` | `id`, `name` único, `description` | Uma modalidade possui vários horários em `gym_settings_schedule`. |
+| `professionals` | `id`, dados cadastrais, `status`, `specialty` obrigatório | `specialty` é uma modalidade permitida (`Musculação`, `Dança`, `Yoga`, `Spinning`, `Jump`, `Pilates`, `Crossfit`, `TRX`). Um profissional pode ministrar vários horários. |
+| `gym_settings_schedule` | `id`, `class_id`, `day_of_week` (`0=domingo…6=sábado`), `start_time`, `professional_id`, `max_capacity` > 0; unique (`class_id`, `day_of_week`, `start_time`) | `class_id → classes.id` (`ON DELETE CASCADE`); `professional_id → professionals.id` (`ON DELETE RESTRICT`). Define a grade fixa, professor e capacidade de cada slot. |
+| `appointments` | `id`, `member_id`, `schedule_id`, `date`, `status`, `created_at`; unique (`member_id`, `schedule_id`, `date`) | `member_id → members.id` e `schedule_id → gym_settings_schedule.id`, ambos com `ON DELETE CASCADE`. Representa a reserva de um aluno em uma ocorrência da grade. |
+
+Schema principal: `supabase/classes.sql`. Para bases existentes, executar `supabase/schedule-professionals-integration.sql` depois de `professionals.sql` e `classes.sql`.
+
+`appointments.status` no schema base aceita `CONFIRMED` e `CANCELLED`. A migration opcional `supabase/appointments-pending-status.sql` adiciona `PENDING` (aguardando); qualquer mudança de status deve também atualizar os tipos e filtros do domínio.
+
+### Integridade, capacidade e agendamento
+
+1. A UI obtém slots válidos por data através de `getClassScheduleSlotsAction(classId, date)`. O dia da data precisa corresponder a `gym_settings_schedule.day_of_week`.
+2. Antes do insert, `createAppointment()` chama a função SQL `get_class_slots(date, schedule_id)`. Só confirma se `remaining_slots > 0`.
+3. O trigger `appointments_capacity_check` chama `enforce_appointment_capacity()` no banco antes de inserts `CONFIRMED`. Portanto, a capacidade é protegida também contra requisições concorrentes.
+4. A constraint única de `appointments` impede que o mesmo aluno reserve o mesmo horário na mesma data duas vezes.
+5. Exclusões usam `deleteAppointmentAction()`, que valida que o agendamento pertence à modalidade indicada pelo slug antes do delete. Ao remover uma reserva confirmada, a vaga volta a ficar disponível.
+
+Responsabilidades técnicas:
+
+```txt
+classes/[slug]/page.tsx
+  └─ ClassScheduleContent.tsx (RSC: modalidade + grade + agenda inicial)
+       └─ ClassScheduleContentClient.tsx
+            ├─ useClassSchedule.ts (período e refetch)
+            ├─ AgendaDateFilter.tsx
+            ├─ ClassGradeTooltip.tsx
+            └─ ScheduleModalProvider → ScheduleModal.tsx
+
+classes/actions.ts
+  └─ class-manager.ts
+       └─ Supabase: classes / gym_settings_schedule / appointments / get_class_slots
+```
+
+### Componentes e comportamento de UI
+
+| Componente | Responsabilidade e regra |
+|---|---|
+| `ScheduleModalProvider` | Disponibiliza um único modal para o app por `useScheduleModal()`. Recebe `classes` e membros em `ClassesAppProviders`; o modal filtra os alunos ativos antes de exibir o Select. |
+| `ScheduleModal` | Formulário de reserva. Carrega dias e slots da grade, bloqueia dias sem grade e horários esgotados; exibe estados de validação e confirmação. |
+| `AgendaDateFilter` | Controle de período `day`, `week` e `month`, com navegação anterior/próxima e retorno a Hoje. Atualiza a consulta da agenda. |
+| `ClassScheduleContentClient` | No modo Dia mantém a coluna Data. Nos modos Semana/Mês remove a coluna Data e agrupa linhas por dia através de `Table.groupBy`. |
+| `ClassGradeTooltip` | Ícone de calendário à esquerda de **Agendar**; abre popover com a grade da modalidade. |
+| `ClassesSidebarSection` | Busca `listClassesNavAction()`, mostra até três modalidades inicialmente e expande/recolhe via **Show More/Show Less**. Links sempre usam `/classes/[slug]`. |
+
+#### Estados do `ScheduleModal`
+
+| Estado | Como abrir | Comportamento |
+|---|---|---|
+| Global | `openScheduleModal({ defaultClassId: null })` | Select de modalidade habilitado; o usuário escolhe a aula antes de carregar os slots. |
+| Por classe | `openScheduleModal({ defaultClassId: classRecord.id, slug })` | Modal pré-seleciona e bloqueia o Select de modalidade; reserva somente na classe da página atual. |
+
+### Regras de negócio obrigatórias
+
+- Profissional ativo só pode ser associado a um horário cuja modalidade corresponda à sua `specialty`.
+- Essa compatibilidade é validada no servidor por `validateProfessionalForClass()` em `settings/classes/actions.ts`, usando `specialtyMatchesClass()`. Não depender apenas do filtro visual do formulário.
+- O banco mantém a FK `gym_settings_schedule.professional_id`, mas a igualdade entre `professionals.specialty` e `classes.name` é uma regra de aplicação; preservá-la em qualquer nova mutation ou importação.
+- `professional_id` é obrigatório na grade; o campo legado `instructor_name` foi removido pela migration de integração.
+- Sempre chamar `revalidatePath("/classes")` e a rota da modalidade após mutations que alterem agenda, grade ou contadores da navegação.
+
 ## Financeiro (`/finance`)
 
 Dashboard financeiro com dados mock (demonstração visual). Paleta **laranja/âmbar** obrigatória — ver `brand-colors.ts` e `.cursor/rules/design-system-colors.mdc`.
@@ -566,7 +661,7 @@ Componente principal de listagem. Estrutura em **dois blocos**:
     TableFooter (paginação + itens por página)
 ```
 
-**Props principais:** `data`, `columns`, `getRowId`, `title`, `filters`, `filterValues`, `onFilterChange`, `headerActions`, `rowClassName`, `defaultPageSize`, `pageSizeOptions`
+**Props principais:** `data`, `columns`, `getRowId`, `title`, `filters`, `filterValues`, `onFilterChange`, `headerActions`, `filterAccessory`, `groupBy`, `rowClassName`, `defaultPageSize`, `pageSizeOptions`
 
 **Filtros (`filters?: TableFilterDefinition<T>[]`):**
 
@@ -605,6 +700,8 @@ const filters: TableFilterDefinition<ManagedMember>[] = [
 **Tipografia padrão (via `glassTextStyles`):** título `panelTitle`, cabeçalhos `tableHeader`, células `tableCell`, empty state `tableEmpty`.
 
 **Subcomponentes:** `TableHead`, `TableFooter`, `TableColGroup`, `GlobalFilters`
+
+`groupBy` é opcional e recebe `key(row)` + `renderHeader(key)`. Ele insere um cabeçalho de seção no `tbody`; é usado pela agenda de Classes para separar Semana/Mês por dia sem repetir a coluna Data.
 
 ### `GlobalFilters<T>` (`common/table/GlobalFilters.tsx`)
 
@@ -1048,6 +1145,9 @@ Arquitetura:
 - Financeiro: /finance + src/components/finance/* (mock visual; paleta laranja/âmbar)
 - Usuários: /users (Super Admin) — Supabase Admin API + useUsersManagement
 - Alunos: /members — Supabase public.members + useMembersManagement
+- Classes: /classes/[slug] — `classes`, `gym_settings_schedule`, `appointments`; grade por `professional_id`
+- Agenda: `ScheduleModal` global ou por classe; capacidade validada por `get_class_slots` antes do insert e pelo trigger SQL
+- Regra de grade: `professionals.specialty` deve coincidir com `classes.name`; validar no servidor com `validateProfessionalForClass`
 - Server Actions: ActionResult<T> (lib/action-result.ts) + Zod (*.schema.ts)
 - Tabela: src/components/common/table/Table.tsx
 - Filtros: GlobalFilters (colapsável, acima do GlassPanel) + DatePicker
