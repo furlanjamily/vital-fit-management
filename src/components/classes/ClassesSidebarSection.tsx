@@ -125,7 +125,7 @@ export function ClassesSidebarSection() {
           ) : (
             <ChevronDown className="size-4" />
           )}
-          {showAllClasses ? "Show less" : "Show more"}
+          {showAllClasses ? "Exibir menos" : "Exibir mais"}
         </GhostButton>
       ) : null}
     </div>

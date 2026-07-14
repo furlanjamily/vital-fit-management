@@ -59,26 +59,13 @@ const EMPTY_GYM_CAPACITY = adaptGymCapacityData([], {
 
 const EMPTY_MEMBER_ACTIVITY = adaptMemberActivityData([]);
 
-function dashboardPeriodToRevenueFilter(period: DashboardPeriod): RevenueChartFilter {
-  if (period === "today") return "daily";
-  if (period === "thisWeek") return "weekly";
-  if (period === "thisYear") return "yearly";
-  return "monthly";
-}
-
-function revenueFilterToDashboardPeriod(filter: RevenueChartFilter): DashboardPeriod {
-  if (filter === "daily") return "today";
-  if (filter === "weekly") return "thisWeek";
-  if (filter === "yearly") return "thisYear";
-  return "thisMonth";
-}
-
 type DashboardContentClientProps = {
   userName?: string | null;
 };
 
 export function DashboardContentClient({ userName }: DashboardContentClientProps) {
   const [period, setPeriod] = useState<DashboardPeriod>("thisMonth");
+  const [revenueFilter, setRevenueFilter] = useState<RevenueChartFilter>("monthly");
   const dateRange = useMemo(() => periodToDateRange(period), [period]);
 
   const {
@@ -88,12 +75,6 @@ export function DashboardContentClient({ userName }: DashboardContentClientProps
     isLoading,
     error,
   } = useDashboardData(dateRange);
-
-  const revenueFilter = dashboardPeriodToRevenueFilter(period);
-
-  function handleRevenueFilterChange(nextFilter: RevenueChartFilter) {
-    setPeriod(revenueFilterToDashboardPeriod(nextFilter));
-  }
 
   return (
     <div className="flex w-full flex-col gap-6">
@@ -144,7 +125,7 @@ export function DashboardContentClient({ userName }: DashboardContentClientProps
 
       <DashboardRevenueSection
         filter={revenueFilter}
-        onFilterChange={handleRevenueFilterChange}
+        onFilterChange={setRevenueFilter}
       />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">

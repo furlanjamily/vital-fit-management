@@ -2,6 +2,7 @@
 
 import { Suspense, lazy } from "react";
 import { WorkoutScheduleExactSkeleton } from "@/components/dashboard/WorkoutScheduleExactSkeleton";
+import { useWorkoutSchedule } from "@/hooks/useWorkoutSchedule";
 import {
   GymCapacityLoading,
   MemberActivityExactLoading,
@@ -98,9 +99,11 @@ export function DashboardGymCapacitySection({ data, isLoading }: DashboardGymCap
 }
 
 export function DashboardWorkoutScheduleSection() {
+  const { data, isLoading, error } = useWorkoutSchedule();
+
   return (
     <Suspense fallback={<WorkoutScheduleExactSkeleton />}>
-      <WorkoutScheduleExactLazy />
+      <WorkoutScheduleExactLazy data={data} isLoading={isLoading} error={error} />
     </Suspense>
   );
 }

@@ -1,33 +1,23 @@
-import type { CSSProperties, ReactNode } from "react";
+import type { ReactNode } from "react";
 import {
   ArrowUpRight,
   CalendarDays,
   MapPin,
-  MousePointer2,
   MoreHorizontal,
 } from "lucide-react";
 import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
+import { InlineAlert } from "@/components/common/feedback/InlineAlert";
+import { WorkoutScheduleExactSkeleton } from "@/components/dashboard/WorkoutScheduleExactSkeleton";
 import { glassText, glassTextStyles } from "@/config/glass-typography";
+import {
+  type WorkoutScheduleItem,
+  type WorkoutSchedulePosition,
+  type WorkoutScheduleVariant,
+  type WorkoutScheduleViewData,
+} from "@/hooks/useWorkoutSchedule";
 import { cn } from "@/lib/cn";
 
-type WorkoutScheduleVariant = "orange" | "amber";
-
-type WorkoutSchedulePosition = "top" | "middle" | "bottom";
-
-type WorkoutScheduleItem = {
-  id: string;
-  title: string;
-  dateRange: string;
-  variant: WorkoutScheduleVariant;
-  position: WorkoutSchedulePosition;
-  startDayIndex: number;
-  endDayIndex: number;
-  ghostEndDayIndex?: number;
-  rotation?: number;
-  showPointer?: boolean;
-  showEllipsis?: boolean;
-  height?: number;
-};
+export { WorkoutScheduleExactSkeleton as WorkoutScheduleExactLoading } from "@/components/dashboard/WorkoutScheduleExactSkeleton";
 
 const WORKOUT_SCHEDULE_GLASS = {
   variant: "subtle" as const,
@@ -35,66 +25,7 @@ const WORKOUT_SCHEDULE_GLASS = {
   elevation: "floating" as const,
 };
 
-const TIMELINE_DATES = [
-  "20 Jul",
-  "21 Jul",
-  "22 Jul",
-  "23 Jul",
-  "24 Jul",
-  "25 Jul",
-] as const;
-
-const CURRENT_DAY_INDEX = 4;
-
-const WORKOUT_ITEMS: WorkoutScheduleItem[] = [
-  {
-    id: "speed-power",
-    title: "Speed & Power Training",
-    dateRange: "21 Jul - 25 Jul",
-    variant: "orange",
-    position: "top",
-    startDayIndex: 1.35,
-    endDayIndex: 4,
-    ghostEndDayIndex: 5.85,
-    showEllipsis: true,
-  },
-  {
-    id: "pace",
-    title: "Pace Training",
-    dateRange: "20 Jul - 23 Jul",
-    variant: "amber",
-    position: "middle",
-    startDayIndex: 0.15,
-    endDayIndex: 3.55,
-    rotation: -4.5,
-    showPointer: true,
-    showEllipsis: true,
-  },
-  {
-    id: "boxing",
-    title: "Boxing",
-    dateRange: "23 Jul - 25 Jul",
-    variant: "orange",
-    position: "bottom",
-    startDayIndex: 2.85,
-    endDayIndex: 4,
-    ghostEndDayIndex: 5.75,
-    showEllipsis: false,
-    height: 32,
-  },
-];
-
 const AVATAR_COLORS = ["#FF7A4A", "#FFB300"] as const;
-
-const ghostStripeStyle: CSSProperties = {
-  backgroundImage: `repeating-linear-gradient(
-    -45deg,
-    rgba(255, 255, 255, 0.55) 0px,
-    rgba(255, 255, 255, 0.55) 1.5px,
-    transparent 1.5px,
-    transparent 5px
-  )`,
-};
 
 type WorkoutScheduleGlassProps = {
   children: ReactNode;
@@ -109,8 +40,7 @@ function WorkoutScheduleGlass({ children }: WorkoutScheduleGlassProps) {
 }
 
 function dayIndexToPercent(dayIndex: number): number {
-  const maxIndex = TIMELINE_DATES.length - 1;
-  return (dayIndex / maxIndex) * 100;
+  return (dayIndex / 6) * 100;
 }
 
 type OverlappingAvatarsProps = {
@@ -165,13 +95,8 @@ type WorkoutBlockProps = {
 
 function WorkoutBlock({ item }: WorkoutBlockProps) {
   const leftPercent = dayIndexToPercent(item.startDayIndex);
-  const solidRightPercent = dayIndexToPercent(item.endDayIndex);
-  const ghostRightPercent = item.ghostEndDayIndex
-    ? dayIndexToPercent(item.ghostEndDayIndex)
-    : solidRightPercent;
-  const widthPercent = ghostRightPercent - leftPercent;
-  const solidWidthPercent =
-    ((solidRightPercent - leftPercent) / widthPercent) * 100;
+  const rightPercent = dayIndexToPercent(item.endDayIndex);
+  const widthPercent = rightPercent - leftPercent;
 
   const isOrange = item.variant === "orange";
   const bgColor = isOrange ? "#FF9A4A" : "#FFF2AF";
@@ -193,22 +118,18 @@ function WorkoutBlock({ item }: WorkoutBlockProps) {
           left: `${leftPercent}%`,
           width: `${widthPercent}%`,
           height: blockHeight,
-          transform: item.rotation ? `rotate(${item.rotation}deg)` : undefined,
-          transformOrigin: "left center",
         }}
       >
         <div
           className={cn(
             "relative flex h-full w-full items-center overflow-hidden rounded-full",
-            item.rotation
-              ? "shadow-[0_4px_14px_rgba(0,0,0,0.1)]"
-              : "shadow-[0_2px_10px_rgba(0,0,0,0.06)]",
+            "shadow-[0_2px_10px_rgba(0,0,0,0.06)]",
           )}
         >
           <div
             className="absolute inset-y-0 left-0 flex items-center gap-2 overflow-hidden rounded-full pl-2.5 pr-1.5"
             style={{
-              width: `${solidWidthPercent}%`,
+              width: "100%",
               backgroundColor: bgColor,
             }}
           >
@@ -227,50 +148,22 @@ function WorkoutBlock({ item }: WorkoutBlockProps) {
                 {item.dateRange}
               </p>
             </div>
-            {item.showEllipsis !== false && (
-              <EllipsisBubble variant={item.variant} />
-            )}
+            <EllipsisBubble variant={item.variant} />
           </div>
-
-          {item.ghostEndDayIndex && (
-            <div
-              className="absolute inset-y-0 rounded-r-full"
-              style={{
-                left: `${solidWidthPercent}%`,
-                right: 0,
-                backgroundColor: `${bgColor}99`,
-                ...ghostStripeStyle,
-              }}
-            />
-          )}
         </div>
       </div>
-
-      {item.showPointer && (
-        <MousePointer2
-          className="absolute z-30 size-[14px] text-[#FF7A00]"
-          style={{
-            left: `${leftPercent + widthPercent * 0.42}%`,
-            top: "54%",
-            transform: "rotate(-12deg)",
-          }}
-          strokeWidth={2.25}
-          fill="#FF7A00"
-        />
-      )}
     </>
   );
 }
 
-function TimelineGrid() {
+function TimelineGrid({ timelineDates }: { timelineDates: string[] }) {
   return (
     <>
-      {TIMELINE_DATES.map((_, index) => {
-        if (index === 0) return null;
-        const leftPercent = dayIndexToPercent(index);
+      {timelineDates.map((date, index) => {
+        const leftPercent = (index / timelineDates.length) * 100;
         return (
           <div
-            key={`grid-${index}`}
+            key={date}
             aria-hidden
             className="absolute inset-y-0 border-l border-dashed border-white/14"
             style={{ left: `${leftPercent}%` }}
@@ -281,8 +174,9 @@ function TimelineGrid() {
   );
 }
 
-function CurrentDayMarker() {
-  const leftPercent = dayIndexToPercent(CURRENT_DAY_INDEX);
+function CurrentDayMarker({ currentDayIndex }: { currentDayIndex: number | null }) {
+  if (currentDayIndex === null) return null;
+  const leftPercent = ((currentDayIndex + 0.5) / 6) * 100;
 
   return (
     <div
@@ -297,15 +191,18 @@ function CurrentDayMarker() {
   );
 }
 
-function DateAxis() {
+function DateAxis({
+  timelineDates,
+  currentDayIndex,
+}: Pick<WorkoutScheduleViewData, "timelineDates" | "currentDayIndex">) {
   return (
     <div className="relative mt-1 grid grid-cols-6 px-0">
-      {TIMELINE_DATES.map((date, index) => (
+      {timelineDates.map((date, index) => (
         <span
           key={date}
           className={cn(
             "text-center text-[9px] tracking-[-0.01em]",
-            index === CURRENT_DAY_INDEX
+            index === currentDayIndex
               ? cn("font-semibold", glassText.secondary)
               : cn("font-normal", glassText.muted),
           )}
@@ -317,7 +214,15 @@ function DateAxis() {
   );
 }
 
-export function WorkoutScheduleExact() {
+type WorkoutScheduleExactProps = {
+  data: WorkoutScheduleViewData;
+  isLoading: boolean;
+  error?: string | null;
+};
+
+export function WorkoutScheduleExact({ data, isLoading, error }: WorkoutScheduleExactProps) {
+  if (isLoading) return <WorkoutScheduleExactSkeleton />;
+
   return (
     <WorkoutScheduleGlass>
       <div className="overflow-hidden rounded-[inherit]">
@@ -331,7 +236,7 @@ export function WorkoutScheduleExact() {
               />
             </span>
             <h3 className={cn(glassTextStyles.panelTitle, "text-[13px] font-bold tracking-[-0.03em] sm:text-sm")}>
-              Workout Schedule
+              Agenda de treinos
             </h3>
           </div>
 
@@ -361,18 +266,20 @@ export function WorkoutScheduleExact() {
 
         {/* Timeline area */}
         <div className="relative mx-3 mb-3 h-[210px] overflow-hidden sm:mx-4 sm:mb-4 sm:h-[230px]">
-          <TimelineGrid />
-          <CurrentDayMarker />
+          <TimelineGrid timelineDates={data.timelineDates} />
+          <CurrentDayMarker currentDayIndex={data.currentDayIndex} />
 
-          {WORKOUT_ITEMS.map((item) => (
+          {data.items.map((item) => (
             <WorkoutBlock key={item.id} item={item} />
           ))}
         </div>
 
         {/* Date axis */}
         <div className="px-3 pb-3.5 sm:px-4 sm:pb-4">
-          <DateAxis />
+          <DateAxis timelineDates={data.timelineDates} currentDayIndex={data.currentDayIndex} />
         </div>
+
+        {error ? <InlineAlert className="mx-4 mb-4">{error}</InlineAlert> : null}
       </div>
     </WorkoutScheduleGlass>
   );

@@ -92,7 +92,7 @@ export function MemberActivityExact({ data, isLoading = false }: MemberActivityE
     <MemberActivityGlass>
       <div className="px-4 pb-4 pt-3.5 sm:px-5 sm:pb-5 sm:pt-4">
         <h3 className={cn(glassTextStyles.panelTitle, "text-[13px] tracking-[-0.03em] sm:text-sm")}>
-          Member Activity
+          Alunos ativos
         </h3>
 
         <div className="relative mx-auto mt-3 h-[168px] w-full max-w-[280px] sm:mt-4 sm:h-[188px] sm:max-w-[300px]">

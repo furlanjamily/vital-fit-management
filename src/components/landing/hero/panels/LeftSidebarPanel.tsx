@@ -42,7 +42,7 @@ export function LeftSidebarPanel() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center justify-between rounded-2xl px-4 py-4.5 text-xs font-semibold transition hover:bg-white/8",
+                  "flex items-center justify-between rounded-2xl px-4 py-4 text-xs font-semibold transition hover:bg-white/8",
                   glassText.secondary,
                   active && cn("bg-white/8", glassText.primary),
                 )}
@@ -52,7 +52,7 @@ export function LeftSidebarPanel() {
                   {item.label}
                 </span>
                 {item.badge ? (
-                  <span className={cn("grid size-5 place-items-center rounded-full bg-orange-500 text-[10px] font-bold", glassText.primary)}>
+                  <span className={cn("grid size-5 place-items-center rounded-full bg-orange-600 text-[10px] font-bold", glassText.primary)}>
                     {item.badge}
                   </span>
                 ) : null}
@@ -71,7 +71,7 @@ export function LeftSidebarPanel() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center justify-between rounded-2xl px-4 py-4.5 text-xs font-semibold transition hover:bg-white/8",
+                "mt-2 flex items-center justify-between rounded-2xl px-4 py-4 text-xs font-semibold transition hover:bg-white/8",
                 glassText.secondary,
                 active && cn("bg-white/8", glassText.primary),
               )}
@@ -80,7 +80,6 @@ export function LeftSidebarPanel() {
                 <item.icon className="size-4" />
                 {item.label}
               </span>
-
             </Link>
           );
         })}

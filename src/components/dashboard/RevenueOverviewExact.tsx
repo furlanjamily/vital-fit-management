@@ -131,17 +131,11 @@ function RevenueBarColumn({
       onMouseLeave={onBarLeave}
     >
       {bar.highlighted && barHeightPx > 0 && (
-        <RevenueGlass
-          className="absolute z-30 size-[9px] rounded-full border-2"
-          style={{ bottom: visibleBarHeight + 4, borderColor: HIGHLIGHT_ACCENT }}
-        >
-          <div className="grid h-full place-items-center">
-            <span
-              className="h-full size-[2px] rounded-full"
-              style={{ backgroundColor: HIGHLIGHT_ACCENT }}
-            />
-          </div>
-        </RevenueGlass>
+        <span
+          aria-hidden
+          className="absolute z-30 size-2.5 rounded-full border-2 border-white/90 bg-orange-500 shadow-[0_0_0_2px_#FF7A00,0_0_10px_rgba(255,122,0,0.85)]"
+          style={{ bottom: visibleBarHeight - 4 }}
+        />
       )}
 
       <RevenueGlass
@@ -158,14 +152,14 @@ function RevenueBarColumn({
                 style={{ backgroundColor: HIGHLIGHT_ACCENT }}
               />
               <div
-                className="absolute inset-x-0 top-0 z-[2] bg-white/15"
+                className="absolute inset-x-0 top-0 z-[2] bg-orange-500"
                 style={{ height: hatchHeight, ...barHatchStyle }}
               />
             </>
           ) : (
             <>
               <div
-                className="absolute inset-x-0 top-0 z-[1] bg-white/12"
+                className="absolute inset-x-0 top-0 z-[1] bg-transparent"
                 style={{ height: hatchHeight, ...barHatchStyle }}
               />
               <div

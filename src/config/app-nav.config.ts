@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import {
   BarChart3,
+  CalendarDays,
   Grid2X2,
   HelpCircle,
   LineChart,
@@ -25,7 +26,8 @@ export type ClassNavItem = {
 
 export const mainNavItems: AppNavItem[] = [
   { icon: Grid2X2, label: "Dashboard", href: "/dashboard" },
-  {icon: CircleDollarSignIcon, label: "Financeiro", href: "/finance" }
+  { icon: CircleDollarSignIcon, label: "Financeiro", href: "/finance" },
+  { icon: CalendarDays, label: "Agenda", href: "/agenda" },
 ];
 
 export const classNavItems: ClassNavItem[] = [

@@ -3,8 +3,8 @@
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { CenterPanelShell } from "@/components/app/CenterPanelShell";
+import { DashboardRightSidebarPanel } from "@/components/dashboard/right-sidebar/DashboardRightSidebarPanel";
 import { LeftSidebarPanel } from "@/components/landing/hero/panels/LeftSidebarPanel";
-import { RightProfilePanel } from "@/components/landing/hero/panels/RightProfilePanel";
 import { sceneMotion } from "@/components/landing/hero/motion/hero-scene.motion";
 import { useHydrated } from "@/hooks/useHydrated";
 
@@ -55,10 +55,10 @@ export function DesktopAppShell({ children }: DesktopAppShellProps) {
           variants={sceneMotion.right}
           initial={shellInitial}
           animate="visible"
-          className="relative z-20 h-[clamp(550px,75vh,820px)] w-[clamp(215px,21.5vw,330px)] shrink-0"
+          className="relative z-20 h-[clamp(550px,75vh,820px)] w-[clamp(240px,22vw,340px)] shrink-0"
           style={{ transformOrigin: "left center", transformStyle: "preserve-3d" }}
         >
-          <RightProfilePanel />
+          <DashboardRightSidebarPanel />
         </motion.div>
       </div>
     </main>

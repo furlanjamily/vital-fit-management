@@ -1,0 +1,50 @@
+import { Animation, DayFlag, SelectionState, UI, type ClassNames } from "react-day-picker";
+
+const navButtonBase =
+  "inline-flex size-[26px] shrink-0 items-center justify-center self-center rounded-[0.65rem] border border-orange-600/30 bg-orange-600/10 text-orange-600 transition hover:scale-[1.04] hover:border-orange-600/45 hover:bg-orange-600/15";
+
+export const miniCalendarClassNames = {
+  [UI.Root]: "mx-auto w-full min-w-0",
+  [UI.Months]: "w-full min-w-0",
+  [UI.Month]: "grid w-full min-w-0 grid-cols-[26px_1fr_26px] items-center gap-x-1.5 gap-y-2.5",
+  [UI.MonthCaption]: "col-start-2 row-start-1 flex min-h-8 items-center justify-center px-0.5",
+  [UI.CaptionLabel]: "text-center text-[11px] font-bold leading-tight tracking-tight text-orange-600",
+  [UI.Nav]: "hidden",
+  [UI.PreviousMonthButton]: `${navButtonBase} col-start-1 row-start-1 justify-self-start`,
+  [UI.NextMonthButton]: `${navButtonBase} col-start-3 row-start-1 justify-self-end`,
+  [UI.MonthGrid]: "col-span-3 w-full table-fixed border-separate border-spacing-px",
+  [UI.Weekdays]: "mb-1",
+  [UI.Weekday]: "overflow-hidden p-0 text-center text-[9px] font-bold capitalize text-white/40",
+  [UI.Week]: "",
+  [UI.Weeks]: "",
+  [UI.Day]: "p-0 text-center",
+  [UI.DayButton]:
+    "mx-auto flex size-[26px] items-center justify-center rounded-full text-[9px] font-semibold text-white/78 transition hover:scale-105 hover:bg-white/8",
+  [UI.Chevron]: "size-3.5 fill-current",
+  [UI.Dropdowns]: "",
+  [UI.Dropdown]: "",
+  [UI.DropdownRoot]: "",
+  [UI.Footer]: "",
+  [UI.MonthsDropdown]: "",
+  [UI.YearsDropdown]: "",
+  [UI.WeekNumber]: "",
+  [UI.WeekNumberHeader]: "",
+  [SelectionState.selected]:
+    "[&>button]:border-0 [&>button]:bg-orange-600 [&>button]:font-bold  [&>button]:hover:brightness-105",
+  [SelectionState.range_end]: "",
+  [SelectionState.range_middle]: "",
+  [SelectionState.range_start]: "",
+  [DayFlag.today]: "[&>button]:border [&>button]:border-orange-600 [&>button]:text-white",
+  [DayFlag.outside]: "opacity-35",
+  [DayFlag.disabled]: "opacity-30",
+  [DayFlag.hidden]: "hidden",
+  [DayFlag.focused]: "[&>button]:ring-2 [&>button]:ring-orange-600/40",
+  [Animation.weeks_before_enter]: "",
+  [Animation.weeks_before_exit]: "",
+  [Animation.weeks_after_enter]: "",
+  [Animation.weeks_after_exit]: "",
+  [Animation.caption_after_enter]: "",
+  [Animation.caption_after_exit]: "",
+  [Animation.caption_before_enter]: "",
+  [Animation.caption_before_exit]: "",
+} satisfies ClassNames;
