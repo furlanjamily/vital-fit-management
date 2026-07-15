@@ -2,31 +2,16 @@
 
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
-import type { EventType } from "@/components/agenda/agenda.types";
+import { eventTypeCategoryAccent, type EventType } from "@/components/agenda/agenda.types";
 import { computeCategoryProgress } from "@/components/dashboard/right-sidebar/right-sidebar.helpers";
 import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
 import { glassText } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
 
 const CATEGORY_ITEMS = [
-  {
-    id: "reuniao" as const,
-    label: "Reuniões",
-    color: "#7dd3fc",
-    trackColor: "rgba(125, 211, 252, 0.18)",
-  },
-  {
-    id: "tarefa" as const,
-    label: "Tarefas",
-    color: "#86efac",
-    trackColor: "rgba(134, 239, 172, 0.18)",
-  },
-  {
-    id: "compromisso" as const,
-    label: "Compromissos",
-    color: "#fbbf24",
-    trackColor: "rgba(251, 191, 36, 0.18)",
-  },
+  { id: "reuniao" as const, label: "Reuniões" },
+  { id: "tarefa" as const, label: "Tarefas" },
+  { id: "compromisso" as const, label: "Compromissos" },
 ];
 
 type CategoriesSectionProps = {
@@ -58,6 +43,7 @@ export function CategoriesSection({ categoryCounts, className }: CategoriesSecti
           {CATEGORY_ITEMS.map((category) => {
             const count = categoryCounts[category.id] ?? 0;
             const progress = computeCategoryProgress(count);
+            const accent = eventTypeCategoryAccent[category.id];
 
             return (
               <li key={category.id} className="px-1 py-0.5">
@@ -65,7 +51,7 @@ export function CategoriesSection({ categoryCounts, className }: CategoriesSecti
                   <span className="flex min-w-0 items-center gap-2">
                     <span
                       className="size-2.5 shrink-0 rounded-full"
-                      style={{ backgroundColor: category.color }}
+                      style={{ backgroundColor: accent.color }}
                     />
                     <span className={cn("truncate text-xs font-medium", glassText.primary)}>
                       {category.label}
@@ -78,13 +64,13 @@ export function CategoriesSection({ categoryCounts, className }: CategoriesSecti
 
                 <div
                   className="h-1.5 w-full overflow-hidden rounded-full"
-                  style={{ backgroundColor: category.trackColor }}
+                  style={{ backgroundColor: accent.trackColor }}
                 >
                   <div
                     className="h-full rounded-full transition-all duration-500"
                     style={{
                       width: `${progress}%`,
-                      backgroundColor: category.color,
+                      backgroundColor: accent.color,
                     }}
                   />
                 </div>

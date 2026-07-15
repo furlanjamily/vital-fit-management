@@ -150,19 +150,19 @@ function DayStrip({ days, referenceDate, onSelectDay }: DayStripProps) {
             className={cn(
               "flex flex-col items-center rounded-2xl px-2 py-2.5 transition",
               active
-                ? "bg-[#1a1a1a] text-white shadow-[0_8px_24px_rgba(0,0,0,0.18)]"
+                ? "bg-gradient-to-br from-orange-500 to-orange-600 shadow-[0_8px_24px_rgba(249,115,22,0.28)]"
                 : "border border-white/10 bg-white/[0.06] hover:bg-white/10",
             )}
           >
             <span
               className={cn(
                 "text-[10px] font-medium capitalize",
-                active ? "text-white/70" : glassText.muted,
+                active ? glassText.secondary : glassText.muted,
               )}
             >
               {weekday}
             </span>
-            <span className={cn("text-sm font-bold", active ? "text-white" : glassText.primary)}>
+            <span className={cn("text-sm font-bold", glassText.primary)}>
               {dayNumber}
             </span>
           </button>
@@ -262,7 +262,9 @@ function MonthView({ referenceDate, events, onSelectDay, onEventSelect }: MonthV
                 onClick={() => onSelectDay(day)}
                 className={cn(
                   "mb-1 inline-flex size-6 items-center justify-center rounded-full text-xs font-semibold transition hover:brightness-110",
-                  isToday(day) ? "bg-[#1a1a1a] text-white" : glassText.secondary,
+                  isToday(day)
+                    ? "bg-gradient-to-br from-orange-500 to-orange-600 text-glass-primary"
+                    : glassText.secondary,
                 )}
               >
                 {day.getDate()}

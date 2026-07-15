@@ -61,14 +61,14 @@ export function MyCalendarsSection({ categoryCounts, className }: MyCalendarsSec
                           [option.id]: !checked,
                         }))
                       }
-                      className="size-4 shrink-0 rounded-md border border-white/20 bg-white/5 accent-orange-500"
+                      className="size-4 shrink-0 rounded-md border border-white/20 bg-white/5 accent-orange-600 text-white"
                     />
                     <span className={cn("truncate text-xs font-medium", glassText.primary)}>
                       {option.label}
                     </span>
                   </span>
                   {badge > 0 ? (
-                    <span className="shrink-0 rounded-full bg-orange-500/20 px-2 py-0.5 text-[10px] font-bold leading-none text-orange-200">
+                    <span className="shrink-0 rounded-full bg-orange-600/20 px-2 py-0.5 text-[10px] font-bold leading-none text-orange-600">
                       {badge}
                     </span>
                   ) : null}

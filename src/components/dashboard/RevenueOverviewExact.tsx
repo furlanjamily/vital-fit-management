@@ -7,6 +7,7 @@ import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
 import { RevenueOverviewExactSkeleton } from "@/components/dashboard/RevenueOverviewExactSkeleton";
 import { InlineAlert } from "@/components/common/feedback/InlineAlert";
 import { formatBrlAmount, formatRevenueTooltipLabel, resolveRevenueChartLayout } from "@/components/finance/finance.helpers";
+import { brand } from "@/config/brand-colors";
 import { glassText, glassTextStyles } from "@/config/glass-typography";
 import {
   computeRevenueVariation,
@@ -55,7 +56,18 @@ function RevenueBarTooltip({ label, value }: { label: string; value: number }) {
 }
 
 const CHART_MAX_HEIGHT = 132;
-const HIGHLIGHT_ACCENT = "#FF7A00";
+const HIGHLIGHT_ACCENT = brand.orange;
+
+/** Escala logarítmica: comprime picos e mantém dias com receita menor visíveis. */
+function computeBarHeight(value: number, maxRevenue: number): number {
+  if (value <= 0 || maxRevenue <= 0) return 0;
+  if (value >= maxRevenue) return CHART_MAX_HEIGHT;
+
+  const logRatio = Math.log10(value) / Math.log10(maxRevenue);
+  const height = Math.round(logRatio * CHART_MAX_HEIGHT);
+
+  return height > 0 ? height : 4;
+}
 
 const REVENUE_GLASS = {
   variant: "subtle" as const,
@@ -111,11 +123,8 @@ function RevenueBarColumn({
   onBarEnter,
   onBarLeave,
 }: RevenueBarColumnProps) {
-  const barHeightPx =
-    maxRevenueInPeriod > 0
-      ? Math.round((bar.value / maxRevenueInPeriod) * CHART_MAX_HEIGHT)
-      : 0;
-  const visibleBarHeight = barHeightPx > 0 ? barHeightPx : 2;
+  const barHeightPx = computeBarHeight(bar.value, maxRevenueInPeriod);
+  const visibleBarHeight = barHeightPx;
   const hatchHeight = `${BAR_HATCH_HEIGHT_PERCENT}%`;
   const isPositive = bar.percentage >= 0;
 
@@ -130,7 +139,7 @@ function RevenueBarColumn({
       onMouseEnter={(event) => onBarEnter(bar, event.currentTarget)}
       onMouseLeave={onBarLeave}
     >
-      {bar.highlighted && barHeightPx > 0 && (
+      {bar.highlighted && bar.value > 0 && (
         <span
           aria-hidden
           className="absolute z-30 size-2.5 rounded-full border-2 border-white/90 bg-orange-500 shadow-[0_0_0_2px_#FF7A00,0_0_10px_rgba(255,122,0,0.85)]"
@@ -138,49 +147,51 @@ function RevenueBarColumn({
         />
       )}
 
-      <RevenueGlass
-        className="relative z-10 w-full min-w-[16px] rounded-full"
-        style={{ height: visibleBarHeight, minHeight: 2 }}
-      >
-        <div className="relative h-full w-full overflow-hidden rounded-full">
-          <div className="absolute inset-0 bg-white/10" />
+      {bar.value > 0 ? (
+        <RevenueGlass
+          className="relative z-10 w-full min-w-[16px] rounded-full"
+          style={{ height: visibleBarHeight }}
+        >
+          <div className="relative h-full w-full overflow-hidden rounded-full">
+            <div className="absolute inset-0 bg-white/10" />
 
-          {bar.highlighted ? (
-            <>
-              <div
-                className="absolute inset-x-0 bottom-0 top-[28%] z-[1]"
-                style={{ backgroundColor: HIGHLIGHT_ACCENT }}
-              />
-              <div
-                className="absolute inset-x-0 top-0 z-[2] bg-orange-500"
-                style={{ height: hatchHeight, ...barHatchStyle }}
-              />
-            </>
-          ) : (
-            <>
-              <div
-                className="absolute inset-x-0 top-0 z-[1] bg-transparent"
-                style={{ height: hatchHeight, ...barHatchStyle }}
-              />
-              <div
-                className="absolute inset-x-0 bottom-0 z-[1] bg-orange-500"
-                style={{ top: hatchHeight }}
-              />
-            </>
-          )}
+            {bar.highlighted ? (
+              <>
+                <div
+                  className="absolute inset-x-0 bottom-0 top-[28%] z-[1]"
+                  style={{ backgroundColor: HIGHLIGHT_ACCENT }}
+                />
+                <div
+                  className="absolute inset-x-0 top-0 z-[2] bg-orange-500"
+                  style={{ height: hatchHeight, ...barHatchStyle }}
+                />
+              </>
+            ) : (
+              <>
+                <div
+                  className="absolute inset-x-0 top-0 z-[1] bg-transparent"
+                  style={{ height: hatchHeight, ...barHatchStyle }}
+                />
+                <div
+                  className="absolute inset-x-0 bottom-0 z-[1] bg-orange-500"
+                  style={{ top: hatchHeight }}
+                />
+              </>
+            )}
 
-          {barHeightPx > 0 ? (
-            <span
-              className={cn(
-                "absolute inset-x-0 bottom-[22%] z-[3] text-center text-[9px] font-medium leading-none tracking-[-0.02em]",
-                isPositive ? "text-emerald-400" : "text-red-400",
-              )}
-            >
-              {formatVariation(bar.percentage)}
-            </span>
-          ) : null}
-        </div>
-      </RevenueGlass>
+            {visibleBarHeight >= 20 ? (
+              <span
+                className={cn(
+                  "absolute inset-x-0 bottom-[22%] z-[3] text-center text-[9px] font-medium leading-none tracking-[-0.02em]",
+                  isPositive ? "text-emerald-400" : "text-red-400",
+                )}
+              >
+                {formatVariation(bar.percentage)}
+              </span>
+            ) : null}
+          </div>
+        </RevenueGlass>
+      ) : null}
 
       <span className={cn("mt-1.5 text-[9px] font-medium tracking-[-0.01em]", glassText.muted)}>
         {bar.label}
@@ -447,18 +458,6 @@ export function RevenueOverviewExact({
             ) : null}
           </div>
 
-          <RevenueGlass className="size-7 rounded-full">
-            <button
-              type="button"
-              aria-label="Export revenue"
-              className={cn(
-                "grid size-full place-items-center transition-colors hover:bg-white/8 hover:text-glass-primary",
-                glassText.secondary,
-              )}
-            >
-              <SquareArrowUp className="size-3" strokeWidth={2.25} />
-            </button>
-          </RevenueGlass>
         </div>
       </div>
 

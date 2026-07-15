@@ -376,9 +376,21 @@ async function insertMembersBatched(supabase: SupabaseClient): Promise<InsertedM
 type CheckInInsert = {
   member_id: string;
   checked_at: string;
+  class_id?: string;
 };
 
-function buildCheckIns(members: InsertedMember[]): CheckInInsert[] {
+async function fetchClassIds(supabase: SupabaseClient): Promise<string[]> {
+  const { data, error } = await supabase.from("classes").select("id");
+
+  if (error) {
+    if (error.message.includes("Could not find the table")) return [];
+    fail(`Erro ao buscar classes: ${error.message}`);
+  }
+
+  return (data ?? []).map((row) => row.id as string);
+}
+
+function buildCheckIns(members: InsertedMember[], classIds: string[]): CheckInInsert[] {
   const activeMembers = members.filter((m) => m.status);
   if (activeMembers.length === 0) fail("Nenhum membro ativo para gerar check-ins.");
 
@@ -392,16 +404,21 @@ function buildCheckIns(members: InsertedMember[]): CheckInInsert[] {
     checkIns.push({
       member_id: member.id,
       checked_at: buildCheckedAt(day, hour, randomBetween(0, 59)),
+      ...(classIds.length > 0 ? { class_id: randomPick(classIds) } : {}),
     });
   }
 
   return checkIns;
 }
 
-async function insertCheckInsBatched(supabase: SupabaseClient, members: InsertedMember[]) {
+async function insertCheckInsBatched(
+  supabase: SupabaseClient,
+  members: InsertedMember[],
+  classIds: string[],
+) {
   console.log(`→ Inserindo ${CHECK_IN_COUNT} check-ins (batch ${BATCH_SIZE})…`);
 
-  const payload = buildCheckIns(members);
+  const payload = buildCheckIns(members, classIds);
   let inserted = 0;
 
   for (const chunk of chunkArray(payload, BATCH_SIZE)) {
@@ -602,8 +619,9 @@ async function main() {
 
   const categories = await upsertCategories(supabase);
   const members = await insertMembersBatched(supabase);
+  const classIds = await fetchClassIds(supabase);
 
-  await insertCheckInsBatched(supabase, members);
+  await insertCheckInsBatched(supabase, members, classIds);
   await insertFinancialTransactionsBatched(supabase, members, categories);
 
   await printFinalCounts(

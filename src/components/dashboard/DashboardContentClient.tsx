@@ -5,8 +5,8 @@ import { ChevronDown } from "lucide-react";
 import { Bell, Mail } from "lucide-react";
 import { GlassSelect, IconButton } from "@/components/common/form";
 import { InlineAlert } from "@/components/common/feedback/InlineAlert";
-import { FavouritedWorkout } from "@/components/dashboard/FavouritedWorkout";
 import {
+  DashboardFavouritedWorkoutSection,
   DashboardGymCapacitySection,
   DashboardMemberActivitySection,
   DashboardRevenueSection,
@@ -31,10 +31,10 @@ import { cn } from "@/lib/cn";
 
 const DEFAULT_USER_NAME = "User";
 
-const quickActions = [
-  { icon: Bell, label: "Notificações" },
-  { icon: Mail, label: "Mensagens" },
-] as const;
+// const quickActions = [
+//   { icon: Bell, label: "Notificações" },
+//   { icon: Mail, label: "Mensagens" },
+// ] as const;
 
 const EMPTY_STATS = adaptStatsOverview(
   {
@@ -107,7 +107,7 @@ export function DashboardContentClient({ userName }: DashboardContentClientProps
               </GlassSelect>
             </label>
 
-          <div className={cn("flex items-center gap-2", glassText.secondary)}>
+          {/* <div className={cn("flex items-center gap-2", glassText.secondary)}>
             {quickActions.map((action) => (
               <IconButton
                 key={action.label}
@@ -117,7 +117,7 @@ export function DashboardContentClient({ userName }: DashboardContentClientProps
                 <action.icon className="size-4" />
               </IconButton>
             ))}
-          </div>
+          </div> */}
         </div>
       </div>
 
@@ -151,7 +151,7 @@ export function DashboardContentClient({ userName }: DashboardContentClientProps
         </div>
       </div>
 
-      <FavouritedWorkout />
+      <DashboardFavouritedWorkoutSection />
     </div>
   );
 }

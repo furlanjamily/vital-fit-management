@@ -513,9 +513,21 @@ async function insertFinancialTransactions(
 type CheckInInsert = {
   member_id: string;
   checked_at: string;
+  class_id?: string;
 };
 
-function buildCheckIns(members: InsertedMember[]): CheckInInsert[] {
+async function fetchClassIds(supabase: SupabaseClient): Promise<string[]> {
+  const { data, error } = await supabase.from("classes").select("id");
+
+  if (error) {
+    if (error.message.includes("Could not find the table")) return [];
+    fail(`Erro ao buscar classes: ${error.message}`);
+  }
+
+  return (data ?? []).map((row) => row.id as string);
+}
+
+function buildCheckIns(members: InsertedMember[], classIds: string[]): CheckInInsert[] {
   const checkIns: CheckInInsert[] = [];
   const activeMembers = members.filter((m) => m.status);
 
@@ -538,6 +550,7 @@ function buildCheckIns(members: InsertedMember[]): CheckInInsert[] {
         checkIns.push({
           member_id: member.id,
           checked_at: buildCheckedAt(day, hour, randomBetween(0, 59)),
+          ...(classIds.length > 0 ? { class_id: randomPick(classIds) } : {}),
         });
       }
     }
@@ -546,10 +559,14 @@ function buildCheckIns(members: InsertedMember[]): CheckInInsert[] {
   return checkIns;
 }
 
-async function insertCheckIns(supabase: SupabaseClient, members: InsertedMember[]) {
+async function insertCheckIns(
+  supabase: SupabaseClient,
+  members: InsertedMember[],
+  classIds: string[],
+) {
   console.log("→ Gerando check-ins dos últimos 30 dias…");
 
-  const payload = buildCheckIns(members);
+  const payload = buildCheckIns(members, classIds);
 
   for (const chunk of chunkArray(payload, 200)) {
     const { error } = await supabase.from("check_ins").insert(chunk);
@@ -619,9 +636,10 @@ async function main() {
 
   const categories = await upsertCategories(supabase);
   const members = await insertMembers(supabase);
+  const classIds = await fetchClassIds(supabase);
 
   await insertFinancialTransactions(supabase, members, categories);
-  await insertCheckIns(supabase, members);
+  await insertCheckIns(supabase, members, classIds);
 
   const { count: memberCount } = await supabase
     .from("members")

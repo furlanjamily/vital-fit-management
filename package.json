@@ -11,7 +11,8 @@
     "seed:bulk": "npx tsx scripts/seed-bulk.ts",
     "seed:classes": "npx tsx scripts/seed-classes.ts",
     "seed:members": "node scripts/seed-members.mjs",
-    "seed:test-flow": "node scripts/seed-test-flow.mjs"
+    "seed:test-flow": "node scripts/seed-test-flow.mjs",
+    "seed:agenda": "npx tsx scripts/seed-agenda.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",

@@ -15,7 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "VitalFit Management | Premium Fitness SaaS",
+  title: "VitalFit Management",
+  icons: "/vitalfit-management-icon.png",
   description:
     "Template premium de landing page para gestao de academias com dashboard glassmorphism.",
 };

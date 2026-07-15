@@ -39,12 +39,6 @@ export function GymCapacity({ data, isLoading = false }: GymCapacityProps) {
             {data.used} de {data.total} vagas (últimas 2h)
           </p>
         </div>
-        <IconButton
-          aria-label="Ver detalhes da capacidade"
-          className="bg-white/7 hover:bg-white/13 hover:text-glass-primary"
-        >
-          <ArrowUpRight className="size-3.5" />
-        </IconButton>
       </div>
 
       <div
@@ -70,7 +64,7 @@ export function GymCapacity({ data, isLoading = false }: GymCapacityProps) {
       </div>
 
       <div className="mt-4 flex items-center justify-between text-sm">
-        <span className={glassText.secondary}>Space Status</span>
+        <span className={glassText.secondary}>Status do espaço</span>
         <span className={cn(glassText.primary, "font-semibold")}>{data.occupancyPercent}%</span>
       </div>
     </GlassPanel>

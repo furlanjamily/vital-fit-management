@@ -190,7 +190,7 @@ export function ClassesScheduleContentClient({
           <Link
             href="/settings"
             className={cn(
-              "mb-3 inline-flex items-center gap-1.5 text-sm transition hover:text-white",
+              "mb-3 inline-flex items-center gap-1.5 text-sm transition hover:text-glass-primary",
               glassText.muted,
             )}
           >
@@ -206,9 +206,8 @@ export function ClassesScheduleContentClient({
         <GlassButton
           size="sm"
           onClick={openCreateForm}
-          className="bg-gradient-to-r from-orange-500 to-orange-600"
+          rightIcon={<Plus className="size-4" aria-hidden="true" />}
         >
-          <Plus className="size-4" aria-hidden="true" />
           Adicionar Aula
         </GlassButton>
       </div>

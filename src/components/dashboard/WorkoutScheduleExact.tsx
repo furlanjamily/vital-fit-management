@@ -8,6 +8,7 @@ import {
 import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
 import { InlineAlert } from "@/components/common/feedback/InlineAlert";
 import { WorkoutScheduleExactSkeleton } from "@/components/dashboard/WorkoutScheduleExactSkeleton";
+import { brand } from "@/config/brand-colors";
 import { glassText, glassTextStyles } from "@/config/glass-typography";
 import {
   type WorkoutScheduleItem,
@@ -25,7 +26,7 @@ const WORKOUT_SCHEDULE_GLASS = {
   elevation: "floating" as const,
 };
 
-const AVATAR_COLORS = ["#FF7A4A", "#FFB300"] as const;
+const AVATAR_COLORS = [brand.orangeMid, brand.gold] as const;
 
 type WorkoutScheduleGlassProps = {
   children: ReactNode;
@@ -48,7 +49,7 @@ type OverlappingAvatarsProps = {
 };
 
 function OverlappingAvatars({ variant }: OverlappingAvatarsProps) {
-  const borderColor = variant === "amber" ? "#FFF2AF" : "#FF9A4A";
+  const borderColor = variant === "amber" ? brand.highlight : brand.orangeMid;
 
   return (
     <div className="flex shrink-0 -space-x-1.5">
@@ -84,7 +85,7 @@ function EllipsisBubble({ variant }: EllipsisBubbleProps) {
         variant === "amber" ? "bg-white/95" : "bg-white",
       )}
     >
-      <MoreHorizontal className="size-3 text-[#1a1a1a]/70" strokeWidth={2.5} />
+      <MoreHorizontal className="size-3 text-[#1a1d19]/70" strokeWidth={2.5} />
     </span>
   );
 }
@@ -99,9 +100,8 @@ function WorkoutBlock({ item }: WorkoutBlockProps) {
   const widthPercent = rightPercent - leftPercent;
 
   const isOrange = item.variant === "orange";
-  const bgColor = isOrange ? "#FF9A4A" : "#FFF2AF";
-  const textColor = "#1a1a1a";
-  const subtitleColor = "#6B7280";
+  const bgColor = isOrange ? brand.orangeMid : brand.highlight;
+  const textColor = "#1a1d19";
   const blockHeight = item.height ?? 38;
 
   const verticalPosition: Record<WorkoutSchedulePosition, string> = {
@@ -142,13 +142,12 @@ function WorkoutBlock({ item }: WorkoutBlockProps) {
                 {item.title}
               </p>
               <p
-                className="truncate text-[9px] leading-tight tracking-[-0.01em]"
-                style={{ color: subtitleColor }}
+                className="truncate text-[9px] leading-tight tracking-[-0.01em] opacity-65"
+                style={{ color: textColor }}
               >
                 {item.dateRange}
               </p>
             </div>
-            <EllipsisBubble variant={item.variant} />
           </div>
         </div>
       </div>
@@ -226,9 +225,8 @@ export function WorkoutScheduleExact({ data, isLoading, error }: WorkoutSchedule
   return (
     <WorkoutScheduleGlass>
       <div className="overflow-hidden rounded-[inherit]">
-        {/* Header */}
         <div className="flex items-center justify-between px-4 pb-2 pt-3.5 sm:px-5 sm:pt-4">
-          <div className="flex items-center gap-2">
+          <div className="w-full flex items-center justify-center  gap-2">
             <span className="flex size-[26px] items-center justify-center rounded-full bg-white/10">
               <CalendarDays
                 className={cn("size-[13px]", glassText.secondary)}
@@ -239,32 +237,8 @@ export function WorkoutScheduleExact({ data, isLoading, error }: WorkoutSchedule
               Agenda de treinos
             </h3>
           </div>
-
-          <div className="flex items-center gap-1.5">
-            <button
-              type="button"
-              aria-label="More options"
-              className="flex size-[26px] items-center justify-center rounded-full bg-white/10 transition-colors hover:bg-white/16"
-            >
-              <MoreHorizontal
-                className={cn("size-[13px]", glassText.secondary)}
-                strokeWidth={2.25}
-              />
-            </button>
-            <button
-              type="button"
-              aria-label="Expand schedule"
-              className="flex size-[26px] items-center justify-center rounded-full bg-white/10 transition-colors hover:bg-white/16"
-            >
-              <ArrowUpRight
-                className={cn("size-[13px]", glassText.secondary)}
-                strokeWidth={2.25}
-              />
-            </button>
-          </div>
         </div>
 
-        {/* Timeline area */}
         <div className="relative mx-3 mb-3 h-[210px] overflow-hidden sm:mx-4 sm:mb-4 sm:h-[230px]">
           <TimelineGrid timelineDates={data.timelineDates} />
           <CurrentDayMarker currentDayIndex={data.currentDayIndex} />
@@ -274,7 +248,6 @@ export function WorkoutScheduleExact({ data, isLoading, error }: WorkoutSchedule
           ))}
         </div>
 
-        {/* Date axis */}
         <div className="px-3 pb-3.5 sm:px-4 sm:pb-4">
           <DateAxis timelineDates={data.timelineDates} currentDayIndex={data.currentDayIndex} />
         </div>

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, ChevronDown, Users, X } from "lucide-react";
 import type { AgendaUserOption } from "@/components/agenda/agenda.types";
 import { UserAvatar } from "@/components/users/UserAvatar";
+import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
 import {
   formControlFocusClassName,
   inputPaddingWithIcon,
@@ -134,11 +135,10 @@ export function GlassMultiSelect({
       </div>
 
       {open ? (
-        <div
-          className={cn(
-            "absolute z-50 mt-2 max-h-56 w-full overflow-y-auto rounded-xl border border-white/12",
-            "bg-[rgba(38,24,14,0.96)] p-1 shadow-[0_16px_40px_rgba(0,0,0,0.28)] backdrop-blur-xl",
-          )}
+        <GlassPanel
+          elevation="popover"
+          intensity="high"
+          className="absolute z-50 mt-2 max-h-56 w-full overflow-y-auto rounded-xl p-1"
         >
           {options.length === 0 ? (
             <p className={cn("px-3 py-2 text-xs", glassText.muted)}>Nenhum usuário disponível.</p>
@@ -170,7 +170,7 @@ export function GlassMultiSelect({
               );
             })
           )}
-        </div>
+        </GlassPanel>
       ) : null}
     </div>
   );

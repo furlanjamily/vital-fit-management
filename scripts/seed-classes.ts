@@ -57,6 +57,7 @@ type ProfessionalSeed = {
 type ClassSeed = {
   name: string;
   description: string;
+  category: "funcional" | "cardio" | "mente_corpo";
 };
 
 type ScheduleSlotSeed = {
@@ -117,14 +118,36 @@ const PROFESSIONALS: ProfessionalSeed[] = [
     specialty: "Pilates",
     status: true,
   },
+  {
+    full_name: "Diego Souza",
+    email: `diego.trx${SEED_EMAIL_DOMAIN}`,
+    cref: "200006-G/SP",
+    birth_date: "1987-01-18",
+    gender: "Male",
+    shift: "Morning",
+    specialty: "TRX",
+    status: true,
+  },
+  {
+    full_name: "Camila Ribeiro",
+    email: `camila.jump${SEED_EMAIL_DOMAIN}`,
+    cref: "200007-G/SP",
+    birth_date: "1993-08-14",
+    gender: "Female",
+    shift: "Afternoon",
+    specialty: "Jump",
+    status: true,
+  },
 ];
 
 const CLASSES: ClassSeed[] = [
-  { name: "Yoga", description: "Flexibilidade, respiração e equilíbrio" },
-  { name: "Crossfit", description: "Treino funcional de alta intensidade" },
-  { name: "Spinning", description: "Ciclismo indoor com ritmo e resistência" },
-  { name: "Dança", description: "Coreografias e condicionamento com música" },
-  { name: "Pilates", description: "Fortalecimento, postura e controle corporal" },
+  { name: "Crossfit", description: "Treino funcional de alta intensidade", category: "funcional" },
+  { name: "TRX", description: "Suspensão com foco em força e estabilidade", category: "funcional" },
+  { name: "Spinning", description: "Ciclismo indoor com ritmo e resistência", category: "cardio" },
+  { name: "Jump", description: "Aula de salto com coreografia e resistência", category: "cardio" },
+  { name: "Yoga", description: "Flexibilidade, respiração e equilíbrio", category: "mente_corpo" },
+  { name: "Pilates", description: "Fortalecimento, postura e controle corporal", category: "mente_corpo" },
+  { name: "Dança", description: "Coreografias e condicionamento com música", category: "mente_corpo" },
 ];
 
 const SCHEDULE_SLOTS: ScheduleSlotSeed[] = [
@@ -144,6 +167,10 @@ const SCHEDULE_SLOTS: ScheduleSlotSeed[] = [
   { className: "Pilates", dayOfWeek: 1, startTime: "10:30", maxCapacity: 8 },
   { className: "Pilates", dayOfWeek: 3, startTime: "10:30", maxCapacity: 8 },
   { className: "Pilates", dayOfWeek: 5, startTime: "17:00", maxCapacity: 8 },
+  { className: "TRX", dayOfWeek: 2, startTime: "08:00", maxCapacity: 10 },
+  { className: "TRX", dayOfWeek: 4, startTime: "19:00", maxCapacity: 10 },
+  { className: "Jump", dayOfWeek: 3, startTime: "18:30", maxCapacity: 12 },
+  { className: "Jump", dayOfWeek: 5, startTime: "18:30", maxCapacity: 12 },
 ];
 
 // ---------------------------------------------------------------------------
@@ -323,17 +350,42 @@ async function clearSeedData(supabase: SupabaseClient) {
 async function upsertClasses(supabase: SupabaseClient): Promise<Map<string, string>> {
   console.log("→ Garantindo modalidades…");
 
-  const { error } = await supabase.from("classes").upsert(
-    CLASSES.map((item) => ({
-      name: item.name,
-      description: item.description,
-    })),
-    { onConflict: "name", ignoreDuplicates: false },
-  );
+  const payloadWithCategory = CLASSES.map((item) => ({
+    name: item.name,
+    description: item.description,
+    category: item.category,
+  }));
+
+  const { error } = await supabase
+    .from("classes")
+    .upsert(payloadWithCategory, { onConflict: "name", ignoreDuplicates: false });
 
   if (error) {
-    assertTable(error, "classes", "supabase/classes.sql");
-    fail(`Erro ao inserir classes: ${error.message}`);
+    const categoryIssue =
+      error.message.includes("classes_category_check") ||
+      error.message.includes("category");
+
+    if (categoryIssue) {
+      console.log(
+        "  Aviso: categorias não aplicadas — execute supabase/classes-workout-categories.sql no Supabase.",
+      );
+
+      const { error: retryError } = await supabase.from("classes").upsert(
+        CLASSES.map((item) => ({
+          name: item.name,
+          description: item.description,
+        })),
+        { onConflict: "name", ignoreDuplicates: false },
+      );
+
+      if (retryError) {
+        assertTable(retryError, "classes", "supabase/classes.sql");
+        fail(`Erro ao inserir classes: ${retryError.message}`);
+      }
+    } else {
+      assertTable(error, "classes", "supabase/classes.sql");
+      fail(`Erro ao inserir classes: ${error.message}`);
+    }
   }
 
   const { data, error: fetchError } = await supabase
@@ -366,7 +418,7 @@ type InsertedProfessional = {
 };
 
 async function insertProfessionals(supabase: SupabaseClient): Promise<InsertedProfessional[]> {
-  console.log("→ Inserindo 5 profissionais com especialidades…");
+  console.log(`→ Inserindo ${PROFESSIONALS.length} profissionais com especialidades…`);
 
   const { data, error } = await supabase
     .from("professionals")

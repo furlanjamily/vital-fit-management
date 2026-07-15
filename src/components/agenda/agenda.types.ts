@@ -77,6 +77,16 @@ export const eventTypeColors: Record<
   },
 };
 
+/** Accent dots and progress tracks for category sidebars. */
+export const eventTypeCategoryAccent: Record<
+  EventType,
+  { color: string; trackColor: string }
+> = {
+  reuniao: { color: "#7dd3fc", trackColor: "rgba(125, 211, 252, 0.18)" },
+  tarefa: { color: "#86efac", trackColor: "rgba(134, 239, 172, 0.18)" },
+  compromisso: { color: "#fbbf24", trackColor: "rgba(251, 191, 36, 0.18)" },
+};
+
 export function isEventType(value: unknown): value is EventType {
   return typeof value === "string" && (EVENT_TYPES as readonly string[]).includes(value);
 }

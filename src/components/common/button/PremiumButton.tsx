@@ -31,7 +31,7 @@ export function PremiumButton({
       className={cn(
         "group inline-flex h-[3.25rem] items-center justify-center gap-2 rounded-full border px-6 text-sm font-semibold tracking-[-0.01em]",
         "transition-all duration-300 ease-out hover:-translate-y-0.5",
-        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#8ad5ff]",
+        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orange-400/50",
         variants[variant],
         className,
       )}

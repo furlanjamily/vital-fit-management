@@ -43,27 +43,15 @@ export function FinancialHealthCard({
       className={cn("w-full rounded-[20px]", className)}
     >
       <div className="flex flex-col gap-3 px-4 py-4 sm:gap-3.5 sm:px-5 sm:py-5">
-        <header className="flex items-start justify-between gap-2">
-          <div className="min-w-0 flex flex-col gap-1.5">
+        <header className="w-full flex items-center justify-center gap-2">
+          <div className="flex flex-col gap-1.5">
             <h2 className={cn(glassTextStyles.panelTitle, "truncate text-[14px] tracking-[-0.03em] sm:text-[15px]")}>
               {data.title}
             </h2>
-            <span className="inline-flex w-fit items-center rounded-full bg-orange-500/15 px-2 py-0.5 text-[10px] font-medium tracking-[-0.01em] text-orange-300">
+            <span className="inline-flex w-full items-center justify-center rounded-full bg-orange-600/60 px-2 py-0.5 text-[10px] font-medium tracking-[-0.01em] text-orange-300">
               {data.statusLabel}
             </span>
           </div>
-
-          <button
-            type="button"
-            onClick={onMenuClick}
-            aria-label="Menu de saúde financeira"
-            className={cn(
-              "inline-flex size-7 shrink-0 items-center justify-center rounded-full transition hover:bg-white/5 hover:text-glass-secondary",
-              glassText.muted,
-            )}
-          >
-            <MoreVertical className="size-3.5" strokeWidth={1.75} />
-          </button>
         </header>
 
         <div className="flex flex-col gap-1">
@@ -85,7 +73,7 @@ export function FinancialHealthCard({
                 <span
                   className={cn(
                     "font-medium",
-                    isNegative ? "text-red-400" : "text-[#6EE7B7]",
+                    isNegative ? "text-red-400" : "text-emerald-400",
                   )}
                 >
                   {data.changePercent > 0

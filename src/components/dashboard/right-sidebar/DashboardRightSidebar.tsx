@@ -52,7 +52,7 @@ export function DashboardRightSidebar() {
         >
           <CalendarDays className="size-4 text-orange-300" strokeWidth={2} />
           {upcomingTodayCount > 0 ? (
-            <span className="absolute -right-1 -top-1 grid min-w-[18px] place-items-center rounded-full bg-gradient-to-r from-orange-500 to-orange-600 px-1 py-0.5 text-[9px] font-bold leading-none text-white shadow-[0_4px_12px_rgba(249,115,22,0.45)]">
+            <span className={cn("absolute -right-1 -top-1 grid min-w-[18px] place-items-center rounded-full bg-gradient-to-r from-orange-500 to-orange-600 px-1 py-0.5 text-[9px] font-bold leading-none shadow-[0_4px_12px_rgba(249,115,22,0.45)]", glassText.primary)}>
               {upcomingTodayCount > 9 ? "9+" : upcomingTodayCount}
             </span>
           ) : null}

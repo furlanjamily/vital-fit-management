@@ -11,7 +11,7 @@ export function InlineAlert({ children, className }: InlineAlertProps) {
     <p
       role="alert"
       className={cn(
-        "rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200/90",
+        "rounded-xl border border-orange-500/20 bg-orange-500/10 px-4 py-3 text-sm text-orange-200/90",
         className,
       )}
     >

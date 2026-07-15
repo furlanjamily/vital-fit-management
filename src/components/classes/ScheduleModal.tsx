@@ -357,7 +357,7 @@ export function ScheduleModal({
                 !memberId ||
                 !isGradeDay
               }
-              className="bg-gradient-to-r from-orange-500 to-orange-600"
+              className="bg-orange-600 hover:bg-orange-700"
             >
               {isSubmitting ? (
                 <>

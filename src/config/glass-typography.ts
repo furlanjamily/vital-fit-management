@@ -38,7 +38,7 @@ export const glassTextStyles = {
   kpiLabel: cn(glassText.muted, "text-[11px]"),
   pageTitle: cn(glassText.primary, "text-[1.72rem] font-semibold tracking-[-0.055em]"),
   pageSubtitle: cn(glassText.muted, "mt-1 text-sm"),
-  entityName: cn(glassText.primary, "text-xs font-semibold"),
-  entityEmail: cn(glassText.tertiary, "text-[10px]"),
+  entityName: cn(glassText.primary, "max-w-full truncate text-xs font-semibold"),
+  entityEmail: cn(glassText.tertiary, "max-w-full truncate text-[10px]"),
   badge: cn(glassText.secondary, "text-[10px] font-medium"),
 } as const;

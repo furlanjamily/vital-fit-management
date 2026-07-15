@@ -1,6 +1,7 @@
 "use client";
 
 import { useDragScroll } from "@/hooks/useDragScroll";
+import { brand } from "@/config/brand-colors";
 import { glassText } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
 import type { FinancialChartBar } from "./types";
@@ -11,9 +12,23 @@ type HealthBarsChartProps = {
   className?: string;
 };
 
-const BAR_COLORS = ["#FFB300", "#FF7A4A"] as const;
+const BAR_COLORS = [brand.gold, brand.orangeMid] as const;
 const MIN_BAR_HEIGHT_PERCENT = 12;
 const SCROLLABLE_BAR_COUNT = 7;
+
+/** Escala logarítmica: comprime picos e mantém valores menores visíveis. */
+function computeLogBarHeightPercent(value: number, maxValue: number): number {
+  if (maxValue <= 0) return MIN_BAR_HEIGHT_PERCENT;
+  if (value <= 0) return MIN_BAR_HEIGHT_PERCENT;
+  if (value >= maxValue) return 100;
+
+  const logRatio = Math.log10(value) / Math.log10(maxValue);
+  const heightPercent = Math.round(logRatio * 100);
+
+  return heightPercent > 0
+    ? Math.max(MIN_BAR_HEIGHT_PERCENT, heightPercent)
+    : MIN_BAR_HEIGHT_PERCENT;
+}
 const COMPACT_COLUMN_CLASS = "w-4 shrink-0 sm:w-5";
 const WIDE_COLUMN_CLASS = "w-8 shrink-0 sm:w-9";
 const COMPACT_GAP_CLASS = "gap-[2px] sm:gap-0.5";
@@ -44,7 +59,6 @@ export function HealthBarsChart({
   if (bars.length === 0) return null;
 
   const maxValue = Math.max(...bars.map((bar) => bar.value), 0);
-  const scaleMax = maxValue > 0 ? maxValue : 1;
   const isScrollable = bars.length > SCROLLABLE_BAR_COUNT;
   const isSingleBar = bars.length === 1;
   const columnClass = resolveColumnClass(wideColumns, isScrollable, bars.length);
@@ -70,13 +84,7 @@ export function HealthBarsChart({
         aria-label="Gráfico de receitas"
       >
         {bars.map((bar, index) => {
-          const heightPercent =
-            maxValue === 0
-              ? MIN_BAR_HEIGHT_PERCENT
-              : Math.max(
-                  MIN_BAR_HEIGHT_PERCENT,
-                  Math.round((bar.value / scaleMax) * 100),
-                );
+          const heightPercent = computeLogBarHeightPercent(bar.value, maxValue);
 
           return (
             <span

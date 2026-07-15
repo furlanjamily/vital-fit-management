@@ -48,7 +48,7 @@ export default function SettingsPage() {
               </span>
 
               <ChevronRight
-                className="size-5 shrink-0 text-white/35 transition group-hover:text-orange-300"
+                className={cn("size-5 shrink-0 transition group-hover:text-orange-300", glassText.muted)}
                 aria-hidden="true"
               />
             </GlassPanel>

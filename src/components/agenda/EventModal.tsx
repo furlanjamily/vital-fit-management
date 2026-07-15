@@ -232,10 +232,7 @@ export function EventModal({
 
           {errorMessage ? <InlineAlert>{errorMessage}</InlineAlert> : null}
 
-          <div className="flex items-center justify-end gap-2 pt-1">
-            <GlassButton variant="subtle" type="button" onClick={onClose} disabled={isPending}>
-              Cancelar
-            </GlassButton>
+          <div className="flex items-center justify-center gap-2 pt-1">
             <GlassButton
               type="submit"
               variant="strong"

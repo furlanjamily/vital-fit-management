@@ -47,15 +47,6 @@ export function MiniCalendar({ className }: MiniCalendarProps) {
           }}
         />
       </div>
-
-      <div className="mt-3 border-t border-white/8 pt-3 text-center">
-        <Link
-          href="/agenda"
-          className="inline-flex text-[10px] font-semibold text-orange-600/60 transition hover:text-orange-600"
-        >
-          Ver agenda completa
-        </Link>
-      </div>
     </GlassPanel>
   );
 }

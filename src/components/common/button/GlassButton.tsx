@@ -79,7 +79,7 @@ const shapeClasses: Record<GlassButtonShape, string> = {
 };
 
 const focusRing =
-  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8ad5ff]/60";
+  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-400/50";
 
 export function GlassButton({
   variant = "default",

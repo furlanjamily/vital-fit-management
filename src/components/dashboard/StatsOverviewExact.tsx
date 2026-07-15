@@ -17,7 +17,7 @@ const STATS_GLASS = {
 };
 
 function StatsCardIconGraphic({ icon }: { icon: StatsCardIcon }) {
-  const iconClassName = "size-[14px] text-white";
+  const iconClassName = cn("size-[14px]", glassText.primary);
 
   if (icon === "clipboard") {
     return <ClipboardList className={iconClassName} strokeWidth={2} />;

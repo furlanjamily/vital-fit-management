@@ -125,7 +125,7 @@ export function buildFinancialTransactionColumns({
     {
       key: "transaction_date",
       header: "Data",
-      width: "10%",
+      width: "13%",
       align: "left",
       searchValue: (transaction) => formatTransactionDate(transaction.transaction_date),
       render: (transaction) => (
@@ -144,7 +144,7 @@ export function buildFinancialTransactionColumns({
     {
       key: "category",
       header: "Categoria",
-      width: "14%",
+      width: "15%",
       align: "center",
       searchValue: (transaction) => transaction.category_name,
       render: (transaction) => <CategoryCell transaction={transaction} />,
@@ -152,7 +152,7 @@ export function buildFinancialTransactionColumns({
     {
       key: "type",
       header: "Tipo",
-      width: "11%",
+      width: "15%",
       align: "center",
       searchValue: (transaction) => transactionTypeLabels[transaction.type],
       render: (transaction) => <TransactionTypeBadge type={transaction.type} />,
@@ -160,7 +160,7 @@ export function buildFinancialTransactionColumns({
     {
       key: "payment_method",
       header: "Pagamento",
-      width: "12%",
+      width: "20%",
       align: "center",
       searchValue: (transaction) => resolvePaymentMethodLabel(transaction.payment_method),
       render: (transaction) => (

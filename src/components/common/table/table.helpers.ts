@@ -18,6 +18,11 @@ export function getTableCellContentClassName(align: TableColumnAlign = "left") {
   );
 }
 
+/** Plain text cells — prevents overflow into adjacent columns. */
+export function getTableTruncatedTextClassName() {
+  return "block min-w-0 max-w-full truncate";
+}
+
 export function getTableEdgeCellClassName(
   index: number,
   total: number,

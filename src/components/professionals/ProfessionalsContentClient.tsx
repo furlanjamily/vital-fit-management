@@ -11,6 +11,8 @@ import {
   type TableColumn,
   type TableFilterDefinition,
 } from "@/components/common/table/Table";
+import { TableIdentityCell } from "@/components/common/table/TableIdentityCell";
+import { getTableTruncatedTextClassName } from "@/components/common/table/table.helpers";
 import { ProfessionalRegistrationForm } from "@/components/professionals/ProfessionalRegistrationForm";
 import { parseBirthDateToIso } from "@/components/professionals/professional.helpers";
 import {
@@ -20,7 +22,6 @@ import {
   type ManagedProfessional,
 } from "@/components/professionals/professionals.types";
 import { useProfessionalsManagement } from "@/components/professionals/useProfessionalsManagement";
-import { UserAvatar } from "@/components/users/UserAvatar";
 import { glassText, glassTextStyles } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
 
@@ -62,18 +63,11 @@ const professionalFilters: TableFilterDefinition<ManagedProfessional>[] = [
 
 function ProfessionalIdentityCell({ professional }: { professional: ManagedProfessional }) {
   return (
-    <div className="flex items-center gap-2.5">
-      <UserAvatar
-        name={professional.name}
-        avatarUrl={professional.avatarUrl}
-        className="size-8"
-        textClassName="text-[10px]"
-      />
-      <div>
-        <p className={glassTextStyles.entityName}>{professional.name}</p>
-        <p className={glassTextStyles.entityEmail}>{professional.email}</p>
-      </div>
-    </div>
+    <TableIdentityCell
+      name={professional.name}
+      subtitle={professional.email}
+      avatarUrl={professional.avatarUrl}
+    />
   );
 }
 
@@ -100,7 +94,7 @@ function ProfessionalStatusBadge({ status }: { status: ManagedProfessional["stat
 function MemberCountBadge({ count }: { count: number }) {
   return (
     <span className={cn("inline-flex rounded-full border border-white/14 bg-white/8 px-2.5 py-1", glassTextStyles.badge)}>
-      {count} {count === 1 ? "aluno" : "alunos"}
+      {count} 
     </span>
   );
 }
@@ -149,7 +143,7 @@ export function ProfessionalsContentClient({
     {
       key: "name",
       header: "Profissional",
-      width: "30%",
+      width: "32%",
       searchValue: (professional) =>
         `${professional.name} ${professional.email} ${professional.cref}`,
       render: (professional) => <ProfessionalIdentityCell professional={professional} />,
@@ -157,14 +151,18 @@ export function ProfessionalsContentClient({
     {
       key: "cref",
       header: "CREF",
-      width: "18%",
+      width: "16%",
       searchValue: (professional) => professional.cref,
-      render: (professional) => professional.cref,
+      render: (professional) => (
+        <span className={getTableTruncatedTextClassName()} title={professional.cref}>
+          {professional.cref}
+        </span>
+      ),
     },
     {
       key: "specialty",
       header: "Especialidade",
-      width: "14%",
+      width: "20%",
       searchValue: (professional) => professional.specialty,
       render: (professional) => (
         <span className="inline-flex rounded-full border border-orange-400/20 bg-orange-400/10 px-2.5 py-1 text-[10px] font-medium text-orange-200">
@@ -193,7 +191,7 @@ export function ProfessionalsContentClient({
     {
       key: "status",
       header: "Status",
-      width: "14%",
+      width: "16%",
       searchValue: (professional) => statusLabels[professional.status],
       render: (professional) => <ProfessionalStatusBadge status={professional.status} />,
     },

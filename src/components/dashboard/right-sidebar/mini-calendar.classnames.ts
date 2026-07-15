@@ -1,4 +1,6 @@
 import { Animation, DayFlag, SelectionState, UI, type ClassNames } from "react-day-picker";
+import { glassText } from "@/config/glass-typography";
+import { cn } from "@/lib/cn";
 
 const navButtonBase =
   "inline-flex size-[26px] shrink-0 items-center justify-center self-center rounded-[0.65rem] border border-orange-600/30 bg-orange-600/10 text-orange-600 transition hover:scale-[1.04] hover:border-orange-600/45 hover:bg-orange-600/15";
@@ -14,12 +16,17 @@ export const miniCalendarClassNames = {
   [UI.NextMonthButton]: `${navButtonBase} col-start-3 row-start-1 justify-self-end`,
   [UI.MonthGrid]: "col-span-3 w-full table-fixed border-separate border-spacing-px",
   [UI.Weekdays]: "mb-1",
-  [UI.Weekday]: "overflow-hidden p-0 text-center text-[9px] font-bold capitalize text-white/40",
+  [UI.Weekday]: cn(
+    "overflow-hidden p-0 text-center text-[9px] font-bold capitalize",
+    glassText.muted,
+  ),
   [UI.Week]: "",
   [UI.Weeks]: "",
   [UI.Day]: "p-0 text-center",
-  [UI.DayButton]:
-    "mx-auto flex size-[26px] items-center justify-center rounded-full text-[9px] font-semibold text-white/78 transition hover:scale-105 hover:bg-white/8",
+  [UI.DayButton]: cn(
+    "mx-auto flex size-[26px] items-center justify-center rounded-full text-[9px] font-semibold transition hover:scale-105 hover:bg-white/8",
+    glassText.secondary,
+  ),
   [UI.Chevron]: "size-3.5 fill-current",
   [UI.Dropdowns]: "",
   [UI.Dropdown]: "",
@@ -34,7 +41,7 @@ export const miniCalendarClassNames = {
   [SelectionState.range_end]: "",
   [SelectionState.range_middle]: "",
   [SelectionState.range_start]: "",
-  [DayFlag.today]: "[&>button]:border [&>button]:border-orange-600 [&>button]:text-white",
+  [DayFlag.today]: cn("[&>button]:border [&>button]:border-orange-600", "[&>button]:text-glass-primary"),
   [DayFlag.outside]: "opacity-35",
   [DayFlag.disabled]: "opacity-30",
   [DayFlag.hidden]: "hidden",

@@ -20,7 +20,7 @@ export function FormField({ label, htmlFor, error, hint, children, className }: 
         </label>
       ) : null}
       {children}
-      {error ? <p className="text-xs text-rose-400/90">{error}</p> : null}
+      {error ? <p className="text-xs text-red-400/90">{error}</p> : null}
       {hint && !error ? <p className={cn("text-[10px]", glassText.muted)}>{hint}</p> : null}
     </div>
   );

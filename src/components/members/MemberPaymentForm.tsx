@@ -204,7 +204,8 @@ export function MemberPaymentForm({ member, onSuccess, onCancel }: MemberPayment
             onClick={handleConfirm}
             className={cn(
               "inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 px-4 py-2.5 text-sm font-semibold",
-              "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-[0_12px_32px_rgba(249,115,22,0.28)]",
+              "bg-gradient-to-r from-orange-500 to-orange-600 shadow-[0_12px_32px_rgba(249,115,22,0.28)]",
+              glassText.primary,
               "transition hover:from-orange-400 hover:to-orange-500 disabled:cursor-not-allowed disabled:opacity-60",
             )}
           >

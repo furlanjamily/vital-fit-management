@@ -2,7 +2,10 @@
 
 import { Suspense, lazy } from "react";
 import { WorkoutScheduleExactSkeleton } from "@/components/dashboard/WorkoutScheduleExactSkeleton";
+import { FavouritedWorkoutSkeleton } from "@/components/dashboard/FavouritedWorkoutSkeleton";
+import { FavouritedWorkout } from "@/components/dashboard/FavouritedWorkout";
 import { useWorkoutSchedule } from "@/hooks/useWorkoutSchedule";
+import { useFavouritedWorkouts } from "@/hooks/useFavouritedWorkouts";
 import {
   GymCapacityLoading,
   MemberActivityExactLoading,
@@ -109,3 +112,15 @@ export function DashboardWorkoutScheduleSection() {
 }
 
 export { WorkoutScheduleExactSkeleton as WorkoutScheduleExactLoading } from "@/components/dashboard/WorkoutScheduleExactSkeleton";
+
+export function DashboardFavouritedWorkoutSection() {
+  const { data, isLoading, error } = useFavouritedWorkouts();
+
+  if (isLoading) {
+    return <FavouritedWorkoutSkeleton />;
+  }
+
+  return <FavouritedWorkout data={data} error={error} />;
+}
+
+export { FavouritedWorkoutSkeleton as FavouritedWorkoutLoading } from "@/components/dashboard/FavouritedWorkoutSkeleton";

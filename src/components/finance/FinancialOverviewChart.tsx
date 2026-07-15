@@ -9,6 +9,7 @@ import {
   getExpectedColumnCount,
 } from "@/components/finance/finance.helpers";
 import type { FinancialOverviewPeriod } from "@/components/finance/finance.types";
+import { brand } from "@/config/brand-colors";
 import { glassText, glassTextStyles } from "@/config/glass-typography";
 import { useDragScroll } from "@/hooks/useDragScroll";
 import { cn } from "@/lib/cn";
@@ -49,7 +50,7 @@ const CHART_GLASS = {
 const COLOR_MAP: Record<FinancialChartColor, string> = {
   white: "#FFFFFF",
   green: "#22C55E",
-  orange: "#FF7A00",
+  orange: brand.orange,
 };
 
 const BALANCE_NEGATIVE = "#F87171";
@@ -469,7 +470,7 @@ export function FinancialOverviewChart({
       )}
     >
       <div className="flex min-w-0 flex-1 flex-col gap-6 px-6 py-6 sm:gap-7 sm:px-8 sm:py-7">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-center">
           <h2
             className={cn(
               glassTextStyles.tableHeader,
@@ -478,17 +479,6 @@ export function FinancialOverviewChart({
           >
             FLUXO DE CAIXA
           </h2>
-          <button
-            type="button"
-            onClick={onMenuClick}
-            aria-label="Fluxo de caixa menu"
-            className={cn(
-              "inline-flex size-8 items-center justify-center rounded-full transition hover:bg-white/5 hover:text-glass-secondary",
-              glassText.tertiary,
-            )}
-          >
-            <span className="text-[18px] leading-none tracking-[0.12em]">⋯</span>
-          </button>
         </div>
 
         <div

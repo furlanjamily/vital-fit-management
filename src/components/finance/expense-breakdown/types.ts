@@ -7,6 +7,7 @@ export type ExpenseBreakdownItem = {
 
 export type ExpenseBreakdownData = {
   title: string;
+  periodLabel: string;
   items: ExpenseBreakdownItem[];
   totalLabel: string;
 };

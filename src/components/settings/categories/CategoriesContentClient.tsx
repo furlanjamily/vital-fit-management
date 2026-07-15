@@ -162,7 +162,7 @@ export function CategoriesContentClient({
           <Link
             href="/settings"
             className={cn(
-              "mb-3 inline-flex items-center gap-1.5 text-sm transition hover:text-white",
+              "mb-3 inline-flex items-center gap-1.5 text-sm transition hover:text-glass-primary",
               glassText.muted,
             )}
           >

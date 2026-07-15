@@ -11,6 +11,7 @@ import {
   type TableColumn,
   type TableFilterDefinition,
 } from "@/components/common/table/Table";
+import { TableIdentityCell } from "@/components/common/table/TableIdentityCell";
 import { MemberPaymentForm } from "@/components/members/MemberPaymentForm";
 import { MemberRegistrationForm } from "@/components/members/MemberRegistrationForm";
 import { parseBirthDateToIso, getPaymentStatus } from "@/components/members/member.helpers";
@@ -25,7 +26,6 @@ import {
   type ProfessionalOption,
 } from "@/components/members/members.types";
 import { useMembersManagement } from "@/components/members/useMembersManagement";
-import { UserAvatar } from "@/components/users/UserAvatar";
 import { glassText, glassTextStyles } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
 
@@ -94,18 +94,11 @@ function buildMemberFilters(
 
 function MemberIdentityCell({ member }: { member: ManagedMember }) {
   return (
-    <div className="flex items-center gap-2.5">
-      <UserAvatar
-        name={member.name}
-        avatarUrl={member.avatarUrl}
-        className="size-8"
-        textClassName="text-[10px]"
-      />
-      <div>
-        <p className={glassTextStyles.entityName}>{member.name}</p>
-        <p className={glassTextStyles.entityEmail}>{member.email}</p>
-      </div>
-    </div>
+    <TableIdentityCell
+      name={member.name}
+      subtitle={member.email}
+      avatarUrl={member.avatarUrl}
+    />
   );
 }
 
@@ -224,7 +217,7 @@ export function MembersContentClient({
     {
       key: "cpf",
       header: "CPF",
-      width: "13%",
+      width: "15%",
       searchValue: (member) => member.cpf,
       render: (member) => member.cpf,
     },
@@ -238,7 +231,7 @@ export function MembersContentClient({
     {
       key: "origin",
       header: "Origem",
-      width: "14%",
+      width: "18%",
       searchValue: (member) => originLabels[member.origin],
       render: (member) => (
         <span className={cn("inline-flex rounded-full border border-white/14 bg-white/8 px-2.5 py-1", glassTextStyles.badge)}>
@@ -249,14 +242,14 @@ export function MembersContentClient({
     {
       key: "plan",
       header: "Plano",
-      width: "11%",
+      width: "15%",
       searchValue: (member) => planLabels[member.plan],
       render: (member) => planLabels[member.plan],
     },
     {
       key: "paymentStatus",
       header: "Mensalidade",
-      width: "11%",
+      width: "18%",
       searchValue: (member) =>
         getPaymentStatus(member.nextDueDate, member.paymentStatus),
       render: (member) => <MemberPaymentBadge member={member} />,
@@ -264,7 +257,7 @@ export function MembersContentClient({
     {
       key: "status",
       header: "Status",
-      width: "10%",
+      width: "18%",
       searchValue: (member) => statusLabels[member.status],
       render: (member) => <MemberStatusBadge status={member.status} />,
     },
@@ -272,7 +265,7 @@ export function MembersContentClient({
       key: "actions",
       header: "",
       align: "right",
-      width: "4rem",
+      width: "3rem",
       headerClassName: "w-16",
       className: "w-16",
       render: (member) => (

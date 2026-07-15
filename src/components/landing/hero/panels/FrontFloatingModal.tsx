@@ -89,7 +89,7 @@ export function FrontFloatingModal() {
         </GhostButton>
         <GhostButton
           className={cn(
-            "rounded-full bg-[#176dff] px-6 py-2 text-[10px] font-bold shadow-[0_16px_40px_rgba(23,109,255,0.42)] hover:bg-[#176dff]/90 hover:text-glass-primary",
+            "rounded-full bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-2 text-[10px] font-bold shadow-[0_16px_40px_rgba(249,115,22,0.35)] hover:brightness-110",
             glassText.primary,
           )}
         >

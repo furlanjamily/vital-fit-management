@@ -3,6 +3,8 @@ import {
   challenges,
   profileAvatar,
 } from "@/components/landing/hero/data/hero-scene.mock";
+import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
+import { brand } from "@/config/brand-colors";
 import { glassText, glassTextStyles } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
 
@@ -41,6 +43,12 @@ const calendarDays = [
 
 const selectedDays = new Set(["3", "4", "5", "6", "7"]);
 
+const PROFILE_GLASS = {
+  variant: "subtle" as const,
+  intensity: "low" as const,
+  elevation: "floating" as const,
+};
+
 export function ProfileContent() {
   return (
     <>
@@ -62,19 +70,17 @@ export function ProfileContent() {
 
       <div className="mt-4 grid shrink-0 grid-cols-3 gap-1 rounded-2xl text-center">
         {["Age 32", "10 years", "Manager"].map((item) => (
-          <span
+          <GlassPanel
             key={item}
-            className={cn(
-              "rounded-xl border border-white/8 bg-white/8 px-1.5 py-3 text-[9px] font-semibold",
-              glassText.secondary,
-            )}
+            {...PROFILE_GLASS}
+            className="rounded-xl px-1.5 py-3 text-[9px] font-semibold"
           >
-            {item}
-          </span>
+            <span className={glassText.secondary}>{item}</span>
+          </GlassPanel>
         ))}
       </div>
 
-      <div className="mt-6 shrink-0 rounded-[20px] border border-white/10 bg-white/8 p-3">
+      <GlassPanel {...PROFILE_GLASS} className="mt-6 shrink-0 rounded-[20px] p-3">
         <div className="mb-3 flex items-center justify-between">
           <ChevronLeft className={cn("size-3.5", glassText.secondary)} />
           <p className={cn(glassText.secondary, "text-xs font-semibold")}>April</p>
@@ -86,7 +92,7 @@ export function ProfileContent() {
           ))}
         </div>
         <div className={cn("relative mt-2 grid grid-cols-7 gap-1 text-center text-[8px]", glassText.muted)}>
-          <span className="absolute left-[calc((100%/7)*1+2px)] top-[24px] h-[18px] w-[calc((100%/7)*5-4px)] rounded-full bg-[#176dff]" />
+          <span className="absolute left-[calc((100%/7)*1+2px)] top-[24px] h-[18px] w-[calc((100%/7)*5-4px)] rounded-full bg-orange-500" />
           {calendarDays.map((day, index) => (
             <span
               key={`${day}-${index}`}
@@ -100,15 +106,16 @@ export function ProfileContent() {
             </span>
           ))}
         </div>
-      </div>
+      </GlassPanel>
 
       <div className="mt-6 shrink-0">
         <p className={cn(glassText.secondary, "mb-3 text-xs font-semibold")}>Challenges</p>
         <div className="grid gap-3">
           {challenges.map((challenge) => (
-            <div
+            <GlassPanel
               key={challenge.title}
-              className="flex items-center justify-between rounded-[18px] border border-white/9 bg-white/5 px-3 py-3"
+              {...PROFILE_GLASS}
+              className="flex items-center justify-between rounded-[18px] px-3 py-3"
             >
               <div>
                 <p className={cn("text-[9px]", glassText.muted)}>{challenge.subtitle}</p>
@@ -119,14 +126,14 @@ export function ProfileContent() {
               <div
                 className="grid size-10 shrink-0 place-items-center rounded-full p-1"
                 style={{
-                  background: `conic-gradient(#9333EA 0 ${challenge.progress}%, rgba(255,255,255,0.16) ${challenge.progress}% 100%)`,
+                  background: `conic-gradient(${brand.orange} 0 ${challenge.progress}%, rgba(255,255,255,0.16) ${challenge.progress}% 100%)`,
                 }}
               >
                 <div className={cn("grid size-full place-items-center rounded-full bg-white/15 text-[8px] font-bold", glassText.primary)}>
                   {challenge.progress}
                 </div>
               </div>
-            </div>
+            </GlassPanel>
           ))}
         </div>
       </div>

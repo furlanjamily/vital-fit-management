@@ -7,7 +7,7 @@ import { RowActionsMenu, type RowAction } from "@/components/common/menu/RowActi
 import { ConfirmRemoveDialog } from "@/components/common/modal/ConfirmRemoveDialog";
 import { ModalOverlay } from "@/components/common/modal/ModalOverlay";
 import { Table, type TableColumn } from "@/components/common/table/Table";
-import { UserAvatar } from "@/components/users/UserAvatar";
+import { TableIdentityCell } from "@/components/common/table/TableIdentityCell";
 import { UserForm } from "@/components/users/UserForm";
 import { roleLabels, type ManagedUser } from "@/components/users/users.types";
 import { useUsersManagement } from "@/components/users/useUsersManagement";
@@ -21,18 +21,7 @@ type UsersContentProps = {
 
 function UserIdentityCell({ user }: { user: ManagedUser }) {
   return (
-    <div className="flex items-center gap-2.5">
-      <UserAvatar
-        name={user.name}
-        avatarUrl={user.avatarUrl}
-        className="size-8"
-        textClassName="text-[10px]"
-      />
-      <div>
-        <p className={glassTextStyles.entityName}>{user.name}</p>
-        <p className={glassTextStyles.entityEmail}>{user.email}</p>
-      </div>
-    </div>
+    <TableIdentityCell name={user.name} subtitle={user.email} avatarUrl={user.avatarUrl} />
   );
 }
 

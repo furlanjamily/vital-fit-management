@@ -2,6 +2,8 @@
 
 import { UserAvatar } from "@/components/users/UserAvatar";
 import type { EventParticipant } from "@/components/agenda/agenda.types";
+import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
+import { glassText } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
 
 type AvatarStackProps = {
@@ -42,7 +44,7 @@ export function AvatarStack({
         {overflow > 0 ? (
           <span
             className={cn(
-              "grid place-items-center rounded-full border-[1.5px] border-white/70 bg-white/80 text-[9px] font-semibold text-[#1a1a1a]",
+              "grid place-items-center rounded-full border-[1.5px] border-white/70 bg-white/80 text-[9px] font-semibold text-[#1a1d19]",
               sizeClassName,
             )}
             style={{ zIndex: 0 }}
@@ -52,16 +54,14 @@ export function AvatarStack({
         ) : null}
       </div>
 
-      <div
+      <GlassPanel
         role="tooltip"
-        className={cn(
-          "pointer-events-none absolute bottom-full left-0 z-50 mb-1.5 hidden max-w-[180px] rounded-lg",
-          "border border-white/14 bg-[rgba(30,18,10,0.92)] px-2 py-1 text-[10px] text-white/90 shadow-lg",
-          "group-hover/stack:block",
-        )}
+        elevation="popover"
+        intensity="high"
+        className="pointer-events-none absolute bottom-full left-0 z-50 mb-1.5 hidden max-w-[180px] rounded-lg px-2 py-1 shadow-lg group-hover/stack:block"
       >
-        {tooltip}
-      </div>
+        <span className={cn("text-[10px]", glassText.primaryElevated)}>{tooltip}</span>
+      </GlassPanel>
     </div>
   );
 }

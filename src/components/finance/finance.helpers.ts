@@ -493,7 +493,8 @@ export function buildExpenseBreakdownData(
   }));
 
   return {
-    title: `Despesas por categoria (${periodLabel})`,
+    title: `Despesas`,
+    periodLabel: periodLabel,
     totalLabel: "Total",
     items,
   };

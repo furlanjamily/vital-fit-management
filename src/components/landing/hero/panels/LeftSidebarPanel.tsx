@@ -4,19 +4,28 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { NavUserMenu } from "@/components/app/NavUserMenu";
 import { ClassesSidebarSection } from "@/components/classes/ClassesSidebarSection";
+import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
 import {
+  getUtilityNavItemsForRole,
   isNavActive,
   mainNavItems,
-  utilityNavItems,
 } from "@/config/app-nav.config";
 import { glassText, glassTextStyles } from "@/config/glass-typography";
+import { useSessionUserRole } from "@/hooks/useSessionUserRole";
 import { cn } from "@/lib/cn";
 
 export function LeftSidebarPanel() {
   const pathname = usePathname();
+  const { role } = useSessionUserRole();
+  const visibleUtilityItems = getUtilityNavItemsForRole(role);
 
   return (
-    <div className="h-full w-full overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.07] shadow-2xl shadow-orange-950/20 backdrop-blur-[12px]">
+    <GlassPanel
+      variant="hero"
+      intensity="high"
+      elevation="base"
+      className="h-full w-full overflow-hidden rounded-[28px] shadow-2xl shadow-orange-950/20"
+    >
       <div className="flex h-full flex-col overflow-y-auto p-5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <Link href="/dashboard" className="flex shrink-0 items-center gap-3 transition hover:opacity-90">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -63,7 +72,7 @@ export function LeftSidebarPanel() {
 
         <ClassesSidebarSection />
 
-        {utilityNavItems.map((item) => {
+        {visibleUtilityItems.map((item) => {
           const active = isNavActive(pathname, item.href);
 
           return (
@@ -88,6 +97,6 @@ export function LeftSidebarPanel() {
         </div>
 
       </div>
-    </div>
+    </GlassPanel>
   );
 }

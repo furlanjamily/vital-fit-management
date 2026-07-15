@@ -101,16 +101,9 @@ export function UpNextCard({ event, countdown, isLoading = false, className }: U
         {event.location ? ` · ${event.location}` : ""}
       </p>
 
-      <div className="mt-4 flex flex-wrap items-center gap-2">
-        <OutlineButton
-          className="rounded-full border-orange-400/30 px-3 py-1.5 text-[10px] font-semibold text-orange-200 hover:bg-orange-500/10"
-          onClick={() => {}}
-          disabled
-        >
-          Depois
-        </OutlineButton>
+      <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
         <Link href="/agenda" className="inline-flex">
-          <GhostButton className="rounded-full bg-[linear-gradient(90deg,#FF7A4A_0%,#FF4D3D_100%)] px-4 py-1.5 text-[10px] font-bold text-white shadow-[0_4px_16px_rgba(249,115,22,0.32)] hover:brightness-110">
+          <GhostButton className={cn("rounded-full bg-gradient-to-r from-orange-500 to-orange-600 px-4 py-1.5 text-[10px] font-bold shadow-[0_4px_16px_rgba(249,115,22,0.32)] hover:brightness-110", glassText.primary)}>
             Detalhes
           </GhostButton>
         </Link>

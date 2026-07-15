@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { listUsersAction } from "@/app/(app)/users/actions";
 import { AccessDenied } from "@/components/users/AccessDenied";
 import { UsersContent } from "@/components/users/UsersContent";
-import { isUserRole, type UserRole } from "@/components/users/users.types";
+import { resolveUserRole } from "@/lib/auth/resolve-user-role";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
  * Enquanto os perfis não são persistidos no Supabase, usuários logados
  * sem role definida são tratados como SUPER_ADMIN para desenvolvimento.
  */
-async function resolveCurrentRole(): Promise<UserRole | null> {
+async function resolveCurrentRole() {
   const supabase = await createClient();
   const {
     data: { user },
@@ -23,11 +23,7 @@ async function resolveCurrentRole(): Promise<UserRole | null> {
 
   if (!user) return null;
 
-  const metadataRole = user.user_metadata?.role;
-  if (typeof metadataRole !== "string") return "SUPER_ADMIN";
-
-  const normalizedRole = metadataRole.toUpperCase();
-  return isUserRole(normalizedRole) ? normalizedRole : null;
+  return resolveUserRole(user.user_metadata);
 }
 
 export default async function UsersPage() {

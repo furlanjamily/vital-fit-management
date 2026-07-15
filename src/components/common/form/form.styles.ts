@@ -1,5 +1,5 @@
 export const formControlFocusClassName =
-  "outline-none transition focus:border-white/28 focus-visible:ring-2 focus-visible:ring-[#8ad5ff]/20";
+  "outline-none transition focus:border-white/28 focus-visible:ring-2 focus-visible:ring-orange-400/25";
 
 export const formControlInvalidClassName = "border-rose-500/30";
 

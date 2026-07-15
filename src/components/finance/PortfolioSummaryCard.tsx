@@ -55,7 +55,7 @@ function MetricTrend({ variation, trend }: MetricTrendProps) {
     <span
       className={cn(
         "inline-flex items-center gap-0.5 text-[11px] font-medium leading-none tracking-[-0.01em]",
-        isUp ? "text-[#4ADE80]" : "text-[#FF5E4A]",
+        isUp ? "text-emerald-400" : "text-red-400",
       )}
     >
       <span className="text-[9px] leading-none">{isUp ? "▲" : "▼"}</span>
@@ -124,7 +124,7 @@ export function PortfolioSummaryCard({
             type="button"
             onClick={onNewTransaction}
             className={cn(
-              "inline-flex h-9 items-center justify-center rounded-full bg-[linear-gradient(90deg,#FF7A4A_0%,#FF4D3D_100%)] px-5 text-[13px] font-semibold tracking-[-0.02em] shadow-[0_4px_18px_rgba(255,77,61,0.35)] transition hover:brightness-110",
+              "inline-flex h-9 items-center justify-center rounded-full bg-gradient-to-r from-orange-500 to-orange-600 px-5 text-[13px] font-semibold tracking-[-0.02em] shadow-[0_4px_18px_rgba(255,77,61,0.35)] transition hover:brightness-110",
               glassText.primary,
             )}
           >
