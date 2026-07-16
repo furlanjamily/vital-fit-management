@@ -1,32 +1,41 @@
-import type { ButtonHTMLAttributes, ReactNode } from "react";
-import { glassText } from "@/config/glass-typography";
+"use client";
+
+import { Button, type ButtonProps } from "@/components/common/button/Button";
 import { cn } from "@/lib/cn";
 
-type GhostButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
-  children: ReactNode;
+type GhostButtonProps = Omit<ButtonProps, "variant" | "size"> & {
+  /** Estado selecionado (filtros / tabs). */
   active?: boolean;
+  /**
+   * Sem efeito glass: fundo sempre transparente (sem blur / tint no hover).
+   * Útil dentro de GlassPanel / menus onde o vidro já vem do pai.
+   */
+  transparent?: boolean;
 };
 
+/** Terciário — atalho de `Button variant="ghost"` (ou `transparent`). */
 export function GhostButton({
   active = false,
+  transparent = false,
   className,
   children,
   type = "button",
   ...props
 }: GhostButtonProps) {
   return (
-    <button
+    <Button
       type={type}
+      variant={transparent ? "transparent" : "ghost"}
+      size="sm"
       className={cn(
-        "inline-flex items-center justify-center rounded-lg text-xs font-medium transition",
-        active
-          ? cn("bg-white/10", glassText.primary)
-          : cn(glassText.tertiary, "hover:bg-white/8 hover:text-glass-primary"),
+        "rounded-lg font-medium",
+        active && !transparent && "bg-white/10 text-white",
+        active && transparent && "text-white",
         className,
       )}
       {...props}
     >
       {children}
-    </button>
+    </Button>
   );
 }

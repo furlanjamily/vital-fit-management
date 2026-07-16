@@ -1,7 +1,7 @@
 "use client";
 
 import { Trash2 } from "lucide-react";
-import { DangerButton, OutlineButton } from "@/components/common/form";
+import { Button, DangerButton } from "@/components/common/form";
 import { ModalOverlay } from "@/components/common/modal/ModalOverlay";
 import { ModalPanel } from "@/components/common/modal/ModalPanel";
 import { glassText, glassTextStyles } from "@/config/glass-typography";
@@ -34,9 +34,9 @@ export function ConfirmRemoveDialog({
         </p>
 
         <div className="mt-6 flex justify-end gap-3">
-          <OutlineButton onClick={onCancel} disabled={pending}>
+          <Button variant="glass" size="sm" onClick={onCancel} disabled={pending}>
             Cancelar
-          </OutlineButton>
+          </Button>
           <DangerButton
             leftIcon={<Trash2 className="size-3.5" />}
             onClick={onConfirm}

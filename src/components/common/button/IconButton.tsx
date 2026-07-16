@@ -1,50 +1,50 @@
-import type { ButtonHTMLAttributes, ReactNode } from "react";
-import { glassText } from "@/config/glass-typography";
+"use client";
+
+import { forwardRef, type ReactNode } from "react";
+import { Button, type ButtonProps } from "@/components/common/button/Button";
 import { cn } from "@/lib/cn";
 
 type IconButtonShape = "round" | "square";
-type IconButtonSize = "sm" | "md";
+type IconButtonSize = "sm" | "md" | "lg";
 
-type IconButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
+export type IconButtonProps = Omit<
+  ButtonProps,
+  "iconOnly" | "leftIcon" | "rightIcon" | "children"
+> & {
   shape?: IconButtonShape;
   size?: IconButtonSize;
   children: ReactNode;
 };
 
-const sizeClasses: Record<IconButtonSize, string> = {
-  sm: "size-8",
-  md: "size-9",
-};
+/**
+ * Botão só ícone — atalho de `Button` com `iconOnly`.
+ * Sempre passe `aria-label` para acessibilidade.
+ */
+export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
+  function IconButton(
+    {
+      shape = "round",
+      size = "sm",
+      variant = "glass",
+      className,
+      children,
+      ...props
+    },
+    ref,
+  ) {
+    return (
+      <Button
+        ref={ref}
+        iconOnly
+        size={size}
+        variant={variant}
+        className={cn(shape === "square" && "!rounded-lg", className)}
+        {...props}
+      >
+        {children}
+      </Button>
+    );
+  },
+);
 
-const shapeClasses: Record<IconButtonShape, string> = {
-  round: "rounded-full",
-  square: "rounded-lg",
-};
-
-export function IconButton({
-  shape = "round",
-  size = "sm",
-  className,
-  children,
-  type = "button",
-  ...props
-}: IconButtonProps) {
-  return (
-    <button
-      type={type}
-      className={cn(
-        cn(
-          "grid place-items-center border border-white/14 bg-white/5 transition hover:border-white/22 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40",
-          glassText.secondary,
-          "hover:text-glass-primary",
-        ),
-        sizeClasses[size],
-        shapeClasses[shape],
-        className,
-      )}
-      {...props}
-    >
-      {children}
-    </button>
-  );
-}
+IconButton.displayName = "IconButton";

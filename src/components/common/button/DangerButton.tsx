@@ -1,28 +1,31 @@
-import type { ButtonHTMLAttributes, ReactNode } from "react";
-import { cn } from "@/lib/cn";
+"use client";
 
-type DangerButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
-  leftIcon?: ReactNode;
-};
+import { Button, type ButtonProps } from "@/components/common/button/Button";
 
+type DangerButtonProps = Omit<ButtonProps, "variant">;
+
+/** Ação destrutiva — atalho de `Button variant="danger"`. */
 export function DangerButton({
   leftIcon,
   className,
   children,
   type = "button",
+  isLoading,
+  loading,
+  size = "sm",
   ...props
 }: DangerButtonProps) {
   return (
-    <button
+    <Button
       type={type}
-      className={cn(
-        "inline-flex items-center gap-2 rounded-xl bg-red-400/90 px-4 py-2.5 text-xs font-semibold text-[#1a0d0a] transition hover:bg-red-300 disabled:cursor-not-allowed disabled:opacity-50",
-        className,
-      )}
+      variant="danger"
+      size={size}
+      leftIcon={leftIcon}
+      isLoading={isLoading ?? loading}
+      className={className}
       {...props}
     >
-      {leftIcon}
       {children}
-    </button>
+    </Button>
   );
 }

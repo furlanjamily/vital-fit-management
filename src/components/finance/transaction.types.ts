@@ -8,7 +8,8 @@ export type TransactionPaymentMethod = (typeof TRANSACTION_PAYMENT_METHODS)[numb
 export type TransactionFormValues = {
   description: string;
   amount: string;
-  type: TransactionType;
+  /** Vazio até o usuário escolher (categorias só carregam depois). */
+  type: TransactionType | "";
   category_id: string;
   payment_method: TransactionPaymentMethod;
 };

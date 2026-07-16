@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronDown, Loader2, LogOut, User } from "lucide-react";
+import { ChevronDown, ChevronUp, Loader2, LogOut, User } from "lucide-react";
 import { GhostButton } from "@/components/common/form";
 import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
 import { UserAvatar } from "@/components/users/UserAvatar";
@@ -117,29 +117,26 @@ export function NavUserMenu() {
           aria-expanded={open}
           aria-haspopup="menu"
           className="w-full justify-start gap-2.5 rounded-full px-2 py-1.5 text-left hover:bg-white/6"
-        >
-          <UserAvatar
+          leftIcon={<UserAvatar
             name={sessionUser.displayName}
             avatarUrl={sessionUser.avatarUrl}
             className="size-9"
             textClassName="text-[10px]"
           />
-
+          }
+          rightIcon={open ? <ChevronUp className="size-3.5 transition-transform duration-200" /> : <ChevronDown className="size-3.5 transition-transform duration-200" />}
+        >
+          {/* <UserAvatar
+            name={sessionUser.displayName}
+            avatarUrl={sessionUser.avatarUrl}
+            className="size-9"
+            textClassName="text-[10px]"
+          />
+ */}
           <span className={cn("min-w-0 flex-1 truncate text-sm font-semibold tracking-[-0.02em]", glassText.primary)}>
             {sessionUser.displayName}
           </span>
 
-          <span
-            className={cn(
-              "grid size-7 shrink-0 place-items-center rounded-full border border-white/14 bg-white/8 transition",
-              glassText.secondary,
-              open && cn("bg-white/14", glassText.primary),
-            )}
-          >
-            <ChevronDown
-              className={cn("size-3.5 transition-transform duration-200", open && "rotate-180")}
-            />
-          </span>
         </GhostButton>
       </GlassPanel>
 
@@ -164,15 +161,12 @@ export function NavUserMenu() {
           </Link>
 
           <GhostButton
+            transparent
             onClick={handleLogout}
             disabled={loggingOut}
-            className="w-full justify-start gap-2.5 px-3 py-2.5 text-left text-red-300 hover:bg-red-500/12 hover:text-red-200"
+            className="w-full justify-start gap-2.5 px-3 py-2.5 text-left text-red-500 hover:text-red-600"
+            leftIcon={loggingOut ? <Loader2 className="size-3.5 animate-spin" /> : <LogOut className="size-3.5" />}
           >
-            {loggingOut ? (
-              <Loader2 className="size-3.5 animate-spin" />
-            ) : (
-              <LogOut className="size-3.5" />
-            )}
             Sair
           </GhostButton>
         </GlassPanel>

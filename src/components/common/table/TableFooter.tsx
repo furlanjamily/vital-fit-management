@@ -59,6 +59,7 @@ export function TableFooter({
         <GlassSelect
           selectSize="sm"
           tone="muted"
+          placement="top"
           value={String(pageSize)}
           onChange={(event) => onPageSizeChange(Number(event.target.value))}
           aria-label="Itens por página"

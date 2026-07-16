@@ -110,7 +110,7 @@ export function AgendaContentClient({
 
       setRemovingEvent(null);
       setSelectedEvent(null);
-      dispatchAgendaChanged();
+      dispatchAgendaChanged({ reason: "delete" });
       refreshEvents();
     });
   }, [removingEvent, refreshEvents]);

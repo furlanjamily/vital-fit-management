@@ -32,10 +32,13 @@ export type GlassSelectProps = Omit<SelectHTMLAttributes<HTMLSelectElement>, "si
   invalid?: boolean;
   wrapperClassName?: string;
   placeholder?: string;
+  /** Direção do painel — `top` evita corte no rodapé de tabelas. */
+  placement?: "top" | "bottom";
 };
 
 type DropdownPosition = {
-  top: number;
+  top?: number;
+  bottom?: number;
   left: number;
   width: number;
 };
@@ -49,12 +52,13 @@ export function GlassSelect({
   wrapperClassName,
   className,
   disabled,
-  placeholder,
+  placeholder = "Selecione…",
   value: valueProp,
   defaultValue,
   onChange,
   name,
   id,
+  placement = "bottom",
   "aria-label": ariaLabel,
 }: GlassSelectProps) {
   const hydrated = useHydrated();
@@ -84,8 +88,19 @@ export function GlassSelect({
     if (!trigger) return;
 
     const rect = trigger.getBoundingClientRect();
+    const gap = 6;
+
+    if (placement === "top") {
+      setPosition({
+        bottom: window.innerHeight - rect.top + gap,
+        left: rect.left,
+        width: rect.width,
+      });
+      return;
+    }
+
     setPosition({
-      top: rect.bottom + 6,
+      top: rect.bottom + gap,
       left: rect.left,
       width: rect.width,
     });
@@ -109,7 +124,7 @@ export function GlassSelect({
       window.removeEventListener("resize", handleReposition);
       window.removeEventListener("scroll", handleReposition, true);
     };
-  }, [open]);
+  }, [open, placement]);
 
   useEffect(() => {
     if (!open) return;
@@ -145,6 +160,7 @@ export function GlassSelect({
         style={{
           position: "fixed",
           top: position.top,
+          bottom: position.bottom,
           left: position.left,
           width: position.width,
           zIndex: 300,
@@ -154,16 +170,16 @@ export function GlassSelect({
           id={listboxId}
           role="listbox"
           variant="subtle"
-          intensity="low"
-          elevation="solid"
-          className="max-h-56 overflow-y-auto rounded-xl p-2"
+          intensity="medium"
+          elevation="popover"
+          className="max-h-56 overflow-y-auto rounded-2xl p-2"
         >
           <div className="flex flex-col gap-1.5">
-            {placeholder ? (
+            {placeholder && value === "" ? (
               <button
                 type="button"
                 role="option"
-                aria-selected={value === ""}
+                aria-selected
                 disabled
                 className={cn(
                   "w-full cursor-default rounded-lg px-3 py-2 text-left text-[11px]",
@@ -241,7 +257,7 @@ export function GlassSelect({
           formControlFocusClassName,
           invalid && formControlInvalidClassName,
           disabled && "cursor-not-allowed opacity-60",
-          !value && placeholder && glassText.muted,
+          !value && glassText.muted,
           className,
         )}
       >
@@ -252,7 +268,7 @@ export function GlassSelect({
         aria-hidden
         className={cn(
           "pointer-events-none absolute top-1/2 -translate-y-1/2 transition",
-          glassText.muted,
+          glassText.tertiary,
           chevronClassName,
           open && "rotate-180",
         )}
@@ -314,7 +330,8 @@ export function GlassSelectNative({
       <ChevronDown
         aria-hidden
         className={cn(
-          cn("pointer-events-none absolute top-1/2 -translate-y-1/2", glassText.muted),
+          "pointer-events-none absolute top-1/2 -translate-y-1/2",
+          glassText.tertiary,
           chevronClassName,
         )}
       />

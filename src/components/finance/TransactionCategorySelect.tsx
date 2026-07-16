@@ -8,7 +8,7 @@ import type { FinancialCategory } from "@/components/finance/finance-category.ty
 import type { TransactionType } from "@/components/finance/transaction.types";
 
 type TransactionCategorySelectProps = {
-  type: TransactionType;
+  type: TransactionType | "";
   value: string;
   onChange: (categoryId: string) => void;
   error?: string;
@@ -23,17 +23,25 @@ export function TransactionCategorySelect({
   invalid,
 }: TransactionCategorySelectProps) {
   const [categories, setCategories] = useState<FinancialCategory[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!type) {
+      setCategories([]);
+      setLoading(false);
+      setLoadError(null);
+      return;
+    }
+
     let cancelled = false;
 
-    async function loadCategories() {
+    async function loadCategories(selectedType: TransactionType) {
       setLoading(true);
       setLoadError(null);
+      setCategories([]);
 
-      const result = await getFinancialCategoriesAction(type);
+      const result = await getFinancialCategoriesAction(selectedType);
 
       if (cancelled) return;
 
@@ -46,14 +54,9 @@ export function TransactionCategorySelect({
 
       setCategories(result.data);
       setLoading(false);
-
-      const hasCurrent = result.data.some((category) => category.id === value);
-      if (!hasCurrent && result.data[0]) {
-        onChange(result.data[0].id);
-      }
     }
 
-    void loadCategories();
+    void loadCategories(type);
 
     return () => {
       cancelled = true;
@@ -65,6 +68,14 @@ export function TransactionCategorySelect({
     label: category.name,
   }));
 
+  const placeholder = !type
+    ? "Selecione o tipo primeiro"
+    : loading
+      ? "Carregando…"
+      : options.length === 0
+        ? "Nenhuma categoria"
+        : "Selecione a categoria";
+
   return (
     <FormField
       label="Categoria"
@@ -73,11 +84,11 @@ export function TransactionCategorySelect({
     >
       <GlassSelect
         id="category_id"
-        key={type}
+        key={type || "empty"}
         leftIcon={Tag}
         options={options}
-        placeholder={loading ? "Carregando…" : "Selecione a categoria"}
-        disabled={loading || options.length === 0}
+        placeholder={placeholder}
+        disabled={!type || loading || options.length === 0}
         invalid={invalid || Boolean(loadError)}
         value={value}
         onChange={(event) => onChange(event.target.value)}

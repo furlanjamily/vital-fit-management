@@ -19,9 +19,12 @@ import type {
 export const sceneBackground: SceneBackgroundConfig = {
   image: "/system-background.png",
   position: "center center",
-  overlay: "transparent",
+  overlay: "cinematic-dark",
   blur: "0px",
-  brightness: 0.96,
+  /** Tom landing: carvão + âmbar, sem lavagem amarela */
+  brightness: 0.58,
+  saturate: 1.05,
+  contrast: 1.12,
 };
 
 export const sidebarMenu: MenuItem[] = [

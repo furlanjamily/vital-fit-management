@@ -29,6 +29,31 @@ import { isUuid } from "@/lib/is-uuid";
 const EVENTS_TABLE = "events";
 const PARTICIPANTS_TABLE = "event_participants";
 const AGENDA_PATH = "/agenda";
+const BRAZIL_TZ_OFFSET = "-03:00";
+
+/** Limites de dia/mês em America/Sao_Paulo (UTC-3, sem DST). */
+function getBrazilCalendarBounds(now = new Date()) {
+  const dateStr = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Sao_Paulo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(now);
+
+  const [year, month] = dateStr.split("-").map(Number);
+  const todayStart = new Date(`${dateStr}T00:00:00${BRAZIL_TZ_OFFSET}`).toISOString();
+  const todayEnd = new Date(`${dateStr}T23:59:59.999${BRAZIL_TZ_OFFSET}`).toISOString();
+
+  const monthStart = new Date(
+    `${year}-${String(month).padStart(2, "0")}-01T00:00:00${BRAZIL_TZ_OFFSET}`,
+  ).toISOString();
+  const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  const monthEnd = new Date(
+    `${year}-${String(month).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}T23:59:59.999${BRAZIL_TZ_OFFSET}`,
+  ).toISOString();
+
+  return { todayStart, todayEnd, monthStart, monthEnd };
+}
 
 const SESSION_EXPIRED_MESSAGE = "Sessão expirada. Faça login novamente.";
 const MISSING_TABLE_MESSAGE =
@@ -266,19 +291,15 @@ export type AgendaSidebarData = {
   categoryCounts: Record<EventType, number>;
 };
 
-export async function getAgendaSidebarDataAction(): Promise<ActionResult<AgendaSidebarData>> {
+export async function getAgendaSidebarDataAction(
+  _cacheBust?: number,
+): Promise<ActionResult<AgendaSidebarData>> {
   try {
     const session = await requireAuthenticatedClient();
     if (!session.authenticated) return actionFailure(session.error);
 
     const nowIso = new Date().toISOString();
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
-    const todayEnd = new Date();
-    todayEnd.setHours(23, 59, 59, 999);
-
-    const monthStart = new Date(todayStart.getFullYear(), todayStart.getMonth(), 1);
-    const monthEnd = new Date(todayStart.getFullYear(), todayStart.getMonth() + 1, 0, 23, 59, 59, 999);
+    const { todayStart, todayEnd, monthStart, monthEnd } = getBrazilCalendarBounds();
 
     const [upNextResult, todayResult, monthResult, usersResult] = await Promise.all([
       session.supabase
@@ -291,13 +312,13 @@ export async function getAgendaSidebarDataAction(): Promise<ActionResult<AgendaS
       session.supabase
         .from(EVENTS_TABLE)
         .select("id", { count: "exact", head: true })
-        .gte("start_time", todayStart.toISOString())
-        .lte("start_time", todayEnd.toISOString()),
+        .gte("start_time", todayStart)
+        .lte("start_time", todayEnd),
       session.supabase
         .from(EVENTS_TABLE)
         .select("type")
-        .gte("start_time", monthStart.toISOString())
-        .lte("start_time", monthEnd.toISOString()),
+        .gte("start_time", monthStart)
+        .lte("start_time", monthEnd),
       fetchUserOptions(),
     ]);
 

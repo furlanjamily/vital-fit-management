@@ -47,9 +47,10 @@ export function mapEventRow(
 }
 
 export function buildEventTimestamps(date: string, startTime: string, endTime: string) {
+  // Wall clock em America/Sao_Paulo (sem DST no Brasil) → UTC ISO para timestamptz
   return {
-    startTime: `${date}T${startTime}:00`,
-    endTime: `${date}T${endTime}:00`,
+    startTime: new Date(`${date}T${startTime}:00-03:00`).toISOString(),
+    endTime: new Date(`${date}T${endTime}:00-03:00`).toISOString(),
   };
 }
 

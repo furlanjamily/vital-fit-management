@@ -34,7 +34,7 @@ export function CategoriesSection({ categoryCounts, className }: CategoriesSecti
         onClick={() => setOpen((current) => !current)}
         className="flex w-full items-center justify-between gap-2 rounded-xl px-0.5 py-0.5 transition hover:bg-white/[0.04]"
       >
-        <span className={cn("text-xs font-semibold", glassText.secondary)}>Categories</span>
+        <span className={cn("text-xs font-semibold", glassText.secondary)}>Categorias</span>
         <ChevronDown className={cn("size-4 shrink-0 transition", glassText.muted, open && "rotate-180")} />
       </button>
 

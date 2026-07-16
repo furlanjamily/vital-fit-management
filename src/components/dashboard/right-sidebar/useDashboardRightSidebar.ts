@@ -2,7 +2,11 @@
 
 import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import { getAgendaSidebarDataAction, type AgendaSidebarData } from "@/app/(app)/agenda/actions";
-import { AGENDA_CHANGED_EVENT } from "@/components/agenda/agenda-events";
+import {
+  AGENDA_CHANGED_EVENT,
+  type AgendaChangedDetail,
+} from "@/components/agenda/agenda-events";
+import { toIsoDate } from "@/components/classes/class-schedule.helpers";
 import {
   resolveSessionRoleLabel,
   formatUpNextCountdown,
@@ -27,6 +31,41 @@ const EMPTY_SIDEBAR_DATA: AgendaSidebarData = {
   categoryCounts: { reuniao: 0, tarefa: 0, compromisso: 0 },
 };
 
+function applyOptimisticCreate(
+  current: AgendaSidebarData,
+  event: AgendaEvent,
+  now = new Date(),
+): AgendaSidebarData {
+  const eventStart = new Date(event.startTime).getTime();
+  const nowMs = now.getTime();
+  const todayIso = toIsoDate(now);
+  const eventDayIso = toIsoDate(new Date(event.startTime));
+
+  let upNext = current.upNext;
+  if (eventStart > nowMs) {
+    const currentStart = current.upNext
+      ? new Date(current.upNext.startTime).getTime()
+      : Number.POSITIVE_INFINITY;
+    if (eventStart < currentStart) {
+      upNext = event;
+    }
+  }
+
+  const upcomingTodayCount =
+    eventDayIso === todayIso
+      ? current.upcomingTodayCount + 1
+      : current.upcomingTodayCount;
+
+  return {
+    upNext,
+    upcomingTodayCount,
+    categoryCounts: {
+      ...current.categoryCounts,
+      [event.type]: current.categoryCounts[event.type] + 1,
+    },
+  };
+}
+
 export function useDashboardRightSidebar() {
   const [profile, setProfile] = useState<SessionProfile | null>(null);
   const [sidebarData, setSidebarData] = useState<AgendaSidebarData>(EMPTY_SIDEBAR_DATA);
@@ -37,7 +76,7 @@ export function useDashboardRightSidebar() {
   const refreshSidebar = useCallback(() => {
     startTransition(async () => {
       setLoadError(null);
-      const result = await getAgendaSidebarDataAction();
+      const result = await getAgendaSidebarDataAction(Date.now());
 
       if (!result.success) {
         setLoadError(result.error);
@@ -88,7 +127,17 @@ export function useDashboardRightSidebar() {
   }, [refreshSidebar]);
 
   useEffect(() => {
-    const handler = () => refreshSidebar();
+    const handler = (event: Event) => {
+      const detail = (event as CustomEvent<AgendaChangedDetail>).detail;
+
+      if (detail?.reason === "create" && detail.event) {
+        setSidebarData((current) => applyOptimisticCreate(current, detail.event!));
+      }
+
+      // Re-fetch autoritativo (cache-bust via Date.now no action)
+      refreshSidebar();
+    };
+
     window.addEventListener(AGENDA_CHANGED_EVENT, handler);
     return () => window.removeEventListener(AGENDA_CHANGED_EVENT, handler);
   }, [refreshSidebar]);

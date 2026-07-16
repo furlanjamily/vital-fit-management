@@ -216,13 +216,12 @@ src/
       useLoginForm.ts             # hook de autenticação client
     common/
       button/
-        GlassButton.tsx           # botão com GlassPanel (só vidro, sem fill colorido)
-        SolidButton.tsx           # CTA sólido
-        OutlineButton.tsx
+        Button.tsx                # canônico Liquid Glass (CVA + motion)
+        index.ts                  # barrel do design system de botões
+        GlassButton.tsx           # alias → Button glass (+ href)
         GhostButton.tsx
         DangerButton.tsx
-        IconButton.tsx
-        PremiumButton.tsx         # legado (landing)
+        IconButton.tsx            # alias → Button iconOnly
       date-picker/
         DatePicker.tsx            # seletor de data estilo pill (dd / mm / aaaa)
       feedback/
@@ -841,9 +840,9 @@ Menu dropdown de ações por linha (ícone ⋮). Reutilizado em `/members` e `/u
 
 Padrão obrigatório para modais de formulário e confirmação — **sem preto sólido**.
 
-**Camada 1 — `ModalOverlay`:** scrim âmbar translúcido (`rgba(38,20,8,0.46)`) + `backdrop-blur-[22px]` + leve escurecimento. Separa o modal do background sem bloquear totalmente a imagem.
+**Camada 1 — `ModalOverlay`:** scrim marrom-escuro translúcido (`rgba(15,10,5,0.45)`) + `backdrop-blur-[16px]` + `backdrop-saturate-[1.6]`. Funde com o fundo âmbar sem preto sólido.
 
-**Camada 2 — `ModalPanel`:** wrapper sobre `GlassPanel elevation="modal"` com frost branco denso, underlay quente interno e `intensity="high"`. Aplica `text-glass-secondary` como cor base do painel.
+**Camada 2 — `ModalPanel`:** wrapper sobre `GlassPanel elevation="modal"` com frost blindado (`bg-white/[0.16]`, blur `32px`, saturate `2`), `rounded-3xl` e `intensity="high"`. Aplica `text-glass-secondary` como cor base do painel.
 
 ```tsx
 <ModalOverlay scrollable>
@@ -882,12 +881,11 @@ Barrel: `common/form/index.ts`
 |---|---|
 | `GlassInput` | inputs de texto com ícone opcional |
 | `GlassSelect` | select nativo estilizado |
-| `GlassButton` | ação glass (sem fill sólido) |
-| `SolidButton` | CTA principal (ex.: Novo Aluno) |
-| `OutlineButton` | ação secundária com borda |
-| `GhostButton` | ação terciária / menu |
-| `DangerButton` | ações destrutivas |
-| `IconButton` | botão só ícone |
+| `Button` | **fonte da verdade** — primary / glass / ghost / danger + sizes + loading + ícones |
+| `GlassButton` | alias legado → `Button variant="glass"` (mantém `href`) |
+| `GhostButton` | alias legado → `Button variant="ghost"` |
+| `DangerButton` | alias legado → `Button variant="danger"` |
+| `IconButton` | alias → `Button iconOnly` (sempre com `aria-label`) |
 | `FormField` | label + erro + children (labels: `text-glass-secondary`, hints: `text-glass-muted`) |
 | `GlassSwitch` | toggle iOS |
 | `ModalOverlay` | scrim glass (camada 1) — blur + tint âmbar |
@@ -897,14 +895,23 @@ Tokens compartilhados: `form.styles.ts` (`inputToneClasses`, `inputSizeClasses`,
 
 **Inputs:** `GlassInput` usa `text-glass-primary` + `placeholder:text-glass-placeholder`; ícones à esquerda usam `text-glass-tertiary`.
 
+### `Button` (`common/button/Button.tsx`)
+
+Componente canônico Liquid Glass (CVA + framer-motion):
+
+- Variants: `primary` (laranja), `glass`, `ghost`, `danger`
+- Sizes: `sm` | `md` | `lg` — sempre pill (`rounded-full`)
+- Props: `isLoading`, `leftIcon`, `rightIcon`, `iconOnly`, `fullWidth`
+- Micro-interação: scale `1.02` hover / `0.98` press
+- Barrel: `common/button/index.ts` e reexport em `common/form`
+
 ### `GlassButton` (`common/button/GlassButton.tsx`)
 
-Botão **somente vidro** — sem fill colorido/sólido:
+Alias de `Button variant="glass"` (compat):
 
-- Variants: `subtle`, `default`, `strong` (intensidade do GlassPanel)
+- Variants legadas: `subtle`, `default`, `strong` (ajuste fino de opacidade)
 - Shapes: `rounded`, `pill`
-- Props: `loading`, `fullWidth`, `leftIcon`, `rightIcon`, `href` (link)
-- Inner: `text-glass-primary` + `hover:bg-white/8`
+- Props: `loading` / `isLoading`, `fullWidth`, `leftIcon`, `rightIcon`, `href` (link)
 
 ### `GlassPanel` (`common/glass-panel/GlassPanel.tsx`)
 
@@ -1035,32 +1042,37 @@ Componente base: `src/components/common/glass-panel/GlassPanel.tsx`
 
 ### Iluminação (preservada em todas as elevações)
 
-- `before:` — reflexo specular via `--glass-shine`
-- `after:` — bordas internas e highlights
-- `intensityVars` controla `--glass-shine` e `--glass-border`
+- **Rim light (HIG):** borda `rgba(255,255,255,0.08)` + highlight superior `inset 0 1px 0` (opacidade por elevation)
+- `before:` — reflexo specular via `--glass-shine` (`intensity` controla a intensidade)
+- `after:` — underlay quente em `popover` (`after:bg-amber-500/[0.015]`)
+- `variant` — só ajusta opacidade do sheen (`before:opacity-*`); **não** define blur/corpo
+- Utilities espelhadas em `globals.css`: `glass-rim`, `glass-material-*`, `glass-modal-scrim`, `glass-control-recessed`
 - **Não sobrescrever** bordas/reflexos com `className` agressivo no GlassPanel
 
 ### Física de empilhamento (`elevation`)
 
-Regra visionOS: camadas sobrepostas usam **menos blur** e **mais opacidade/frost** para legibilidade, sem preto sólido.
+Regra Liquid Glass: camadas superiores ganham **mais opacidade/contraste**; blur permanece controlado (não somar blurs cegamente). Todo `backdrop-blur` leva `backdrop-saturate` para o âmbar não “morrer” cinza.
 
-| Elevation | Uso | Blur | Corpo | Brightness |
-|---|---|---|---|---|
-| `base` | painéis de fundo, shells, conteúdo principal | alto do variant + saturate | gradiente branco translúcido do variant | `0.88` |
-| `floating` | cards internos, pills, seções leves | `12px` | `bg-white/5` | `0.90` |
-| `popover` | menus dropdown, ações de linha (⋮), NavUserMenu expandido | `14px` | frost branco denso + underlay quente | `0.78` |
-| `modal` | modais sobre `ModalOverlay` | `12px` | frost branco mais denso + underlay quente | `0.76` |
-| `solid` | menus/tooltips sobre UI densa (sem bleed-through) | nenhum | base opaca `#8B6F4E` | — |
-
-Elevações translúcidas aplicam `backdrop-saturate` + `backdrop-brightness` para escurecer levemente o background dourado/âmbar e melhorar contraste do texto branco.
-
-Camadas internas de legibilidade (underlay quente) são injetadas automaticamente em `elevation="popover"`, `elevation="modal"` e `elevation="solid"`.
+| Elevation | Uso | Blur | Saturate | Corpo | Sombra |
+|---|---|---|---|---|---|
+| `base` | shells, painel principal | `20px` | `1.6` | `bg-white/[0.03]` | inset top `0.1` + `0 4px 30px` |
+| `floating` | cards internos, pills, chrome de tabela | `12px` | `1.4` | `bg-white/[0.08]` + borda `white/8` | inset top `0.16` |
+| `popover` | selects, menus ⋮, tooltips | `24px` | `1.8` | `bg-white/[0.14]` + warm underlay | inset top `0.2` + drop suave |
+| `modal` | painel sobre `ModalOverlay` | `32px` | `2.0` | `bg-white/[0.16]` | inset `0 1px 1px` + drop profundo |
+| `solid` | fallback opaco (raro; preferir `popover`) | nenhum | — | `#8B6F4E` | shine + drop curto |
 
 ### Glass on glass — modais
 
-1. `ModalOverlay` — scrim âmbar fosco + blur (camada 1)
-2. `ModalPanel` / `GlassPanel elevation="modal"` — frost denso (camada 2)
+1. `ModalOverlay` — scrim `rgba(15,10,5,0.45)` + `backdrop-blur-[16px]` + `backdrop-saturate-[1.6]` (camada 1)
+2. `ModalPanel` / `GlassPanel elevation="modal"` — frost blindado (camada 2), `rounded-3xl`
 3. Tipografia via `glassText` / `glassTextStyles` — ver seção **Tipografia Glass-on-Glass**
+
+### Controles de formulário (recessivo → elevado)
+
+- Idle: `bg-black/[0.12] border-white/[0.06]` (`form.styles` / `glass-control-recessed`)
+- Focus: `bg-white/[0.08] border-orange-500/50 ring-2 ring-orange-500/20`
+- Ícones decorativos: `text-glass-tertiary`
+- Dropdown aberto: `GlassPanel elevation="popover"`
 
 ### Tipografia Glass-on-Glass
 
@@ -1191,7 +1203,7 @@ Manter:
 - composição centralizada, painéis glass, **background dourado visível** através das camadas
 - perspectiva 3D controlada (desktop), motion sequencial premium
 - mobile: painel central legível + nav inferior glass + viewport lock
-- inputs: `bg-white/5`–`bg-white/8`, `border-white/14`, texto `text-glass-primary`
+- inputs: recessivos `bg-black/[0.12]` + `border-white/[0.06]`; focus eleva com rim laranja; texto `text-glass-primary`
 - **hierarquia de texto glass:** `text-glass-primary` → `text-glass-secondary` → `text-glass-tertiary` / `text-glass-muted` (ver `glass-typography.ts`)
 
 Evitar:

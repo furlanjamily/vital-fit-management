@@ -1,163 +1,143 @@
-import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode } from "react";
+"use client";
+
+import type { AnchorHTMLAttributes, ReactNode } from "react";
 import { Loader2 } from "lucide-react";
-import { glassText } from "@/config/glass-typography";
+import { Button, buttonVariants, type ButtonProps } from "@/components/common/button/Button";
 import { cn } from "@/lib/cn";
-import { GlassPanel } from "../glass-panel/GlassPanel";
 
-type GlassPanelVariant = "default" | "hero" | "strong" | "subtle";
-type GlassPanelIntensity = "low" | "medium" | "high";
-type GlassPanelElevation = "base" | "floating" | "modal";
-
-/** Intensidade visual do vidro — sem cores sólidas, só GlassPanel. */
-type GlassButtonVariant = "subtle" | "default" | "strong";
 type GlassButtonSize = "sm" | "md" | "lg";
+/** Intensidade legada — mapeada para o mesmo `variant="glass"`. */
+type GlassButtonVariant = "subtle" | "default" | "strong";
 type GlassButtonShape = "rounded" | "pill";
 
-type GlassButtonBaseProps = {
+type GlassButtonChrome = {
+  /** Intensidade legada do vidro (não confundir com `Button.variant`). */
   variant?: GlassButtonVariant;
   size?: GlassButtonSize;
   shape?: GlassButtonShape;
   fullWidth?: boolean;
   loading?: boolean;
+  isLoading?: boolean;
   leftIcon?: ReactNode;
   rightIcon?: ReactNode;
-  /** Sobrescreve props do GlassPanel quando necessário. */
-  glassVariant?: GlassPanelVariant;
-  intensity?: GlassPanelIntensity;
-  elevation?: GlassPanelElevation;
+  /** @deprecated Mantido por compat — o vidro agora é CSS no Button. */
+  glassVariant?: string;
+  intensity?: string;
+  elevation?: string;
   panelClassName?: string;
   className?: string;
   children?: ReactNode;
 };
 
-type GlassButtonAsButton = GlassButtonBaseProps &
-  ButtonHTMLAttributes<HTMLButtonElement> & {
+type GlassButtonAsButton = Omit<
+  ButtonProps,
+  | "variant"
+  | "size"
+  | "leftIcon"
+  | "rightIcon"
+  | "children"
+  | "isLoading"
+  | "loading"
+  | "fullWidth"
+  | "className"
+> &
+  GlassButtonChrome & {
     href?: undefined;
   };
 
-type GlassButtonAsLink = GlassButtonBaseProps &
-  AnchorHTMLAttributes<HTMLAnchorElement> & {
+type GlassButtonAsLink = GlassButtonChrome &
+  Omit<AnchorHTMLAttributes<HTMLAnchorElement>, keyof GlassButtonChrome> & {
     href: string;
   };
 
 export type GlassButtonProps = GlassButtonAsButton | GlassButtonAsLink;
 
-const variantPreset: Record<
-  GlassButtonVariant,
-  {
-    glassVariant: GlassPanelVariant;
-    intensity: GlassPanelIntensity;
-    elevation: GlassPanelElevation;
-  }
-> = {
-  subtle: {
-    glassVariant: "subtle",
-    intensity: "low",
-    elevation: "floating",
-  },
-  default: {
-    glassVariant: "default",
-    intensity: "medium",
-    elevation: "floating",
-  },
-  strong: {
-    glassVariant: "strong",
-    intensity: "high",
-    elevation: "floating",
-  },
+const legacyVariantClass: Record<GlassButtonVariant, string> = {
+  subtle: "bg-white/[0.04] border-white/[0.06]",
+  default: "",
+  strong: "bg-white/[0.1] border-white/[0.12] font-semibold",
 };
 
-const sizeClasses: Record<GlassButtonSize, string> = {
-  sm: "gap-1.5 px-3 py-2 text-xs",
-  md: "gap-2 px-4 py-3 text-sm",
-  lg: "gap-2.5 px-5 py-3.5 text-sm",
-};
-
-const shapeClasses: Record<GlassButtonShape, string> = {
-  rounded: "rounded-xl",
-  pill: "rounded-full",
-};
-
-const focusRing =
-  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-400/50";
-
+/**
+ * Secundário vidro — atalho de `Button variant="glass"`.
+ * Preferir `Button` diretamente em código novo.
+ */
 export function GlassButton({
   variant = "default",
   size = "md",
   shape = "rounded",
   fullWidth = false,
   loading = false,
+  isLoading,
   leftIcon,
   rightIcon,
-  glassVariant,
-  intensity,
-  elevation,
   panelClassName,
   className,
   children,
   ...props
 }: GlassButtonProps) {
-  const preset = variantPreset[variant];
-  const isDisabled = ("disabled" in props && props.disabled) || loading;
-  const radius = shapeClasses[shape];
+  const pending = Boolean(isLoading ?? loading);
+  const isDisabled = ("disabled" in props && props.disabled) || pending;
 
-  const content = (
-    <>
-      {loading && (
-        <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden="true" />
-      )}
-
-      {!loading && leftIcon && (
-        <GlassPanel variant="subtle" intensity="low" elevation="floating" className="rounded-full p-2">
-          {leftIcon}
-        </GlassPanel>
-      )}
-
-      <span className="truncate">{children}</span>
-
-      {!loading && rightIcon && <GlassPanel intensity="low" elevation="floating" className="rounded-full p-2">
-        {rightIcon}
-      </GlassPanel>
-      }
-    </>
-  );
-
-  const innerClassName = cn(
-    "inline-flex w-full items-center justify-center font-semibold tracking-[-0.01em] transition",
-    glassText.primary,
-    "hover:bg-white/8 active:bg-white/10 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60",
-    sizeClasses[size],
-    radius,
-    focusRing,
-    isDisabled && "cursor-not-allowed opacity-60",
-    className,
-  );
+  if ("href" in props && props.href) {
+    const { href, ...anchorProps } = props;
+    return (
+      <a
+        href={href}
+        aria-disabled={isDisabled || undefined}
+        className={cn(
+          buttonVariants({
+            variant: "glass",
+            size,
+            fullWidth,
+            iconOnly: false,
+          }),
+          shape === "pill" ? "rounded-full" : "rounded-xl",
+          legacyVariantClass[variant],
+          isDisabled && "pointer-events-none opacity-50",
+          panelClassName,
+          className,
+        )}
+        {...anchorProps}
+      >
+        {pending ? (
+          <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden="true" />
+        ) : (
+          leftIcon
+        )}
+        {children != null ? <span className="truncate">{children}</span> : null}
+        {!pending && rightIcon}
+      </a>
+    );
+  }
 
   return (
-    <GlassPanel
-      variant={glassVariant ?? preset.glassVariant}
-      intensity={intensity ?? preset.intensity}
-      elevation={elevation ?? preset.elevation}
-      className={cn(radius, fullWidth && "w-full", panelClassName)}
-    >
-      {"href" in props && props.href ? (
-        <a
-          {...props}
-          aria-disabled={isDisabled || undefined}
-          className={cn(innerClassName, isDisabled && "pointer-events-none")}
-        >
-          {content}
-        </a>
-      ) : (
-        <button
-          {...(props as ButtonHTMLAttributes<HTMLButtonElement>)}
-          type={(props as ButtonHTMLAttributes<HTMLButtonElement>).type ?? "button"}
-          disabled={isDisabled}
-          className={innerClassName}
-        >
-          {content}
-        </button>
+    <Button
+      {...(props as Omit<
+        ButtonProps,
+        | "variant"
+        | "size"
+        | "leftIcon"
+        | "rightIcon"
+        | "children"
+        | "isLoading"
+        | "fullWidth"
+        | "className"
+      >)}
+      variant="glass"
+      size={size}
+      fullWidth={fullWidth}
+      leftIcon={leftIcon}
+      rightIcon={rightIcon}
+      isLoading={pending}
+      className={cn(
+        shape === "pill" ? "rounded-full" : "rounded-xl",
+        legacyVariantClass[variant],
+        panelClassName,
+        className,
       )}
-    </GlassPanel>
+    >
+      {children}
+    </Button>
   );
 }

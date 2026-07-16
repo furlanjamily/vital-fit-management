@@ -140,7 +140,7 @@ export function ClassScheduleContentClient({
   const buildRowActions = useCallback(
     (appointment: ClassAppointment): RowAction[] => [
       {
-        label: "Remover agendamento",
+        label: "Remover",
         icon: Trash2,
         tone: "danger",
         onSelect: () => requestRemove(appointment),
@@ -234,7 +234,7 @@ export function ClassScheduleContentClient({
     <div className="flex min-h-full w-full flex-col gap-6 lg:h-full lg:min-h-0">
       <div className="flex shrink-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className={glassTextStyles.pageTitle}>Agenda — {classRecord.name}</h1>
+          <h1 className={glassTextStyles.pageTitle}>{classRecord.name}</h1>
           <p className={cn("mt-1 text-sm", glassText.muted)}>
             {classRecord.description ?? "Agendamentos e reservas da modalidade"}
           </p>

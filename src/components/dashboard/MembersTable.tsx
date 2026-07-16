@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronDown } from "lucide-react";
-import { OutlineButton } from "@/components/common/form";
+import { Button } from "@/components/common/form";
 import { Table, type TableColumn } from "@/components/common/table/Table";
 import { glassText, glassTextStyles } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
@@ -126,10 +126,10 @@ export function MembersTable() {
       title="All Members"
       searchPlaceholder="Search"
       headerActions={
-        <OutlineButton className={cn("gap-2 px-3 py-2.5 font-normal", glassText.secondary)}>
+        <Button variant="glass" size="sm" className={cn("gap-2 px-3 py-2.5 font-normal", glassText.secondary)}>
           Sort by: Expired Soon
           <ChevronDown className="size-3.5" />
-        </OutlineButton>
+        </Button>
       }
     />
   );

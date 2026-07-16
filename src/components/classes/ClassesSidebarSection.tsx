@@ -118,13 +118,9 @@ export function ClassesSidebarSection() {
             "mt-4 justify-start gap-3 px-2 text-xs font-semibold hover:bg-transparent hover:text-glass-secondary",
             glassText.secondary,
           )}
+          rightIcon={showAllClasses ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
           onClick={() => setShowAllClasses((current) => !current)}
         >
-          {showAllClasses ? (
-            <ChevronUp className="size-4" />
-          ) : (
-            <ChevronDown className="size-4" />
-          )}
           {showAllClasses ? "Exibir menos" : "Exibir mais"}
         </GhostButton>
       ) : null}

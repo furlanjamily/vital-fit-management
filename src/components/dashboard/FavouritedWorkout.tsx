@@ -58,6 +58,7 @@ export function FavouritedWorkout({
 
           return (
             <GhostButton
+              transparent
               key={tab.id}
               type="button"
               onClick={() => setActiveTab(tab.id)}

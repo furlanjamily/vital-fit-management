@@ -110,8 +110,8 @@ export function EventModal({
         return;
       }
 
+      dispatchAgendaChanged({ event: result.data, reason: "create" });
       onSuccess();
-      dispatchAgendaChanged();
       onClose();
     });
   }
@@ -227,6 +227,7 @@ export function EventModal({
               value={values.participantIds}
               onChange={(participantIds) => updateField("participantIds", participantIds)}
               disabled={isPending}
+              placement="top"
             />
           </FormField>
 

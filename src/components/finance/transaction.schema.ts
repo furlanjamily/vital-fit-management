@@ -3,6 +3,7 @@ import { parseBrlAmount } from "@/components/finance/transaction.helpers";
 import {
   TRANSACTION_PAYMENT_METHODS,
   TRANSACTION_TYPES,
+  type TransactionType,
 } from "@/components/finance/transaction.types";
 
 export const transactionFormSchema = z.object({
@@ -15,22 +16,28 @@ export const transactionFormSchema = z.object({
       const parsed = parseBrlAmount(value);
       return Number.isFinite(parsed) && parsed > 0;
     }, "Informe um valor válido maior que zero."),
-  type: z.enum(TRANSACTION_TYPES, "Tipo inválido."),
+  type: z
+    .union([z.literal(""), z.enum(TRANSACTION_TYPES)])
+    .refine((value): value is TransactionType => value !== "", {
+      message: "Selecione o tipo.",
+    }),
   category_id: z.string().uuid("Selecione a categoria."),
   payment_method: z.enum(TRANSACTION_PAYMENT_METHODS, "Forma de pagamento inválida."),
 });
 
+export type TransactionFormSchemaOutput = z.output<typeof transactionFormSchema>;
+
 export type ValidatedTransactionForm = {
   description: string;
   amount: number;
-  type: z.infer<typeof transactionFormSchema>["type"];
+  type: TransactionFormSchemaOutput["type"];
   category_id: string;
-  payment_method: z.infer<typeof transactionFormSchema>["payment_method"];
+  payment_method: TransactionFormSchemaOutput["payment_method"];
   member_id: null;
 };
 
 export function toValidatedTransactionForm(
-  data: z.infer<typeof transactionFormSchema>,
+  data: TransactionFormSchemaOutput,
 ): ValidatedTransactionForm {
   return {
     description: data.description,

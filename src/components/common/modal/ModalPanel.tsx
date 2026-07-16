@@ -6,8 +6,8 @@ import { cn } from "@/lib/cn";
 type ModalPanelProps = ComponentPropsWithoutRef<typeof GlassPanel>;
 
 /**
- * Camada 2 do glass-on-glass: painel sobre o scrim do ModalOverlay,
- * com frost mais denso para legibilidade do texto.
+ * Camada 2 do glass-on-glass: vidro blindado sobre o scrim do ModalOverlay.
+ * Elevation `modal` aplica frost denso + saturate alto para legibilidade.
  */
 export function ModalPanel({
   className,
@@ -21,7 +21,7 @@ export function ModalPanel({
       variant={variant}
       intensity={intensity}
       elevation={elevation}
-      className={cn("rounded-2xl p-6", glassText.secondary, className)}
+      className={cn("rounded-3xl p-6", glassText.secondary, className)}
       {...props}
     />
   );

@@ -17,7 +17,10 @@ import {
   formatAmountToBrlInput,
   formatBrlInput,
 } from "@/components/finance/transaction.helpers";
-import { transactionFormSchema } from "@/components/finance/transaction.schema";
+import {
+  transactionFormSchema,
+  type TransactionFormSchemaOutput,
+} from "@/components/finance/transaction.schema";
 import {
   transactionPaymentMethodOptions,
   transactionTypeOptions,
@@ -28,11 +31,11 @@ import {
 import { glassText, glassTextStyles } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
 
-function buildDefaultValues(type: TransactionType = "DESPESA"): TransactionFormValues {
+function buildDefaultValues(): TransactionFormValues {
   return {
     description: "",
     amount: "",
-    type,
+    type: "",
     category_id: "",
     payment_method: "PIX",
   };
@@ -80,8 +83,9 @@ export function TransactionForm({
     handleSubmit,
     watch,
     reset,
+    setValue,
     formState: { errors, isSubmitting },
-  } = useForm<TransactionFormValues>({
+  } = useForm<TransactionFormValues, unknown, TransactionFormSchemaOutput>({
     resolver: zodResolver(transactionFormSchema),
     defaultValues: editingTransaction
       ? buildEditValues(editingTransaction)
@@ -96,8 +100,9 @@ export function TransactionForm({
 
   const transactionType = watch("type");
   const isReceita = transactionType === "RECEITA";
+  const hasType = transactionType === "RECEITA" || transactionType === "DESPESA";
 
-  async function onSubmit(values: TransactionFormValues) {
+  async function onSubmit(values: TransactionFormSchemaOutput) {
     setSubmitError(null);
     setSuccessMessage(null);
 
@@ -141,21 +146,23 @@ export function TransactionForm({
         </IconButton>
       </div>
 
-      <div
-        className={cn(
-          "mb-5 inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium",
-          isReceita
-            ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
-            : "border-red-400/25 bg-red-400/10 text-red-300",
-        )}
-      >
-        {isReceita ? (
-          <ArrowUpCircle className="size-3.5" aria-hidden="true" />
-        ) : (
-          <ArrowDownCircle className="size-3.5" aria-hidden="true" />
-        )}
-        {isReceita ? "Receita" : "Despesa"}
-      </div>
+      {hasType ? (
+        <div
+          className={cn(
+            "mb-5 inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium",
+            isReceita
+              ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
+              : "border-red-400/25 bg-red-400/10 text-red-300",
+          )}
+        >
+          {isReceita ? (
+            <ArrowUpCircle className="size-3.5" aria-hidden="true" />
+          ) : (
+            <ArrowDownCircle className="size-3.5" aria-hidden="true" />
+          )}
+          {isReceita ? "Receita" : "Despesa"}
+        </div>
+      ) : null}
 
       {submitError ? <InlineAlert className="mb-4 text-xs">{submitError}</InlineAlert> : null}
 
@@ -173,7 +180,11 @@ export function TransactionForm({
           <FormField label="Descrição" htmlFor="description" error={errors.description?.message}>
             <GlassInput
               id="description"
-              placeholder={DESCRIPTION_PLACEHOLDER[transactionType]}
+              placeholder={
+                hasType
+                  ? DESCRIPTION_PLACEHOLDER[transactionType]
+                  : "Ex.: Compra de equipamentos, venda de suplementos…"
+              }
               invalid={Boolean(errors.description)}
               {...register("description")}
             />
@@ -198,11 +209,23 @@ export function TransactionForm({
 
           <div className="grid gap-4 sm:grid-cols-2">
             <FormField label="Tipo" htmlFor="type" error={errors.type?.message}>
-              <GlassSelect
-                id="type"
-                options={transactionTypeOptions}
-                invalid={Boolean(errors.type)}
-                {...register("type")}
+              <Controller
+                name="type"
+                control={control}
+                render={({ field }) => (
+                  <GlassSelect
+                    id="type"
+                    options={transactionTypeOptions}
+                    placeholder="Selecione o tipo"
+                    invalid={Boolean(errors.type)}
+                    value={field.value}
+                    onChange={(event) => {
+                      const nextType = event.target.value as TransactionType | "";
+                      field.onChange(nextType);
+                      setValue("category_id", "");
+                    }}
+                  />
+                )}
               />
             </FormField>
 
@@ -226,12 +249,19 @@ export function TransactionForm({
             htmlFor="payment_method"
             error={errors.payment_method?.message}
           >
-            <GlassSelect
-              id="payment_method"
-              leftIcon={CreditCard}
-              options={transactionPaymentMethodOptions}
-              invalid={Boolean(errors.payment_method)}
-              {...register("payment_method")}
+            <Controller
+              name="payment_method"
+              control={control}
+              render={({ field }) => (
+                <GlassSelect
+                  id="payment_method"
+                  leftIcon={CreditCard}
+                  options={transactionPaymentMethodOptions}
+                  invalid={Boolean(errors.payment_method)}
+                  value={field.value}
+                  onChange={(event) => field.onChange(event.target.value)}
+                />
+              )}
             />
           </FormField>
 

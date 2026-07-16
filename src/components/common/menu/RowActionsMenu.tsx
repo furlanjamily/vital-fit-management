@@ -24,9 +24,9 @@ type RowActionsMenuProps = {
 const ACTION_TONE_CLASSES: Record<NonNullable<RowAction["tone"]>, string> = {
   default: cn(
     glassText.primaryElevated,
-    "hover:bg-[#A0825C] hover:text-glass-primary",
+    "hover:bg-[#A0825C] text-glass-primary ",
   ),
-  danger: "text-red-300 hover:bg-[#9A4A3A] hover:text-red-100",
+  danger: "text-red-400 hover:bg-[#9A4A3A] hover:text-red-100",
 };
 
 export function RowActionsMenu({
@@ -77,9 +77,9 @@ export function RowActionsMenu({
         <GlassPanel
           role="menu"
           variant="subtle"
-          intensity="high"
-          elevation="solid"
-          className="absolute right-0 top-0 z-50 w-44 rounded-xl p-1.5"
+          intensity="medium"
+          elevation="popover"
+          className="absolute right-0 top-0 z-50 w-44 rounded-2xl p-1.5"
         >
           {actions.map((action) => (
             <GhostButton
@@ -91,9 +91,9 @@ export function RowActionsMenu({
                 ACTION_TONE_CLASSES[action.tone ?? "default"],
                 action.disabled && "cursor-not-allowed opacity-45 hover:bg-transparent",
               )}
+              leftIcon={<action.icon className="size-3.5" />}
               onClick={() => handleSelect(action)}
             >
-              <action.icon className="size-3.5" />
               {action.label}
             </GhostButton>
           ))}

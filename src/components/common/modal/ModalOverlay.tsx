@@ -12,8 +12,8 @@ type ModalOverlayProps = {
 };
 
 /**
- * Camada 1 do glass-on-glass: véu quente fosco sobre o background,
- * sem preto sólido — apenas blur + tint âmbar translúcido.
+ * Camada 1 do glass-on-glass: scrim marrom-escuro translúcido + blur,
+ * fundindo com o fundo âmbar sem preto sólido.
  */
 export function ModalOverlay({ children, className, scrollable = false }: ModalOverlayProps) {
   const hydrated = useHydrated();
@@ -24,7 +24,7 @@ export function ModalOverlay({ children, className, scrollable = false }: ModalO
     <div
       className={cn(
         "fixed inset-0 z-100 grid place-items-center p-4",
-        "bg-[rgba(38,20,8,0.46)] backdrop-blur-[22px] backdrop-brightness-[0.86] backdrop-saturate-150",
+        "bg-[rgba(15,10,5,0.45)] backdrop-blur-[16px] backdrop-saturate-[1.6]",
         scrollable && "overflow-y-auto",
         className,
       )}

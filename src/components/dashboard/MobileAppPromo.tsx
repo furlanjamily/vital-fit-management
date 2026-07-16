@@ -1,4 +1,4 @@
-import { SolidButton } from "@/components/common/form";
+import { Button } from "@/components/common/form";
 import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
 import { glassText } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
@@ -17,9 +17,9 @@ export function MobileAppPromo() {
       <p className={cn(glassText.muted, "mt-2 text-xs leading-relaxed")}>
         Manage your business whenever you want with your thumbs
       </p>
-      <SolidButton fullWidth className="mt-5">
+      <Button variant="primary" fullWidth className="mt-5">
         Download Now
-      </SolidButton>
+      </Button>
     </GlassPanel>
   );
 }

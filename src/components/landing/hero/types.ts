@@ -6,6 +6,8 @@ export type SceneBackgroundConfig = {
   overlay: string;
   blur: string;
   brightness: number;
+  saturate: number;
+  contrast: number;
 };
 
 export type MenuItem = {

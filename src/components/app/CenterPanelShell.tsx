@@ -11,7 +11,8 @@ export function CenterPanelShell({ children }: CenterPanelShellProps) {
       <GlassPanel
         variant="hero"
         intensity="high"
-        className="h-full w-full rounded-[inherit] p-5 shadow-none after:shadow-none sm:p-6"
+        elevation="base"
+        className="h-full w-full rounded-[inherit] p-5 sm:p-6"
       >
         <div
           className="flex h-full min-h-0 flex-col overflow-y-auto overscroll-contain [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"

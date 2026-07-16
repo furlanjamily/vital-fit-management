@@ -3,7 +3,6 @@
 import { CalendarDays } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import { IconButton } from "@/components/common/button/IconButton";
-import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
 import { weekdayLabels } from "@/components/settings/classes/schedule.types";
 import { glassText } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
@@ -12,6 +11,29 @@ import type { ClassGradeSlot } from "@/services/class-manager";
 type ClassGradeTooltipProps = {
   grade: ClassGradeSlot[];
 };
+
+/** Card de slot — superfície plana (sem GlassPanel) para não empilhar blur. */
+function GradeSlotCard({ slot }: { slot: ClassGradeSlot }) {
+  return (
+    <div className="rounded-xl border border-white/12 bg-white/[0.06] px-3 py-2 text-[11px]">
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+        <span className="font-semibold text-orange-300">{weekdayLabels[slot.dayOfWeek]}</span>
+        <span className="text-white/25">·</span>
+        <span className="font-mono font-medium text-amber-300">{slot.startTime}</span>
+        <span className="text-white/25">·</span>
+        <span className={cn("font-medium", glassText.primaryElevated)}>{slot.professionalName}</span>
+      </div>
+      <div className="mt-1.5 flex flex-wrap items-center gap-2 text-[10px]">
+        <span className="rounded-full border border-orange-400/30 bg-orange-500/15 px-1.5 py-0.5 font-medium text-orange-200">
+          {slot.professionalSpecialty}
+        </span>
+        <span className="rounded-full border border-amber-400/25 bg-amber-500/10 px-1.5 py-0.5 font-medium text-amber-200/90">
+          {slot.maxCapacity} vagas
+        </span>
+      </div>
+    </div>
+  );
+}
 
 function ClassGradeContent({ grade }: { grade: ClassGradeSlot[] }) {
   if (grade.length === 0) {
@@ -27,26 +49,7 @@ function ClassGradeContent({ grade }: { grade: ClassGradeSlot[] }) {
     <ul className="flex max-h-64 flex-col gap-2 overflow-y-auto scrollbar-none">
       {grade.map((slot) => (
         <li key={slot.id}>
-          <GlassPanel
-            variant="subtle"
-            intensity="medium"
-            elevation="floating"
-            className={cn("rounded-xl px-3 py-2 text-[11px]", glassText.primaryElevated)}
-          >
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-              <span className="font-semibold">{weekdayLabels[slot.dayOfWeek]}</span>
-              <span className={glassText.muted}>·</span>
-              <span className="font-mono">{slot.startTime}</span>
-              <span className={glassText.muted}>·</span>
-              <span>{slot.professionalName}</span>
-            </div>
-            <div className={cn("mt-1 flex flex-wrap items-center gap-2 text-[10px]", glassText.muted)}>
-              <span className="rounded-full border border-white/14 bg-white/8 px-1.5 py-0.5">
-                {slot.professionalSpecialty}
-              </span>
-              <span>{slot.maxCapacity} vagas</span>
-            </div>
-          </GlassPanel>
+          <GradeSlotCard slot={slot} />
         </li>
       ))}
     </ul>
@@ -123,17 +126,19 @@ export function ClassGradeTooltip({ grade }: ClassGradeTooltipProps) {
         onMouseLeave={scheduleHide}
       >
         {open ? (
-          <GlassPanel
-            variant="subtle"
-            intensity="high"
-            elevation="solid"
-            className="overflow-hidden rounded-2xl p-4"
+          <div
+            className={cn(
+              "overflow-hidden rounded-2xl border border-white/14 p-4",
+              // Opaco — evita glass-on-glass sobre o painel central
+              "bg-[rgba(46,38,30,0.97)]",
+              "shadow-[inset_0_1px_0_0_rgba(255,255,255,0.14),0_16px_40px_-12px_rgba(0,0,0,0.55)]",
+            )}
           >
-            <p className={cn("mb-3 text-xs font-semibold uppercase tracking-wide", glassText.primaryElevated)}>
+            <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-orange-300/95">
               Grade horária
             </p>
             <ClassGradeContent grade={grade} />
-          </GlassPanel>
+          </div>
         ) : null}
       </div>
     </div>

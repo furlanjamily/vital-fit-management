@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import { listAgendaEventsAction } from "@/app/(app)/agenda/actions";
+import { AGENDA_CHANGED_EVENT } from "@/components/agenda/agenda-events";
 import {
   computeDateRange,
   type AgendaViewMode,
@@ -37,7 +38,10 @@ export function useCollaborativeAgenda({
     startTransition(async () => {
       setLoadError(null);
 
-      const result = await listAgendaEventsAction(fetchRange.rangeStart, fetchRange.rangeEnd);
+      const result = await listAgendaEventsAction(
+        fetchRange.rangeStart,
+        fetchRange.rangeEnd,
+      );
 
       if (!result.success) {
         setLoadError(result.error);
@@ -50,6 +54,12 @@ export function useCollaborativeAgenda({
 
   useEffect(() => {
     refreshEvents();
+  }, [refreshEvents]);
+
+  useEffect(() => {
+    const handler = () => refreshEvents();
+    window.addEventListener(AGENDA_CHANGED_EVENT, handler);
+    return () => window.removeEventListener(AGENDA_CHANGED_EVENT, handler);
   }, [refreshEvents]);
 
   return {

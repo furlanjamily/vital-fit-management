@@ -1,9 +1,17 @@
-export { DangerButton } from "@/components/common/button/DangerButton";
-export { GhostButton } from "@/components/common/button/GhostButton";
-export { GlassButton } from "@/components/common/button/GlassButton";
-export { IconButton } from "@/components/common/button/IconButton";
-export { OutlineButton } from "@/components/common/button/OutlineButton";
-export { SolidButton } from "@/components/common/button/SolidButton";
+export {
+  Button,
+  buttonVariants,
+  DangerButton,
+  GhostButton,
+  GlassButton,
+  IconButton,
+} from "@/components/common/button";
+export type {
+  ButtonProps,
+  ButtonVariantProps,
+  GlassButtonProps,
+  IconButtonProps,
+} from "@/components/common/button";
 export { AvatarUploadTrigger } from "@/components/common/form/AvatarUploadTrigger";
 export { FormField } from "@/components/common/form/FormField";
 export { GlassSwitch } from "@/components/common/form/GlassSwitch";

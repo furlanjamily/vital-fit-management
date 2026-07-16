@@ -29,7 +29,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         variant="hero"
         intensity="high"
         elevation="base"
-        className="relative z-10 max-w-sm sm:max-w-md lg:max-w-lg  rounded-[2rem]  shadow-[0_48px_150px_rgba(32,22,14,0.38)] p-10"
+        className="relative z-10 max-w-sm rounded-[2rem] bg-transparent p-10 backdrop-blur-none sm:max-w-md lg:max-w-lg"
       >
         <header className="mb-8 text-center">
           <div className="mb-6 flex flex-col items-center gap-3">

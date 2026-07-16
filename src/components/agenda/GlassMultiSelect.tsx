@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, ChevronDown, Users, X } from "lucide-react";
 import type { AgendaUserOption } from "@/components/agenda/agenda.types";
 import { UserAvatar } from "@/components/users/UserAvatar";
-import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
 import {
   formControlFocusClassName,
   inputPaddingWithIcon,
@@ -21,6 +20,8 @@ type GlassMultiSelectProps = {
   placeholder?: string;
   disabled?: boolean;
   className?: string;
+  /** Direção do painel — `top` evita corte no rodapé de modais. */
+  placement?: "top" | "bottom";
 };
 
 export function GlassMultiSelect({
@@ -30,6 +31,7 @@ export function GlassMultiSelect({
   placeholder = "Selecionar participantes…",
   disabled = false,
   className,
+  placement = "bottom",
 }: GlassMultiSelectProps) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -131,18 +133,24 @@ export function GlassMultiSelect({
           aria-hidden
           className={cn(
             "pointer-events-none absolute right-3.5 top-3 size-4 transition",
-            glassText.muted,
+            glassText.tertiary,
             open && "rotate-180",
           )}
         />
       </div>
 
       {open ? (
-        <GlassPanel
-          elevation="solid"
-          intensity="high"
-          variant="subtle"
-          className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-[110] max-h-56 w-full overflow-y-auto rounded-xl p-1"
+        <div
+          role="listbox"
+          className={cn(
+            "absolute left-0 right-0 z-[110] max-h-56 w-full overflow-y-auto rounded-2xl p-1",
+            // Superfície opaca — sem blur (já estamos dentro do modal glass)
+            "border border-white/14 bg-[rgba(46,38,30,0.97)]",
+            "shadow-[inset_0_1px_0_0_rgba(255,255,255,0.14),0_16px_40px_-12px_rgba(0,0,0,0.55)]",
+            placement === "top"
+              ? "bottom-[calc(100%+0.5rem)]"
+              : "top-[calc(100%+0.5rem)]",
+          )}
         >
           {options.length === 0 ? (
             <p className={cn("px-3 py-2 text-xs", glassText.muted)}>Nenhum usuário disponível.</p>
@@ -154,12 +162,14 @@ export function GlassMultiSelect({
                 <button
                   key={option.id}
                   type="button"
+                  role="option"
+                  aria-selected={selected}
                   onClick={() => toggleUser(option.id)}
                   className={cn(
                     "flex w-full items-center gap-2 rounded-lg border border-transparent px-2.5 py-2 text-left text-sm transition",
                     selected
-                      ? "border-white/16 bg-white/14 backdrop-blur-[8px]"
-                      : "hover:border-white/12 hover:bg-white/10 hover:backdrop-blur-[8px]",
+                      ? "border-white/16 bg-white/12"
+                      : "hover:border-white/10 hover:bg-white/[0.08]",
                   )}
                 >
                   <UserAvatar
@@ -176,7 +186,7 @@ export function GlassMultiSelect({
               );
             })
           )}
-        </GlassPanel>
+        </div>
       ) : null}
     </div>
   );
