@@ -24,9 +24,9 @@ type RowActionsMenuProps = {
 const ACTION_TONE_CLASSES: Record<NonNullable<RowAction["tone"]>, string> = {
   default: cn(
     glassText.primaryElevated,
-    "hover:bg-white/10 hover:text-glass-primary",
+    "hover:bg-[#A0825C] hover:text-glass-primary",
   ),
-  danger: "text-red-300 hover:bg-red-500/12 hover:text-red-200",
+  danger: "text-red-300 hover:bg-[#9A4A3A] hover:text-red-100",
 };
 
 export function RowActionsMenu({
@@ -57,12 +57,16 @@ export function RowActionsMenu({
   }
 
   return (
-    <div ref={containerRef} className="relative z-30 flex justify-end">
+    <div
+      ref={containerRef}
+      className={cn("relative flex justify-end px-2", open ? "z-50" : "z-30")}
+    >
       <IconButton
         aria-label={ariaLabel}
         disabled={disabled}
         className={cn(
-          "bg-white/7 text-glass-secondary hover:bg-white/13 hover:text-glass-primary",
+          "border-white/14 bg-white/7 text-glass-secondary hover:border-white/14 hover:bg-white/7 hover:text-glass-secondary",
+          open && "invisible",
         )}
         onClick={() => setOpen((current) => !current)}
       >
@@ -71,14 +75,16 @@ export function RowActionsMenu({
 
       {open && (
         <GlassPanel
-          variant="strong"
+          role="menu"
+          variant="subtle"
           intensity="high"
-          elevation="popover"
-          className="absolute right-0 top-10 z-50 w-44 rounded-xl p-1.5"
+          elevation="solid"
+          className="absolute right-0 top-0 z-50 w-44 rounded-xl p-1.5"
         >
           {actions.map((action) => (
             <GhostButton
               key={action.label}
+              role="menuitem"
               disabled={disabled || action.disabled}
               className={cn(
                 "w-full justify-start gap-2.5 px-3 py-2 text-left",

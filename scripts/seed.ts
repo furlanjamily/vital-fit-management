@@ -1,9 +1,10 @@
 /**
  * VitalFit Management — seed completo para dashboards e financeiro
  *
- * ═══════════════════════════════════════════════════════════════════════════
- * ONDE RODAR
- * ═══════════════════════════════════════════════════════════════════════════
+ * Volume (aprox.):
+ *   • 80 alunos (mix de planos, origens, ativos/inativos, pagos/inadimplentes)
+ *   • ~6 meses de transações financeiras (mensalidades + despesas variadas)
+ *   • Check-ins dos últimos 60 dias (pico 17h–20h e manhã)
  *
  * Pré-requisitos (Supabase SQL Editor, nesta ordem):
  *   1. supabase/members.sql
@@ -26,6 +27,8 @@
  *
  * O script é IDEMPOTENTE: limpa dados anteriores marcados com @seed.vitalfit.local
  * antes de reinserir. Pode rodar quantas vezes quiser.
+ *
+ * Para carga ainda maior (stress): npm run seed:bulk
  * ═══════════════════════════════════════════════════════════════════════════
  */
 
@@ -44,6 +47,11 @@ const ROOT = resolve(__dirname, "..");
 const SEED_EMAIL_DOMAIN = "@seed.vitalfit.local";
 const SEED_TX_PREFIX = "[SEED]";
 
+/** Volume do seed — ajuste aqui se precisar de mais/menos dados. */
+const MEMBER_COUNT = 80;
+const FINANCIAL_MONTHS = 6;
+const CHECK_IN_DAYS = 60;
+
 const PLAN_PRICES = {
   MENSAL_BASE: 89.9,
   TRIMESTRAL_PREMIUM: 229.9,
@@ -54,12 +62,32 @@ type MemberPlan = keyof typeof PLAN_PRICES;
 type MemberOrigin = "ACADEMIA" | "GYMPASS" | "TOTALPASS";
 type PaymentMethod = "PIX" | "CARTAO_CREDITO" | "CARTAO_DEBITO" | "DINHEIRO" | "BOLETO";
 
+const PLANS: MemberPlan[] = ["MENSAL_BASE", "TRIMESTRAL_PREMIUM", "ANUAL_PRO"];
+const ORIGINS: MemberOrigin[] = ["ACADEMIA", "GYMPASS", "TOTALPASS"];
+
 const PAYMENT_METHODS: PaymentMethod[] = [
   "PIX",
   "CARTAO_CREDITO",
   "CARTAO_DEBITO",
   "DINHEIRO",
   "BOLETO",
+];
+
+const FIRST_NAMES = [
+  "Ana", "Bruno", "Camila", "Diego", "Eduarda", "Felipe", "Gabriela", "Henrique",
+  "Isabela", "João", "Karina", "Lucas", "Mariana", "Nicolas", "Olivia", "Paulo",
+  "Rafaela", "Samuel", "Tatiana", "Vinícius", "Amanda", "Bernardo", "Clara", "Daniel",
+  "Elisa", "Fábio", "Giovana", "Hugo", "Iara", "Júlia", "Kauê", "Larissa", "Mateus",
+  "Natália", "Otávio", "Patrícia", "Renato", "Sofia", "Thiago", "Úrsula", "Victor",
+  "Wesley", "Yasmin", "Zeca", "Alice", "Breno", "Carolina", "Davi", "Ester", "Gustavo",
+];
+
+const LAST_NAMES = [
+  "Silva", "Santos", "Oliveira", "Souza", "Lima", "Pereira", "Costa", "Ferreira",
+  "Alves", "Ribeiro", "Gomes", "Martins", "Carvalho", "Araújo", "Melo", "Barbosa",
+  "Rocha", "Dias", "Nunes", "Mendes", "Freitas", "Cardoso", "Correia", "Teixeira",
+  "Moreira", "Cavalcanti", "Monteiro", "Pinto", "Castro", "Ramos", "Vieira", "Lopes",
+  "Farias", "Cunha", "Machado", "Andrade", "Batista", "Campos", "Duarte", "Fonseca",
 ];
 
 /** 5 categorias fixas do ecossistema (legado → financial_categories). */
@@ -70,6 +98,46 @@ const FIXED_CATEGORIES = [
   { legacy: "MARKETING", name: "Marketing", type: "DESPESA" as const, color: "#FFB300", is_system: false },
   { legacy: "OPERACIONAL", name: "Operacional", type: "DESPESA" as const, color: "#F97316", is_system: false },
 ];
+
+const EXPENSE_TEMPLATES = [
+  {
+    category: "SALARIO" as const,
+    items: [
+      { desc: "Folha — recepção", amount: [2100, 2400] as const },
+      { desc: "Folha — personal trainers", amount: [7800, 9200] as const },
+      { desc: "Folha — limpeza", amount: [1600, 2000] as const },
+      { desc: "Folha — manutenção predial", amount: [1400, 1800] as const },
+    ],
+  },
+  {
+    category: "MARKETING" as const,
+    items: [
+      { desc: "Campanha Instagram Ads", amount: [450, 1200] as const },
+      { desc: "Google Ads — aquisição", amount: [380, 900] as const },
+      { desc: "Influencer local", amount: [500, 1500] as const },
+      { desc: "Panfletagem e outdoor", amount: [250, 600] as const },
+    ],
+  },
+  {
+    category: "OPERACIONAL" as const,
+    items: [
+      { desc: "Energia e água", amount: [1200, 2300] as const },
+      { desc: "Internet e telefone", amount: [280, 450] as const },
+      { desc: "Produtos de limpeza", amount: [180, 420] as const },
+      { desc: "Manutenção ar-condicionado", amount: [350, 780] as const },
+      { desc: "Aluguel / condomínio", amount: [4500, 6200] as const },
+    ],
+  },
+  {
+    category: "EQUIPAMENTO" as const,
+    items: [
+      { desc: "Halteres e anilhas", amount: [1800, 4500] as const },
+      { desc: "Manutenção esteiras", amount: [900, 2200] as const },
+      { desc: "Kit elásticos e acessórios", amount: [320, 780] as const },
+      { desc: "Bicicletas ergométricas", amount: [3500, 6800] as const },
+    ],
+  },
+] as const;
 
 // ---------------------------------------------------------------------------
 // Utilitários
@@ -133,12 +201,12 @@ function chunkArray<T>(items: T[], size: number): T[][] {
   return chunks;
 }
 
-/** Hora com peso maior no pico 17h–20h (horário local BRT, UTC-3). */
+/** Hora com peso maior no pico 17h–20h e manhã 6h–9h (horário local BRT, UTC-3). */
 function randomCheckInHour(): number {
   const roll = Math.random();
-  if (roll < 0.55) return randomBetween(17, 20);
+  if (roll < 0.48) return randomBetween(17, 20);
   if (roll < 0.72) return randomBetween(6, 9);
-  if (roll < 0.86) return randomBetween(10, 13);
+  if (roll < 0.88) return randomBetween(10, 13);
   return randomBetween(14, 16);
 }
 
@@ -151,8 +219,25 @@ function buildCheckedAt(day: Date, hour: number, minute: number): string {
   return `${y}-${m}-${d}T${hh}:${mm}:00-03:00`;
 }
 
+function buildMemberName(index: number): string {
+  const first = FIRST_NAMES[index % FIRST_NAMES.length]!;
+  const last = LAST_NAMES[Math.floor(index / FIRST_NAMES.length) % LAST_NAMES.length]!;
+  const suffix = index >= FIRST_NAMES.length * LAST_NAMES.length
+    ? ` ${Math.floor(index / (FIRST_NAMES.length * LAST_NAMES.length)) + 1}`
+    : "";
+  return `${first} ${last}${suffix}`;
+}
+
+function addPlanPeriod(date: Date, plan: MemberPlan): Date {
+  const next = new Date(date);
+  if (plan === "MENSAL_BASE") next.setMonth(next.getMonth() + 1);
+  else if (plan === "TRIMESTRAL_PREMIUM") next.setMonth(next.getMonth() + 3);
+  else next.setFullYear(next.getFullYear() + 1);
+  return next;
+}
+
 // ---------------------------------------------------------------------------
-// Dados fictícios — 20 alunos
+// Dados fictícios — alunos (perfis nomeados + gerados)
 // ---------------------------------------------------------------------------
 
 type MemberSeed = {
@@ -170,7 +255,15 @@ type MemberSeed = {
   last_payment_method: PaymentMethod | null;
 };
 
-const MEMBER_PROFILES: Omit<MemberSeed, "email" | "cpf" | "birth_date" | "created_at" | "last_payment_date" | "next_due_date" | "last_payment_method" | "payment_status">[] = [
+type MemberProfileBase = {
+  full_name: string;
+  origin: MemberOrigin;
+  plan: MemberPlan;
+  status: boolean;
+};
+
+/** Perfis fixos (cenários de teste conhecidos) — o restante é gerado. */
+const NAMED_PROFILES: MemberProfileBase[] = [
   { full_name: "Ana Clara Mendes", origin: "ACADEMIA", plan: "MENSAL_BASE", status: true },
   { full_name: "Bruno Henrique Silva", origin: "GYMPASS", plan: "TRIMESTRAL_PREMIUM", status: true },
   { full_name: "Camila Rocha", origin: "TOTALPASS", plan: "MENSAL_BASE", status: true },
@@ -193,35 +286,64 @@ const MEMBER_PROFILES: Omit<MemberSeed, "email" | "cpf" | "birth_date" | "create
   { full_name: "Vinícius Araújo", origin: "ACADEMIA", plan: "MENSAL_BASE", status: true },
 ];
 
-/** Dias desde o cadastro — espalhados nos últimos ~6 meses para métricas de novos alunos. */
-const CREATED_AT_OFFSETS = [3, 7, 12, 18, 25, 32, 41, 48, 55, 63, 72, 81, 95, 108, 120, 135, 150, 165, 178, 190];
+function buildMemberProfiles(): MemberProfileBase[] {
+  const profiles: MemberProfileBase[] = [...NAMED_PROFILES];
+
+  for (let i = profiles.length; i < MEMBER_COUNT; i += 1) {
+    // ~18% inativos; planos e origens bem distribuídos
+    const status = i % 6 !== 5;
+    profiles.push({
+      full_name: buildMemberName(i),
+      origin: ORIGINS[i % ORIGINS.length]!,
+      plan: PLANS[i % PLANS.length]!,
+      status,
+    });
+  }
+
+  return profiles.slice(0, MEMBER_COUNT);
+}
 
 function buildMembersSeed(): MemberSeed[] {
-  const today = new Date();
-  today.setHours(12, 0, 0, 0);
+  const profiles = buildMemberProfiles();
 
-  return MEMBER_PROFILES.map((profile, index) => {
-    const slot = String(index + 1).padStart(2, "0");
+  return profiles.map((profile, index) => {
+    const slot = String(index + 1).padStart(3, "0");
     const email = `aluno${slot}${SEED_EMAIL_DOMAIN}`;
     const cpf = String(70000000000 + index + 1).padStart(11, "0");
-    const createdAt = daysAgo(CREATED_AT_OFFSETS[index] ?? index * 10);
+
+    // Cadastros espalhados nos últimos ~8 meses
+    const createdOffset = Math.min(240, 2 + Math.floor((index / MEMBER_COUNT) * 220) + (index % 7));
+    const createdAt = daysAgo(createdOffset);
     const isActive = profile.status;
-    const paid = isActive && index % 3 !== 0;
 
-    const lastPayment = paid ? daysAgo(randomBetween(1, 20)) : null;
-    const nextDue = paid
-      ? new Date(lastPayment!)
-      : isActive
-        ? daysAgo(-randomBetween(3, 12))
-        : null;
+    // Variedade de pagamento: pago, inadimplente, vencido, inativo sem cobrança
+    let paid = false;
+    let lastPayment: Date | null = null;
+    let nextDue: Date | null = null;
 
-    if (nextDue && lastPayment) {
-      if (profile.plan === "MENSAL_BASE") nextDue.setMonth(nextDue.getMonth() + 1);
-      else if (profile.plan === "TRIMESTRAL_PREMIUM") nextDue.setMonth(nextDue.getMonth() + 3);
-      else nextDue.setFullYear(nextDue.getFullYear() + 1);
+    if (!isActive) {
+      paid = false;
+      if (index % 2 === 0) {
+        lastPayment = daysAgo(randomBetween(40, 120));
+        nextDue = addPlanPeriod(lastPayment, profile.plan);
+      }
+    } else if (index % 5 === 0) {
+      // Inadimplente ativo (venceu há poucos dias)
+      paid = false;
+      lastPayment = daysAgo(randomBetween(35, 55));
+      nextDue = daysAgo(randomBetween(1, 12));
+    } else if (index % 5 === 1) {
+      // Em dia, vence em breve
+      paid = true;
+      lastPayment = daysAgo(randomBetween(1, 10));
+      nextDue = daysAgo(-randomBetween(1, 8));
+    } else {
+      paid = true;
+      lastPayment = daysAgo(randomBetween(5, 25));
+      nextDue = addPlanPeriod(lastPayment, profile.plan);
     }
 
-    const birthYear = 1985 + (index % 18);
+    const birthYear = 1980 + (index % 28);
 
     return {
       ...profile,
@@ -232,7 +354,7 @@ function buildMembersSeed(): MemberSeed[] {
       created_at: createdAt.toISOString(),
       last_payment_date: lastPayment ? toIsoDate(lastPayment) : null,
       next_due_date: nextDue ? toIsoDate(nextDue) : null,
-      last_payment_method: paid ? randomPick(PAYMENT_METHODS) : null,
+      last_payment_method: lastPayment ? randomPick(PAYMENT_METHODS) : null,
     };
   });
 }
@@ -350,17 +472,26 @@ type InsertedMember = {
 };
 
 async function insertMembers(supabase: SupabaseClient): Promise<InsertedMember[]> {
-  console.log("→ Inserindo 20 alunos…");
+  console.log(`→ Inserindo ${MEMBER_COUNT} alunos…`);
 
   const payload = buildMembersSeed();
-  const { data, error } = await supabase.from("members").insert(payload).select("id, full_name, plan, status");
 
-  if (error) {
-    if (error.message.includes("Could not find the table")) {
-      fail("Tabela members não existe. Execute supabase/members.sql.");
+  for (const chunk of chunkArray(payload, 50)) {
+    const { error } = await supabase.from("members").insert(chunk);
+    if (error) {
+      if (error.message.includes("Could not find the table")) {
+        fail("Tabela members não existe. Execute supabase/members.sql.");
+      }
+      fail(`Erro ao inserir alunos: ${error.message}`);
     }
-    fail(`Erro ao inserir alunos: ${error.message}`);
   }
+
+  const { data, error: fetchError } = await supabase
+    .from("members")
+    .select("id, full_name, plan, status")
+    .like("email", `%${SEED_EMAIL_DOMAIN}`);
+
+  if (fetchError) fail(`Erro ao buscar alunos inseridos: ${fetchError.message}`);
 
   const members = (data ?? []) as InsertedMember[];
   const active = members.filter((m) => m.status).length;
@@ -371,7 +502,7 @@ async function insertMembers(supabase: SupabaseClient): Promise<InsertedMember[]
 }
 
 // ---------------------------------------------------------------------------
-// Transações financeiras (últimos 3 meses)
+// Transações financeiras (últimos N meses)
 // ---------------------------------------------------------------------------
 
 type TransactionInsert = {
@@ -391,10 +522,13 @@ function buildFinancialTransactions(
   const transactions: TransactionInsert[] = [];
   const activeMembers = members.filter((m) => m.status);
 
-  for (let monthOffset = 0; monthOffset < 3; monthOffset += 1) {
+  for (let monthOffset = 0; monthOffset < FINANCIAL_MONTHS; monthOffset += 1) {
     const monthAnchor = daysAgo(monthOffset * 30 + 5);
 
+    // ~85% dos ativos pagam mensalidade no mês (simula churn/atraso)
     for (const member of activeMembers) {
+      if (Math.random() > 0.85 && monthOffset > 0) continue;
+
       const payDay = randomBetween(1, 28);
       const payDate = new Date(monthAnchor.getFullYear(), monthAnchor.getMonth(), payDay);
       const amount = PLAN_PRICES[member.plan];
@@ -412,65 +546,33 @@ function buildFinancialTransactions(
       });
     }
 
-    const salaryDay = new Date(monthAnchor.getFullYear(), monthAnchor.getMonth(), 5);
-    const salaries = [
-      { desc: "Folha — recepção", amount: 2200 },
-      { desc: "Folha — personal trainers (3)", amount: 8400 },
-      { desc: "Folha — limpeza", amount: 1800 },
-    ];
+    // Despesas mensais por categoria
+    for (const template of EXPENSE_TEMPLATES) {
+      const categoryId = categories[template.category];
+      if (!categoryId) continue;
 
-    for (const salary of salaries) {
-      transactions.push({
-        member_id: null,
-        description: `${SEED_TX_PREFIX} ${salary.desc}`,
-        amount: salary.amount,
-        type: "DESPESA",
-        category_id: categories.SALARIO!,
-        payment_method: "PIX",
-        transaction_date: toIsoDate(salaryDay),
-      });
-    }
+      for (const item of template.items) {
+        // Equipamentos: nem todo mês; marketing: 2–3 itens/mês
+        if (template.category === "EQUIPAMENTO" && monthOffset % 2 === 1 && Math.random() < 0.4) {
+          continue;
+        }
+        if (template.category === "MARKETING" && Math.random() < 0.25) continue;
 
-    transactions.push({
-      member_id: null,
-      description: `${SEED_TX_PREFIX} Campanha Instagram — mês ${monthAnchor.getMonth() + 1}`,
-      amount: randomBetween(450, 900),
-      type: "DESPESA",
-      category_id: categories.MARKETING!,
-      payment_method: randomPick(["PIX", "CARTAO_CREDITO"] as const),
-      transaction_date: toIsoDate(new Date(monthAnchor.getFullYear(), monthAnchor.getMonth(), 12)),
-    });
+        const [min, max] = item.amount;
+        const day = randomBetween(3, 26);
 
-    transactions.push({
-      member_id: null,
-      description: `${SEED_TX_PREFIX} Energia e água`,
-      amount: randomBetween(1200, 2100),
-      type: "DESPESA",
-      category_id: categories.OPERACIONAL!,
-      payment_method: "BOLETO",
-      transaction_date: toIsoDate(new Date(monthAnchor.getFullYear(), monthAnchor.getMonth(), 8)),
-    });
-
-    transactions.push({
-      member_id: null,
-      description: `${SEED_TX_PREFIX} Manutenção ar-condicionado`,
-      amount: randomBetween(350, 650),
-      type: "DESPESA",
-      category_id: categories.OPERACIONAL!,
-      payment_method: "PIX",
-      transaction_date: toIsoDate(new Date(monthAnchor.getFullYear(), monthAnchor.getMonth(), 20)),
-    });
-
-    if (monthOffset < 2) {
-      transactions.push({
-        member_id: null,
-        description: `${SEED_TX_PREFIX} Halteres e anilhas`,
-        amount: randomBetween(2800, 5200),
-        type: "DESPESA",
-        category_id: categories.EQUIPAMENTO!,
-        payment_method: "CARTAO_CREDITO",
-        transaction_date: toIsoDate(new Date(monthAnchor.getFullYear(), monthAnchor.getMonth(), 18)),
-      });
+        transactions.push({
+          member_id: null,
+          description: `${SEED_TX_PREFIX} ${item.desc}`,
+          amount: randomBetween(min, max),
+          type: "DESPESA",
+          category_id: categoryId,
+          payment_method: randomPick(PAYMENT_METHODS),
+          transaction_date: toIsoDate(
+            new Date(monthAnchor.getFullYear(), monthAnchor.getMonth(), day),
+          ),
+        });
+      }
     }
   }
 
@@ -482,7 +584,7 @@ async function insertFinancialTransactions(
   members: InsertedMember[],
   categories: CategoryMap,
 ) {
-  console.log("→ Gerando transações dos últimos 3 meses…");
+  console.log(`→ Gerando transações dos últimos ${FINANCIAL_MONTHS} meses…`);
 
   const payload = buildFinancialTransactions(members, categories);
 
@@ -507,7 +609,7 @@ async function insertFinancialTransactions(
 }
 
 // ---------------------------------------------------------------------------
-// Check-ins (últimos 30 dias, pico 17h–20h)
+// Check-ins (últimos N dias, pico 17h–20h + manhã)
 // ---------------------------------------------------------------------------
 
 type CheckInInsert = {
@@ -531,21 +633,27 @@ function buildCheckIns(members: InsertedMember[], classIds: string[]): CheckInIn
   const checkIns: CheckInInsert[] = [];
   const activeMembers = members.filter((m) => m.status);
 
-  for (let dayOffset = 0; dayOffset < 30; dayOffset += 1) {
+  for (let dayOffset = 0; dayOffset < CHECK_IN_DAYS; dayOffset += 1) {
     const day = daysAgo(dayOffset);
     const weekday = day.getDay();
     const isWeekend = weekday === 0 || weekday === 6;
-    const attendanceRate = isWeekend ? 0.45 : 0.75;
+    const attendanceRate = isWeekend ? 0.4 : 0.72;
 
     for (const member of activeMembers) {
       if (Math.random() > attendanceRate) continue;
 
-      const visitsToday = dayOffset === 0 ? randomBetween(1, 2) : Math.random() < 0.12 ? 2 : 1;
+      const visitsToday =
+        dayOffset === 0
+          ? randomBetween(1, 2)
+          : Math.random() < 0.15
+            ? 2
+            : 1;
 
       for (let visit = 0; visit < visitsToday; visit += 1) {
-        const hour = dayOffset === 0 && visit === 0
-          ? randomBetween(17, 20)
-          : randomCheckInHour();
+        const hour =
+          dayOffset === 0 && visit === 0
+            ? randomBetween(17, 20)
+            : randomCheckInHour();
 
         checkIns.push({
           member_id: member.id,
@@ -564,7 +672,7 @@ async function insertCheckIns(
   members: InsertedMember[],
   classIds: string[],
 ) {
-  console.log("→ Gerando check-ins dos últimos 30 dias…");
+  console.log(`→ Gerando check-ins dos últimos ${CHECK_IN_DAYS} dias…`);
 
   const payload = buildCheckIns(members, classIds);
 
@@ -579,7 +687,7 @@ async function insertCheckIns(
   }
 
   const peakCount = payload.filter((row) => {
-    const hour = new Date(row.checked_at).getHours();
+    const hour = Number(row.checked_at.slice(11, 13));
     return hour >= 17 && hour <= 20;
   }).length;
 
@@ -629,7 +737,7 @@ async function main() {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
-  console.log("\n🏋️  VitalFit — seed de dados fictícios\n");
+  console.log("\n🏋️  VitalFit — seed de dados fictícios (volume ampliado)\n");
 
   await clearPreviousSeed(supabase);
   await ensureGymSettings(supabase);
@@ -662,7 +770,11 @@ async function main() {
   console.log(`  Alunos seed:        ${memberCount ?? 0}`);
   console.log(`  Transações seed:    ${txCount ?? 0}`);
   console.log(`  Check-ins (ativos): ${checkInCount ?? 0}`);
+  console.log(`  Janela financeira:  ${FINANCIAL_MONTHS} meses`);
+  console.log(`  Janela check-ins:   ${CHECK_IN_DAYS} dias`);
   console.log("\nDashboards prontos em /dashboard e /finance.");
+  console.log("Aulas/grade: npm run seed:classes");
+  console.log("Stress ainda maior: npm run seed:bulk");
   console.log("Reexecute com: npm run seed\n");
 }
 

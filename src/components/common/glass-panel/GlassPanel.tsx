@@ -3,7 +3,7 @@ import { cn } from "@/lib/cn";
 
 type GlassVariant = "default" | "hero" | "strong" | "subtle";
 type GlassIntensity = "low" | "medium" | "high";
-type GlassElevation = "base" | "floating" | "popover" | "modal";
+type GlassElevation = "base" | "floating" | "popover" | "modal" | "solid";
 
 type GlassPanelProps = ComponentPropsWithoutRef<"div"> & {
   variant?: GlassVariant;
@@ -13,13 +13,13 @@ type GlassPanelProps = ComponentPropsWithoutRef<"div"> & {
 
 const variantClasses: Record<GlassVariant, string> = {
   subtle:
-    "bg-[linear-gradient(145deg,rgba(255,255,255,0.095),rgba(255,255,255,0.028)_58%,rgba(255,255,255,0.016))] shadow-[0_18px_58px_rgba(32,22,14,0.2)] backdrop-blur-[20px]",
+    "bg-[linear-gradient(145deg,rgba(255,255,255,0.095),rgba(255,255,255,0.028)_58%,rgba(255,255,255,0.016))] shadow-[0_1px_2px_rgba(0,0,0,0.06),0_8px_24px_rgba(0,0,0,0.12)] backdrop-blur-[20px]",
   default:
-    "bg-[linear-gradient(145deg,rgba(255,255,255,0.115),rgba(255,255,255,0.04)_52%,rgba(255,255,255,0.018))] shadow-[0_30px_96px_rgba(32,22,14,0.28)] backdrop-blur-[28px]",
+    "bg-[linear-gradient(145deg,rgba(255,255,255,0.115),rgba(255,255,255,0.04)_52%,rgba(255,255,255,0.018))] shadow-[0_2px_4px_rgba(0,0,0,0.08),0_12px_36px_rgba(0,0,0,0.16)] backdrop-blur-[28px]",
   hero:
-    "bg-[linear-gradient(145deg,rgba(255,255,255,0.155),rgba(255,255,255,0.058)_44%,rgba(255,255,255,0.024)_100%)] shadow-[0_48px_150px_rgba(32,22,14,0.38),0_16px_58px_rgba(255,255,255,0.05)] backdrop-blur-[36px]",
+    "bg-[linear-gradient(145deg,rgba(255,255,255,0.155),rgba(255,255,255,0.058)_44%,rgba(255,255,255,0.024)_100%)] shadow-[0_4px_8px_rgba(0,0,0,0.1),0_20px_56px_rgba(0,0,0,0.2)] backdrop-blur-[36px]",
   strong:
-    "bg-[linear-gradient(145deg,rgba(255,255,255,0.125),rgba(255,255,255,0.045)_54%,rgba(255,255,255,0.018))] shadow-[0_38px_124px_rgba(32,22,14,0.34)] backdrop-blur-[30px]",
+    "bg-[linear-gradient(145deg,rgba(255,255,255,0.125),rgba(255,255,255,0.045)_54%,rgba(255,255,255,0.018))] shadow-[0_2px_6px_rgba(0,0,0,0.08),0_16px_44px_rgba(0,0,0,0.18)] backdrop-blur-[30px]",
 };
 
 /**
@@ -32,6 +32,8 @@ const variantClasses: Record<GlassVariant, string> = {
  * - popover:  menus/dropdowns — denser frost + warm underlay for text legibility.
  * - modal:    top-most layer — low blur, denser white frost + warm underlay
  *             for legibility over the scrim (glass on glass), no solid black.
+ * - solid:    menus/tooltips over dense UI — opaque warm base (no bleed-through)
+ *             with glass shine/border on top.
  *
  * These are merged AFTER variantClasses via cn()/tailwind-merge, so the
  * elevation's backdrop-blur and shadow win over the variant's without
@@ -40,11 +42,13 @@ const variantClasses: Record<GlassVariant, string> = {
 const elevationClasses: Record<GlassElevation, string> = {
   base: "backdrop-saturate-150 backdrop-brightness-[0.88]",
   floating:
-    "backdrop-blur-[12px] backdrop-saturate-150 backdrop-brightness-[0.9] bg-white/5 shadow-2xl shadow-orange-950/15",
+    "backdrop-blur-[12px] backdrop-saturate-150 backdrop-brightness-[0.9] bg-white/5 shadow-[0_2px_4px_rgba(0,0,0,0.08),0_12px_32px_rgba(0,0,0,0.16)]",
   popover:
-    "backdrop-blur-[12px] backdrop-saturate-[1.75] backdrop-brightness-[0.85] bg-[linear-gradient(155deg,rgba(255,255,255,0.3)_0%,rgba(255,255,255,0.18)_42%,rgba(255,238,215,0.13)_100%)] shadow-[0_24px_72px_rgba(42,28,17,0.44),0_8px_28px_rgba(255,255,255,0.06)]",
+    "backdrop-blur-[14px] backdrop-saturate-[1.8] backdrop-brightness-[0.78] bg-[linear-gradient(155deg,rgba(255,255,255,0.42)_0%,rgba(255,255,255,0.26)_42%,rgba(255,236,210,0.2)_100%)] shadow-[0_2px_6px_rgba(0,0,0,0.1),0_12px_40px_rgba(0,0,0,0.2)]",
   modal:
-    "backdrop-blur-[10px] backdrop-saturate-[1.8] backdrop-brightness-[0.84] bg-[linear-gradient(155deg,rgba(255,255,255,0.34)_0%,rgba(255,255,255,0.2)_40%,rgba(255,240,220,0.14)_100%)] shadow-[0_36px_110px_rgba(42,28,17,0.48),0_12px_40px_rgba(255,255,255,0.07)]",
+    "backdrop-blur-[12px] backdrop-saturate-[1.85] backdrop-brightness-[0.76] bg-[linear-gradient(155deg,rgba(255,255,255,0.46)_0%,rgba(255,255,255,0.28)_40%,rgba(255,236,210,0.22)_100%)] shadow-[0_4px_10px_rgba(0,0,0,0.12),0_18px_52px_rgba(0,0,0,0.22)]",
+  solid:
+    "backdrop-blur-none bg-[#8B6F4E] shadow-[0_1px_2px_rgba(0,0,0,0.1),0_6px_16px_rgba(0,0,0,0.18)]",
 };
 
 const intensityVars: Record<GlassIntensity, CSSProperties> = {
@@ -89,13 +93,19 @@ export function GlassPanel({
       {elevation === "modal" ? (
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 rounded-[inherit] bg-[linear-gradient(165deg,rgba(255,255,255,0.1)_0%,rgba(255,248,235,0.06)_44%,rgba(52,26,10,0.28)_100%)]"
+          className="pointer-events-none absolute inset-0 rounded-[inherit] bg-[linear-gradient(165deg,rgba(255,255,255,0.16)_0%,rgba(255,248,235,0.1)_40%,rgba(42,20,8,0.52)_100%)]"
         />
       ) : null}
       {elevation === "popover" ? (
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 rounded-[inherit] bg-[linear-gradient(165deg,rgba(255,255,255,0.09)_0%,rgba(255,248,235,0.05)_44%,rgba(48,24,10,0.24)_100%)]"
+          className="pointer-events-none absolute inset-0 rounded-[inherit] bg-[linear-gradient(165deg,rgba(255,255,255,0.14)_0%,rgba(255,248,235,0.09)_40%,rgba(42,20,8,0.48)_100%)]"
+        />
+      ) : null}
+      {elevation === "solid" ? (
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 rounded-[inherit] bg-[linear-gradient(155deg,rgba(255,255,255,0.22)_0%,rgba(255,248,235,0.1)_42%,rgba(255,255,255,0.04)_100%)]"
         />
       ) : null}
       <div className="relative z-10 flex h-full min-h-0 flex-col">{children}</div>

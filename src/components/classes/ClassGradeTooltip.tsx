@@ -26,26 +26,27 @@ function ClassGradeContent({ grade }: { grade: ClassGradeSlot[] }) {
   return (
     <ul className="flex max-h-64 flex-col gap-2 overflow-y-auto scrollbar-none">
       {grade.map((slot) => (
-        <li
-          key={slot.id}
-          className={cn(
-            "rounded-xl border border-orange-400/30 bg-white/10 px-3 py-2 text-[11px]",
-            glassText.primaryElevated,
-          )}
-        >
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <span className="font-semibold">{weekdayLabels[slot.dayOfWeek]}</span>
-            <span className={glassText.muted}>·</span>
-            <span className="font-mono">{slot.startTime}</span>
-            <span className={glassText.muted}>·</span>
-            <span>{slot.professionalName}</span>
-          </div>
-          <div className={cn("mt-1 flex flex-wrap items-center gap-2 text-[10px]", glassText.muted)}>
-            <span className="rounded-full border border-white/10 px-1.5 py-0.5">
-              {slot.professionalSpecialty}
-            </span>
-            <span>{slot.maxCapacity} vagas</span>
-          </div>
+        <li key={slot.id}>
+          <GlassPanel
+            variant="subtle"
+            intensity="medium"
+            elevation="floating"
+            className={cn("rounded-xl px-3 py-2 text-[11px]", glassText.primaryElevated)}
+          >
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <span className="font-semibold">{weekdayLabels[slot.dayOfWeek]}</span>
+              <span className={glassText.muted}>·</span>
+              <span className="font-mono">{slot.startTime}</span>
+              <span className={glassText.muted}>·</span>
+              <span>{slot.professionalName}</span>
+            </div>
+            <div className={cn("mt-1 flex flex-wrap items-center gap-2 text-[10px]", glassText.muted)}>
+              <span className="rounded-full border border-white/14 bg-white/8 px-1.5 py-0.5">
+                {slot.professionalSpecialty}
+              </span>
+              <span>{slot.maxCapacity} vagas</span>
+            </div>
+          </GlassPanel>
         </li>
       ))}
     </ul>
@@ -125,12 +126,8 @@ export function ClassGradeTooltip({ grade }: ClassGradeTooltipProps) {
           <GlassPanel
             variant="subtle"
             intensity="high"
-            elevation="popover"
-            className={cn(
-              "overflow-hidden rounded-2xl p-4",
-              "bg-[linear-gradient(155deg,rgba(255,255,255,0.2)_0%,rgba(255,240,220,0.12)_48%,rgba(44,28,18,0.55)_100%)]",
-              "shadow-[0_22px_64px_rgba(42,28,17,0.36),0_8px_24px_rgba(255,255,255,0.06)]",
-            )}
+            elevation="solid"
+            className="overflow-hidden rounded-2xl p-4"
           >
             <p className={cn("mb-3 text-xs font-semibold uppercase tracking-wide", glassText.primaryElevated)}>
               Grade horária

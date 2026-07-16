@@ -123,7 +123,7 @@ export function UsersContent({ initialUsers, loadError = null }: UsersContentPro
   ];
 
   return (
-    <div className="flex h-full min-h-0 w-full flex-col gap-6">
+    <div className="flex min-h-full w-full flex-col gap-6 lg:h-full lg:min-h-0">
       <div className="mb-2 flex items-center justify-between gap-4">
         <div>
           <h1 className={glassTextStyles.pageTitle}>Gestão de Usuários</h1>
@@ -152,7 +152,7 @@ export function UsersContent({ initialUsers, loadError = null }: UsersContentPro
         searchPlaceholder="Buscar por nome, e-mail..."
         emptyMessage="Nenhum usuário encontrado."
         rowClassName={(user) => (user.status === "inactive" ? "opacity-50" : undefined)}
-        className="min-h-0 flex-1"
+        className="lg:min-h-0 lg:flex-1"
       />
 
       {formOpen && (

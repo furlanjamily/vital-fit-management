@@ -2,8 +2,9 @@
 
 import type { CSSProperties, ReactNode } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronDown, SquareArrowUp } from "lucide-react";
+import { SquareArrowUp } from "lucide-react";
 import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
+import { GlassSelect } from "@/components/common/select/GlassSelect";
 import { RevenueOverviewExactSkeleton } from "@/components/dashboard/RevenueOverviewExactSkeleton";
 import { InlineAlert } from "@/components/common/feedback/InlineAlert";
 import { formatBrlAmount, formatRevenueTooltipLabel, resolveRevenueChartLayout } from "@/components/finance/finance.helpers";
@@ -18,6 +19,11 @@ import {
 } from "@/hooks/useRevenueChartData";
 import { useDragScroll } from "@/hooks/useDragScroll";
 import { cn } from "@/lib/cn";
+
+const REVENUE_FILTER_SELECT_OPTIONS = REVENUE_CHART_FILTER_OPTIONS.map((value) => ({
+  value,
+  label: REVENUE_CHART_FILTER_LABELS[value],
+}));
 
 export { RevenueOverviewExactSkeleton as RevenueOverviewExactLoading } from "@/components/dashboard/RevenueOverviewExactSkeleton";
 
@@ -214,8 +220,6 @@ export function RevenueOverviewExact({
 }: RevenueOverviewExactProps) {
   const [internalFilter, setInternalFilter] = useState<RevenueChartFilter>("yearly");
   const filter = controlledFilter ?? internalFilter;
-  const [filterOpen, setFilterOpen] = useState(false);
-  const filterRef = useRef<HTMLDivElement>(null);
   const chartAreaRef = useRef<HTMLDivElement>(null);
   const chartPlotRef = useRef<HTMLDivElement>(null);
   const chartRowRef = useRef<HTMLDivElement>(null);
@@ -245,19 +249,6 @@ export function RevenueOverviewExact({
     observer.observe(element);
     return () => observer.disconnect();
   }, [isLoading, filter]);
-
-  useEffect(() => {
-    if (!filterOpen) return;
-
-    function handlePointerDown(event: MouseEvent) {
-      if (!filterRef.current?.contains(event.target as Node)) {
-        setFilterOpen(false);
-      }
-    }
-
-    document.addEventListener("mousedown", handlePointerDown);
-    return () => document.removeEventListener("mousedown", handlePointerDown);
-  }, [filterOpen]);
 
   const { displayBars, maxRevenueInPeriod, peakBarIndex, peakValue } = useMemo(() => {
     const maxRevenue = bars.reduce((max, bar) => Math.max(max, bar.value), 0);
@@ -409,56 +400,22 @@ export function RevenueOverviewExact({
           </p>
         </div>
 
-        <div className="flex shrink-0 items-center gap-1.5 self-start">
-          <div ref={filterRef} className="relative">
-            <RevenueGlass className="rounded-full">
-              <button
-                type="button"
-                aria-expanded={filterOpen}
-                aria-haspopup="listbox"
-                onClick={() => setFilterOpen((current) => !current)}
-                className={cn(
-                  "flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-medium transition-colors hover:bg-white/8",
-                  glassText.secondary,
-                )}
-              >
-                {REVENUE_CHART_FILTER_LABELS[filter]}
-                <ChevronDown className={cn("size-3", glassText.tertiary)} strokeWidth={2.25} />
-              </button>
-            </RevenueGlass>
-
-            {filterOpen ? (
-              <RevenueGlass className="absolute right-0 z-50 mt-1.5 min-w-[9rem] rounded-xl py-1">
-                <ul role="listbox" aria-label="Período de receitas">
-                  {REVENUE_CHART_FILTER_OPTIONS.map((option) => (
-                    <li key={option}>
-                      <button
-                        type="button"
-                        role="option"
-                        aria-selected={filter === option}
-                        onClick={() => {
-                          if (onFilterChange) {
-                            onFilterChange(option);
-                          } else {
-                            setInternalFilter(option);
-                          }
-                          setFilterOpen(false);
-                        }}
-                        className={cn(
-                          "w-full px-3 py-1.5 text-left text-[11px] font-medium transition-colors hover:bg-white/8",
-                          filter === option ? glassText.primary : glassText.secondary,
-                        )}
-                      >
-                        {REVENUE_CHART_FILTER_LABELS[option]}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </RevenueGlass>
-            ) : null}
-          </div>
-
-        </div>
+          <GlassSelect
+            aria-label="Período de receitas"
+            selectSize="sm"
+            tone="muted"
+            value={filter}
+            options={REVENUE_FILTER_SELECT_OPTIONS}
+            onChange={(event) => {
+              const nextFilter = event.target.value as RevenueChartFilter;
+              if (onFilterChange) {
+                onFilterChange(nextFilter);
+              } else {
+                setInternalFilter(nextFilter);
+              }
+            }}
+            wrapperClassName="w-auto"
+          />
       </div>
 
       {error ? (

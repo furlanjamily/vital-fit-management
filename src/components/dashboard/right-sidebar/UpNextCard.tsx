@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { Clock, CalendarDays } from "lucide-react";
+import { Clock, CalendarDays, PlusIcon } from "lucide-react";
 import type { AgendaEvent } from "@/components/agenda/agenda.types";
 import { eventTypeLabels } from "@/components/agenda/agenda.types";
 import { formatUpNextSchedule } from "@/components/dashboard/right-sidebar/right-sidebar.helpers";
 import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
-import { GhostButton, OutlineButton } from "@/components/common/form";
+import { GhostButton, GlassButton } from "@/components/common/form";
 import { glassText, glassTextStyles } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
 
@@ -24,7 +24,7 @@ export function UpNextCard({ event, countdown, isLoading = false, className }: U
         variant="subtle"
         intensity="low"
         elevation="floating"
-        className={cn("w-full min-w-0 rounded-[20px] p-4", className)}
+        className={cn("min-w-0 rounded-[20px] p-4", className)}
       >
         <div className="animate-pulse space-y-3">
           <div className="h-3 w-24 rounded bg-white/10" />
@@ -51,20 +51,27 @@ export function UpNextCard({ event, countdown, isLoading = false, className }: U
             <p className={cn("text-[10px] font-semibold uppercase tracking-wide", glassText.muted)}>
               Próximos eventos
             </p>
-            <p className={cn("mt-1 text-sm font-semibold leading-snug", glassText.primary)}>
-              Sem eventos para hoje
+            <p className={cn("mt-1 text-sm font-medium leading-snug", glassText.secondary)}>
+              Sem eventos para hoje! 😎 
             </p>
-            <p className={cn("mt-1.5 text-xs leading-relaxed", glassText.secondary)}>
-              Sua agenda está livre. Crie um compromisso para manter a equipe alinhada.
-            </p>
-            <Link
-              href="/agenda"
-              className="mt-3 inline-flex text-xs font-semibold text-orange-600 transition hover:text-orange-500"
-            >
-              + Adicionar evento
-            </Link>
+
           </div>
         </div>
+
+        {/* <div className="w-full justify-center items-center">
+          <p className="mt-1.5 text-xs leading-relaxed text-center px-2 text-orange-600">
+            Sua agenda está livre!😎 </p>
+        </div> */}
+        <GlassButton
+          href="/agenda"
+          variant="subtle"
+          size="sm"
+          shape="pill"
+          panelClassName="mt-3"
+          leftIcon={<PlusIcon className="size-2" />}
+        >
+          Adicionar evento
+        </GlassButton>
       </GlassPanel>
     );
   }

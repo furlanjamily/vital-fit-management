@@ -116,12 +116,12 @@ export function AgendaContentClient({
   }, [removingEvent, refreshEvents]);
 
   return (
-    <div className="flex h-full min-h-0 w-full flex-col gap-6">
+    <div className="flex min-h-full w-full flex-col gap-6 lg:h-full lg:min-h-0 p-2">
       <div className="flex shrink-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className={glassTextStyles.pageTitle}>Agenda colaborativa</h1>
+          <h1 className={glassTextStyles.pageTitle}>Agenda</h1>
           <p className={cn("mt-1 text-sm", glassText.muted)}>
-            Reuniões, tarefas e compromissos compartilhados com sua equipe.
+            Reuniões, tarefas e eventos compartilhados com sua equipe.
           </p>
         </div>
 
@@ -139,7 +139,7 @@ export function AgendaContentClient({
       {errorMessage ? <InlineAlert className="shrink-0">{errorMessage}</InlineAlert> : null}
 
       <CollaborativeCalendar
-        className="min-h-0 flex-1"
+        className="lg:min-h-0 lg:flex-1"
         events={sortedEvents}
         viewMode={viewMode}
         referenceDate={referenceDate}

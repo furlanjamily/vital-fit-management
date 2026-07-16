@@ -1,5 +1,7 @@
 # VitalFit Management - Contexto Completo do Sistema
 
+> Última atualização: jul/2026
+
 Use este arquivo como contexto base em prompts futuros. Ele descreve o estado atual do projeto, a arquitetura, a direção visual e as regras importantes para qualquer alteração.
 
 ## Resumo Do Projeto
@@ -22,7 +24,7 @@ A experiência logada deve parecer uma interface fitness premium “flutuando”
 
 **Autenticação:** rotas do app `(app)/` exigem sessão Supabase. `/login` é pública. Proxy em `src/proxy.ts` (Next.js 16) delega para `src/lib/supabase/middleware.ts`.
 
-**Integração com API:** o projeto prioriza **dados reais via Supabase** e **Server Actions seguras** (com `try/catch`, validação Zod e retorno padronizado). Dados mockados permanecem apenas em áreas legadas ou de demonstração visual (dashboard KPIs, hero scene).
+**Integração com API:** o projeto prioriza **dados reais via Supabase** e **Server Actions seguras** (com `try/catch`, validação Zod e retorno padronizado). Dados mockados permanecem apenas em áreas legadas ou de demonstração visual (KPIs/gráficos do dashboard, hero scene). Módulos com dados reais: alunos, usuários, profissionais, classes/agendamentos, **financeiro**, **agenda colaborativa**.
 
 **Estado atual da cena desktop:** `DesktopAppShell` renderiza três painéis em perspectiva (esquerdo, central, direito). O conteúdo de cada rota aparece no painel central via `CenterPanelShell`.
 
@@ -55,6 +57,9 @@ npm run seed:members   # popula tabela public.members (script local)
 npm run seed           # seed completo: membros, financeiro e check-ins
 npm run seed:bulk      # seed de alta densidade para teste de carga
 npm run seed:classes   # profissionais, grade e agendamentos de aulas
+npm run seed:agenda    # eventos e participantes da agenda colaborativa
+npm run seed:test-flow # fluxo de teste (profissionais + vínculos)
+npm run fix:avatars    # remove avatars base64 oversized do user_metadata (HTTP 431)
 ```
 
 ### Variáveis de ambiente (`.env`)
@@ -150,7 +155,7 @@ page.tsx (RSC)
 
 O design system depende da **reutilização rigorosa** dos componentes globais. Nunca recriar padrões visuais manualmente quando já existem no design system:
 
-- `<GlassPanel>` — containers glass (elevations: `base`, `floating`, `popover`, `modal`)
+- `<GlassPanel>` — containers glass (elevations: `base`, `floating`, `popover`, `modal`, `solid`)
 - `<ModalOverlay>` + `<ModalPanel>` — modais glass on glass
 - `<Table>` + `<GlobalFilters>` — listagens com filtros e paginação
 - Botões e inputs em `common/form/` (`GlassButton`, `GlassInput`, `GlassSelect`, etc.)
@@ -183,7 +188,10 @@ src/
       dashboard/page.tsx          # DashboardContent + getUser (nome do usuário)
       community/page.tsx
       analytics/page.tsx
-      finance/page.tsx            # dashboard financeiro (mock visual)
+      finance/page.tsx            # dashboard financeiro (Supabase real)
+      finance/actions.ts          # Server Actions: resumo, movimentos, CRUD transações
+      agenda/page.tsx             # agenda colaborativa (Supabase real)
+      agenda/actions.ts           # Server Actions: eventos, participantes, sidebar
       members/page.tsx            # MembersContent (gestão de alunos — Supabase real)
       members/actions.ts          # Server Actions CRUD alunos (Supabase + Zod)
       users/page.tsx              # UsersContent (Super Admin only)
@@ -195,6 +203,7 @@ src/
       classes/[slug]/page.tsx     # agenda dinâmica por modalidade
       settings/classes/page.tsx   # grade de aulas
       settings/categories/page.tsx
+      settings/categories/actions.ts  # CRUD categorias financeiras
   components/
     app/
       CenterPanelShell.tsx        # GlassPanel wrapper do painel central
@@ -296,11 +305,25 @@ src/
       user.schema.ts              # schema Zod de validação server-side
       user.helpers.ts             # iniciais + cor avatar estilo Google
     finance/
+      FinanceContent.tsx          # RSC — getFinanceDashboardAction()
+      FinanceContentClient.tsx    # client — filtros, charts, Table + CRUD
       FinanceHeader.tsx
       PortfolioSummaryCard.tsx
-      ProductChartCard.tsx
+      FinancialOverviewChart.tsx
+      TransactionForm.tsx
       financial-health/           # FinancialHealthCard, HealthBarsChart
       expense-breakdown/          # ExpenseBreakdownCard, doughnut + legend
+      financial-transactions/     # columns, helpers, types (canônico)
+    agenda/
+      AgendaContent.tsx           # RSC — listAgendaEventsAction + user options
+      AgendaContentClient.tsx     # client — calendário + modais
+      CollaborativeCalendar.tsx
+      EventModal.tsx / EventDetailModal.tsx
+      EventCard.tsx / AvatarStack.tsx / GlassMultiSelect.tsx
+      event.schema.ts / agenda.types.ts / agenda.helpers.ts
+    dashboard/right-sidebar/
+      DashboardRightSidebar.tsx   # sidebar direita (perfil + UpNext)
+      UpNextCard.tsx              # próximo evento real via getAgendaSidebarDataAction
     profile/ProfileContent.tsx
     mobile/MobilePageWrapper.tsx
     landing/hero/                 # cena visual (reutilizada pelo app)
@@ -325,10 +348,14 @@ src/
     useHydrated.ts                # useSyncExternalStore (SSR-safe)
     useLocalWeather.ts            # Open-Meteo + geolocalização/IP
     usePrefersReducedMotion.ts    # disponível, não integrado na hero
+    useFinancialTransactions.ts   # listagem/delete de transações (client)
+    useCollaborativeAgenda.ts     # refetch de eventos da agenda (client)
   lib/
     action-result.ts              # ActionResult<T>, actionSuccess, actionFailure
     is-uuid.ts                    # validação de UUID
     auth/resolve-user-display.ts  # nome, avatar de user_metadata
+    avatars/resolve-user-avatar.ts # data URL → Storage bucket avatars (URL pública)
+    image/compress-image-data-url.ts # compressão client (≤256px JPEG)
     cn.ts
     motion.ts
     supabase/
@@ -338,6 +365,11 @@ src/
       middleware.ts               # refresh session + redirect login
       env.ts
   proxy.ts                        # Next.js 16 proxy (auth + refresh session)
+supabase/
+  members.sql / professionals.sql / classes.sql / ...
+  financial-transactions.sql / financial-categories.sql / financial-reports.sql
+  collaborative-agenda.sql        # events + event_participants
+  avatars-storage.sql             # bucket público avatars + policy de leitura
 ```
 
 ### Fluxo de renderização
@@ -399,8 +431,9 @@ Helpers: `src/lib/auth/resolve-user-display.ts` (`resolveDisplayName`, `resolveF
 Requer `SUPABASE_SERVICE_ROLE_KEY` no servidor. Retorno via `ActionResult<T>`.
 
 - `listUsersAction` — lista usuários Auth (Admin API)
-- `createUserAction` — `admin.createUser` com `user_metadata.name` + `role`; validação via `user.schema.ts`
+- `createUserAction` — `admin.createUser` com `user_metadata.name` + `role` + avatar; validação via `user.schema.ts`
 - `updateUserAction` — `admin.updateUserById`; se editar a si mesmo, client chama `refreshSession()` + `router.refresh()`
+- Avatar: `resolveUserAvatarForMetadata` sobe data URL para Storage e persiste só URL pública (ver seção **Avatars**)
 
 **Nunca** usar `signUp` no client para criar usuários admin — troca a sessão ativa. Sempre Admin API via service role.
 
@@ -441,7 +474,8 @@ Helpers: `actionSuccess(data)`, `actionFailure(error)`, `toActionError(error, fa
 | `/dashboard` | `dashboard/page.tsx` | `DashboardContent` + nome via `getUser()` |
 | `/community` | `community/page.tsx` | `RoutePlaceholder` |
 | `/analytics` | `analytics/page.tsx` | `RoutePlaceholder` |
-| `/finance` | `finance/page.tsx` | Dashboard financeiro mock (`FinanceHeader`, cards de portfolio, gráficos) |
+| `/finance` | `finance/page.tsx` | `FinanceContent` — **Supabase** (`financial_transactions`, categorias, RPCs) |
+| `/agenda` | `agenda/page.tsx` | `AgendaContent` — **Supabase** (`events`, `event_participants`) |
 | `/members` | `members/page.tsx` | `MembersContent` — **Supabase `public.members`** |
 | `/users` | `users/page.tsx` | `UsersContent` (Super Admin) — **Supabase Auth** |
 | `/professionals` | `professionals/page.tsx` | `ProfessionalsContent` — Supabase `public.professionals` |
@@ -454,12 +488,15 @@ Helpers: `actionSuccess(data)`, `actionFailure(error)`, `toActionError(error, fa
 
 Navegação centralizada em `src/config/app-nav.config.ts`:
 
-- `mainNavItems` — Dashboard, Community, Analytics, **Alunos** (`/members`), **Profissionais** (`/professionals`), **Financeiro** (`/finance`)
-- `ClassesSidebarSection` — modalidades dinâmicas vindas do banco, com contagem de agendamentos e ação **Show More**
-- `utilityNavItems` — **Usuários** (`/users`), Help, Setting
-- `mobileNavItems` — combinação usada no `MobileBottomNav`
+- `mainNavItems` — Dashboard (`/dashboard`), **Financeiro** (`/finance`), **Agenda** (`/agenda`)
+- `ClassesSidebarSection` — modalidades dinâmicas vindas do banco (sidebar), com contagem e **Show More**
+- `utilityNavItems` — **Alunos** (`/members`), **Profissionais** (`/professionals`), **Usuários** (`/users`), **Configurações** (`/settings`)
+- `getUtilityNavItemsForRole(role)` / `getMobileNavItemsForRole(role)` — esconde `/users` se não for `SUPER_ADMIN`
+- `mobileNavItems` — deprecated alias; preferir `getMobileNavItemsForRole`
 - `profileHref` — `/profile`
 - `isNavActive(pathname, href)` — match exato de rota
+
+**Nota:** rotas `/community` e `/analytics` ainda existem como placeholders, mas **não** estão na nav principal.
 
 ## Dashboard (`/dashboard`)
 
@@ -507,7 +544,7 @@ Padrão visual e arquitetural espelhado em `/members`:
 - `Table` com busca textual padrão (`searchPlaceholder`)
 - Menu de ações por linha via `<RowActionsMenu>`: Editar, Desativar/Reativar, Remover
 - Confirmação de remoção via `<ConfirmRemoveDialog>`
-- Avatar: `UserAvatar` (foto ou iniciais coloridas estilo Google)
+- Avatar: `UserAvatar` + `AvatarUploadTrigger` (compress → Storage `avatars`; fallback iniciais estilo Google)
 - **Dados reais:** Supabase Auth via `listUsersAction` (`users/actions.ts`)
 - **Lógica client:** `useUsersManagement.ts` (estado, mutations, refresh de sessão)
 
@@ -635,17 +672,94 @@ classes/actions.ts
 
 ## Financeiro (`/finance`)
 
-Dashboard financeiro com dados mock (demonstração visual). Paleta **laranja/âmbar** obrigatória — ver `brand-colors.ts` e `.cursor/rules/design-system-colors.mdc`.
+**Fonte de dados:** Supabase real — `financial_transactions`, `financial_categories` e RPCs de balanço (`financial_balance_today` / `_month` / `_year`). Schema: `supabase/financial-transactions.sql`, `financial-categories.sql`, `financial-reports.sql`, `plans.sql`.
+
+Paleta **laranja/âmbar** obrigatória — ver `brand-colors.ts` e `.cursor/rules/design-system-colors.mdc`.
+
+### Arquitetura server + client
+
+```txt
+finance/page.tsx
+  └─ FinanceContent.tsx (RSC)
+       ├─ getFinanceDashboardAction(period)  → resumo + movimentos + despesas + transações
+       └─ FinanceContentClient.tsx (client)
+            ├─ FinanceHeader / PortfolioSummaryCard / FinancialOverviewChart
+            ├─ FinancialHealthCard / ExpenseBreakdownCard
+            ├─ Table + financial-transactions.columns.tsx
+            ├─ useFinancialTransactions.ts → listagem / delete
+            └─ TransactionForm → createTransactionAction / updateTransactionAction
+```
+
+### Server Actions (`finance/actions.ts`)
+
+| Action | Operação |
+|---|---|
+| `getFinanceSummaryAction` | Saldos (hoje / mês / ano) via RPCs |
+| `getFinanceMovementsAction` | Movimentos diários no período |
+| `getFinanceExpensesByCategoryAction` | Despesas agrupadas por categoria |
+| `getFinancialTransactionsAction` | Lista de transações |
+| `getFinanceDashboardAction` | Agrega as leituras acima |
+| `createTransactionAction` | Insert com validação Zod (`transaction.schema.ts`) |
+| `updateTransactionAction` | Update por id |
+| `deleteTransactionAction` | Remove por id |
+
+Categorias: CRUD em `settings/categories/actions.ts`. Colunas canônicas da tabela: `src/components/finance/financial-transactions/financial-transactions.columns.tsx`.
 
 | Componente | Descrição |
 |---|---|
-| `FinanceHeader` | título + filtros + CTAs gradiente laranja |
-| `PortfolioSummaryCard` | resumo de portfolio + ações |
-| `ProductChartCard` | gráfico de produtos |
+| `FinanceHeader` | título + filtros de período + CTAs gradiente laranja |
+| `PortfolioSummaryCard` | resumo de saldos (dados reais) |
+| `FinancialOverviewChart` | gráfico de movimentos |
 | `FinancialHealthCard` | barras de saúde financeira |
-| `ExpenseBreakdownCard` | doughnut + legenda de despesas |
+| `ExpenseBreakdownCard` | doughnut + legenda de despesas por categoria |
+| `TransactionForm` | create/edit de transação |
 
-Layout: coluna esquerda ~70% (portfolio + chart), direita ~30% (health + breakdown). Todos os cards usam `GlassPanel` — **nunca roxo/ciano como destaque principal**.
+Layout: coluna esquerda ~70% (portfolio + chart), direita ~30% (health + breakdown), tabela de transações abaixo. Todos os cards usam `GlassPanel` — **nunca roxo/ciano como destaque principal**.
+
+## Agenda Colaborativa (`/agenda`)
+
+**Fonte de dados:** Supabase `events` + `event_participants`. Schema: `supabase/collaborative-agenda.sql`. Seed: `npm run seed:agenda`.
+
+### Arquitetura server + client
+
+```txt
+agenda/page.tsx
+  └─ AgendaContent.tsx (RSC)
+       ├─ listAgendaEventsAction(start, end)
+       ├─ getAgendaUserOptionsAction()   → usuários Auth (Admin API)
+       └─ AgendaContentClient.tsx (client)
+            ├─ useCollaborativeAgenda.ts
+            ├─ CollaborativeCalendar / EventCard / AvatarStack
+            ├─ EventModal / EventDetailModal / GlassMultiSelect
+            └─ createAgendaEventAction / deleteAgendaEventAction
+```
+
+### Server Actions (`agenda/actions.ts`)
+
+| Action | Operação |
+|---|---|
+| `getAgendaUserOptionsAction` | Opções de participantes (Auth Admin API) |
+| `listAgendaEventsAction` | Eventos no intervalo + participantes |
+| `createAgendaEventAction` | Cria evento + vínculos em `event_participants` |
+| `deleteAgendaEventAction` | Remove evento |
+| `getAgendaSidebarDataAction` | Dados do próximo evento para a sidebar do dashboard |
+
+Validação via `event.schema.ts`. Evento browser `AGENDA_CHANGED_EVENT` (`agenda-events.ts`) notifica a right sidebar para refetch.
+
+### Integração com o dashboard
+
+`DashboardRightSidebar` / `UpNextCard` consomem `getAgendaSidebarDataAction` (dados reais, não mock). Empty state aponta para `/agenda`.
+
+## Avatars (Storage)
+
+Pipeline para evitar `user_metadata` com base64 enorme (risco de HTTP 431):
+
+1. **Client:** `AvatarUploadTrigger` → `compressImageDataUrl` (`lib/image/compress-image-data-url.ts`) — resize ≤256px, JPEG q≈0.82
+2. **Server:** `resolveUserAvatarForMetadata` (`lib/avatars/resolve-user-avatar.ts`) — se for data URL, faz upload no bucket `avatars` (`users/{userId}.{ext}`) e grava **apenas URL http(s)** no metadata
+3. **SQL:** `supabase/avatars-storage.sql` — bucket público + policy de leitura
+4. **Manutenção:** `npm run fix:avatars` — remove avatars base64 oversized de usuários existentes
+
+Usado em create/update de usuários (`users/actions.ts`). Helpers de display: `resolveAvatarUrl` em `lib/auth/resolve-user-display.ts`.
 
 ## Componentes Compartilhados
 
@@ -917,7 +1031,7 @@ Componente base: `src/components/common/glass-panel/GlassPanel.tsx`
 |---|---|---|
 | `variant` | `subtle`, `default`, `strong`, `hero` | `default` |
 | `intensity` | `low`, `medium`, `high` | `medium` |
-| `elevation` | `base`, `floating`, `popover`, `modal` | `base` |
+| `elevation` | `base`, `floating`, `popover`, `modal`, `solid` | `base` |
 
 ### Iluminação (preservada em todas as elevações)
 
@@ -934,12 +1048,13 @@ Regra visionOS: camadas sobrepostas usam **menos blur** e **mais opacidade/frost
 |---|---|---|---|---|
 | `base` | painéis de fundo, shells, conteúdo principal | alto do variant + saturate | gradiente branco translúcido do variant | `0.88` |
 | `floating` | cards internos, pills, seções leves | `12px` | `bg-white/5` | `0.90` |
-| `popover` | menus dropdown, ações de linha (⋮), NavUserMenu expandido | `12px` | frost branco ~30% + underlay quente interno | `0.85` |
-| `modal` | modais sobre `ModalOverlay` | `10px` | frost branco ~34% + underlay quente interno | `0.84` |
+| `popover` | menus dropdown, ações de linha (⋮), NavUserMenu expandido | `14px` | frost branco denso + underlay quente | `0.78` |
+| `modal` | modais sobre `ModalOverlay` | `12px` | frost branco mais denso + underlay quente | `0.76` |
+| `solid` | menus/tooltips sobre UI densa (sem bleed-through) | nenhum | base opaca `#8B6F4E` | — |
 
-Todas as elevações aplicam `backdrop-saturate` + `backdrop-brightness` para escurecer levemente o background dourado/âmbar e melhorar contraste do texto branco.
+Elevações translúcidas aplicam `backdrop-saturate` + `backdrop-brightness` para escurecer levemente o background dourado/âmbar e melhorar contraste do texto branco.
 
-Camadas internas de legibilidade (underlay quente) são injetadas automaticamente em `elevation="popover"` e `elevation="modal"` (gradiente âmbar escuro reforçado no rodapé do painel).
+Camadas internas de legibilidade (underlay quente) são injetadas automaticamente em `elevation="popover"`, `elevation="modal"` e `elevation="solid"`.
 
 ### Glass on glass — modais
 
@@ -1004,7 +1119,7 @@ import { glassText, glassTextStyles } from "@/config/glass-typography";
 
 ### Regra crítica para cards internos
 
-`DashboardContent`, `/users`, `/members` e `/finance` renderizam-se **dentro** de `CenterPanelShell` (já glass `hero/base`).
+`DashboardContent`, `/users`, `/members`, `/finance` e `/agenda` renderizam-se **dentro** de `CenterPanelShell` (já glass `hero/base`).
 
 - Cards da UI: `<GlassPanel variant="subtle" elevation="floating">`
 - Menus dropdown (⋮): `elevation="popover"` via `RowActionsMenu`
@@ -1022,11 +1137,14 @@ Quando o menu expande **empurrando** itens da sidebar (sem overlay absoluto):
 
 | Hook | Arquivo | Uso |
 |---|---|---|
-| `useHydrated` | `useHydrated.ts` | `useSyncExternalStore` — false no SSR, true no client |
-| `useLocalWeather` | `useLocalWeather.ts` | GPS → IP → São Paulo; Open-Meteo; refresh 30min |
-| `usePrefersReducedMotion` | `usePrefersReducedMotion.ts` | disponível, não integrado na hero |
+| `useHydrated` | `hooks/useHydrated.ts` | `useSyncExternalStore` — false no SSR, true no client |
+| `useLocalWeather` | `hooks/useLocalWeather.ts` | GPS → IP → São Paulo; Open-Meteo; refresh 30min |
+| `usePrefersReducedMotion` | `hooks/usePrefersReducedMotion.ts` | disponível, não integrado na hero |
+| `useFinancialTransactions` | `hooks/useFinancialTransactions.ts` | listagem/delete de transações financeiras |
+| `useCollaborativeAgenda` | `hooks/useCollaborativeAgenda.ts` | refetch de eventos da agenda |
 | `useMembersManagement` | `members/useMembersManagement.ts` | estado CRUD de alunos (client) |
 | `useUsersManagement` | `users/useUsersManagement.ts` | estado CRUD de usuários (client) |
+| `useProfessionalsManagement` | `professionals/useProfessionalsManagement.ts` | estado CRUD de profissionais |
 | `useLoginForm` | `auth/useLoginForm.ts` | autenticação client com Zod |
 
 ## Dados Mockados (Escopo Limitado)
@@ -1036,8 +1154,7 @@ O projeto **prioriza integração real com API**. Mocks permanecem apenas em:
 | Área | Arquivo | Escopo |
 |---|---|---|
 | Hero scene (legado) | `landing/hero/data/hero-scene.mock.ts` | path da imagem de background; demais mocks da landing legada |
-| Dashboard KPIs | componentes em `dashboard/*` | `MembersTable`, `MetricCards`, `RevenueAnalytics`, etc. |
-| Financeiro | componentes em `finance/*` | portfolio, gráficos, breakdown — mock visual |
+| Dashboard KPIs / demos | componentes em `dashboard/*` | `MembersTable`, `MetricCards`, `RevenueAnalytics`, etc. (exceto right sidebar / UpNext) |
 
 **Rotas com dados reais (Supabase):**
 
@@ -1045,8 +1162,13 @@ O projeto **prioriza integração real com API**. Mocks permanecem apenas em:
 |---|---|
 | `/members` | `public.members` via Server Actions |
 | `/users` | Supabase Auth via Admin API |
+| `/professionals` | `public.professionals` via Server Actions |
+| `/classes/[slug]` | `classes`, `gym_settings_schedule`, `appointments` |
+| `/finance` | `financial_transactions`, `financial_categories`, RPCs de balanço |
+| `/agenda` | `events`, `event_participants` |
+| `/settings/categories` | categorias financeiras |
 | `/login` | Supabase Auth (signInWithPassword) |
-| `/dashboard` (nome) | `user.user_metadata` via `getUser()` |
+| `/dashboard` (nome + UpNext) | `user.user_metadata` + `getAgendaSidebarDataAction` |
 
 ## Direção Visual Obrigatória
 
@@ -1098,7 +1220,7 @@ Evitar:
 - [ ] Filtros `select`/`date` têm `match(row)` correto?
 - [ ] Cards internos usam `<GlassPanel>` (não glass manual)?
 - [ ] Modais usam `ModalOverlay` + `ModalPanel` (glass on glass, sem preto sólido)?
-- [ ] Dropdowns/menus usam `elevation="popover"` (ex.: `RowActionsMenu`)?
+- [ ] Dropdowns/menus usam `elevation="popover"` (ou `solid` quando precisar de base opaca)?
 - [ ] Iluminação `before:`/`after:` preservada?
 - [ ] Menus de ação usam `<RowActionsMenu>` (não duplicar dropdown)?
 - [ ] Confirmações de remoção usam `<ConfirmRemoveDialog>`?
@@ -1122,6 +1244,7 @@ Evitar:
 
 - [ ] CRUD admin usa `createAdminClient()` + service role (nunca `signUp` client)?
 - [ ] Nome/role gravados em `user_metadata.name` / `user_metadata.role`?
+- [ ] Avatar em metadata é URL http(s) (nunca data URL base64) — via `resolveUserAvatarForMetadata`?
 - [ ] Mobile: scroll só no painel glass?
 - [ ] `npm run lint` passa?
 - [ ] `npm run build` passa?
@@ -1137,27 +1260,29 @@ Background = imagem dourada customizada (public/system-background.png) via HeroB
 Rota inicial: /dashboard. Login: /login.
 
 Arquitetura:
-- Auth: src/proxy.ts + lib/supabase/middleware.ts + LoginForm + user_metadata (name, role)
+- Auth: src/proxy.ts + lib/supabase/middleware.ts + LoginForm + user_metadata (name, role, avatar_url)
+- Avatars: compress client → resolveUserAvatarForMetadata → Storage bucket `avatars` (URL pública no metadata)
 - Background: HeroBackground em layout.tsx (fixed z-0); html/body transparentes
 - Shell mobile: MobilePageWrapper | desktop: DesktopAppShell
 - Painel central: CenterPanelShell (scroll interno)
-- Dashboard: src/components/dashboard/* (GlassPanel em todos os cards; KPIs mock)
-- Financeiro: /finance + src/components/finance/* (mock visual; paleta laranja/âmbar)
+- Dashboard: src/components/dashboard/* (KPIs mock; UpNext/right sidebar = agenda real)
+- Financeiro: /finance — financial_transactions + categorias + RPCs; FinanceContent + useFinancialTransactions
+- Agenda colaborativa: /agenda — events + event_participants; CollaborativeCalendar + useCollaborativeAgenda
 - Usuários: /users (Super Admin) — Supabase Admin API + useUsersManagement
 - Alunos: /members — Supabase public.members + useMembersManagement
-- Classes: /classes/[slug] — `classes`, `gym_settings_schedule`, `appointments`; grade por `professional_id`
-- Agenda: `ScheduleModal` global ou por classe; capacidade validada por `get_class_slots` antes do insert e pelo trigger SQL
-- Regra de grade: `professionals.specialty` deve coincidir com `classes.name`; validar no servidor com `validateProfessionalForClass`
+- Classes: /classes/[slug] — classes, gym_settings_schedule, appointments; grade por professional_id
+- Agendamento de aulas: ScheduleModal global ou por classe; capacidade via get_class_slots + trigger SQL
+- Regra de grade: professionals.specialty deve coincidir com classes.name; validar com validateProfessionalForClass
 - Server Actions: ActionResult<T> (lib/action-result.ts) + Zod (*.schema.ts)
 - Tabela: src/components/common/table/Table.tsx
 - Filtros: GlobalFilters (colapsável, acima do GlassPanel) + DatePicker
 - Formulários: common/form/index.ts (GlassInput, GlassSelect, botões...)
 - Modais: ModalOverlay (scrim) + ModalPanel (painel legível)
 - UI compartilhada: RowActionsMenu (popover), ConfirmRemoveDialog, InlineAlert
-- Glass: GlassPanel (elevations: base | floating | popover | modal; backdrop-brightness por elevação)
+- Glass: GlassPanel (elevations: base | floating | popover | modal | solid)
 - Tipografia glass: src/config/glass-typography.ts (glassText, glassTextStyles) + tokens em globals.css
 - Paleta: src/config/brand-colors.ts + .cursor/rules/design-system-colors.mdc
-- Nav: src/config/app-nav.config.ts + NavUserMenu (logout)
+- Nav: main = Dashboard / Financeiro / Agenda; utility = Alunos / Profissionais / Usuários / Configurações (+ RBAC)
 
 Regras de código:
 - Identificadores em inglês; UI e erros em pt-BR
@@ -1170,7 +1295,7 @@ Regras glass:
 - NUNCA fundos pretos sólidos — usar frost branco + underlay quente translúcido
 - Cards: GlassPanel variant subtle + elevation floating
 - Modais: ModalOverlay + ModalPanel (glass on glass)
-- Dropdowns/menus: elevation popover (RowActionsMenu, NavUserMenu expandido)
+- Dropdowns/menus: elevation popover (ou solid se bleed-through); RowActionsMenu, NavUserMenu
 - GlobalFilters: glass próprio acima da tabela; corpo da tabela em GlassPanel separado
 - HeroBackground só no root layout — não duplicar nos shells
 - Tipografia: glassText / glassTextStyles — evitar text-white/XX hardcoded; modais usam *Elevated

@@ -49,6 +49,7 @@ export function useUsersManagement(initialUsers: ManagedUser[]) {
       email: values.email.trim(),
       role: values.role,
       password: values.password.trim() || undefined,
+      avatarUrl: values.avatarUrl,
     });
 
     if (!result.success) {
@@ -61,7 +62,7 @@ export function useUsersManagement(initialUsers: ManagedUser[]) {
       return;
     }
 
-    const updatedUser: ManagedUser = { ...result.data.user, avatarUrl: values.avatarUrl };
+    const updatedUser = result.data.user;
     setUsers((current) =>
       current.map((user) => (user.id === editing.id ? updatedUser : user)),
     );
@@ -79,6 +80,7 @@ export function useUsersManagement(initialUsers: ManagedUser[]) {
       email: values.email.trim(),
       password: values.password,
       role: values.role,
+      avatarUrl: values.avatarUrl,
     });
 
     if (!result.success) {
@@ -91,7 +93,7 @@ export function useUsersManagement(initialUsers: ManagedUser[]) {
       return;
     }
 
-    const createdUser: ManagedUser = { ...result.data.user, avatarUrl: values.avatarUrl };
+    const createdUser = result.data.user;
     setUsers((current) => [...current, createdUser]);
     closeForm();
   }

@@ -213,7 +213,7 @@ export function ProfessionalsContentClient({
   ];
 
   return (
-    <div className="flex h-full min-h-0 w-full flex-col gap-6">
+    <div className="flex min-h-full w-full flex-col gap-6 lg:h-full lg:min-h-0">
       <div className="mb-2 flex items-center justify-between gap-4">
         <div>
           <h1 className={glassTextStyles.pageTitle}>Gestão de Profissionais</h1>
@@ -245,7 +245,7 @@ export function ProfessionalsContentClient({
         rowClassName={(professional) =>
           professional.status === "inactive" ? "opacity-50" : undefined
         }
-        className="min-h-0 flex-1"
+        className="lg:min-h-0 lg:flex-1"
       />
 
       {formOpen && (

@@ -4,8 +4,8 @@ import type { TableColumn } from "@/components/common/table/table.types";
 import {
   getTableAlignClassName,
   getTableCellContentClassName,
-  getTableEdgeCellClassName,
   getTableEdgeHeaderClassName,
+  getTableStickyClassName,
 } from "@/components/common/table/table.helpers";
 import { glassTextStyles } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
@@ -22,9 +22,10 @@ export function TableHead<T>({ columns }: TableHeadProps<T>) {
           <th
             key={column.key}
             className={cn(
-              "pb-3 pt-1",
+              "py-3.5",
               getTableAlignClassName(column.align),
               getTableEdgeHeaderClassName(index, columns.length, column.align),
+              getTableStickyClassName(column.sticky),
               glassTextStyles.tableHeader,
               column.headerClassName,
             )}

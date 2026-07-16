@@ -64,7 +64,10 @@ export function GlassMultiSelect({
   }
 
   return (
-    <div ref={containerRef} className={cn("relative", className)}>
+    <div
+      ref={containerRef}
+      className={cn("relative", open ? "z-[100]" : "z-0", className)}
+    >
       <div
         role="combobox"
         aria-expanded={open}
@@ -136,9 +139,10 @@ export function GlassMultiSelect({
 
       {open ? (
         <GlassPanel
-          elevation="popover"
+          elevation="solid"
           intensity="high"
-          className="absolute z-50 mt-2 max-h-56 w-full overflow-y-auto rounded-xl p-1"
+          variant="subtle"
+          className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-[110] max-h-56 w-full overflow-y-auto rounded-xl p-1"
         >
           {options.length === 0 ? (
             <p className={cn("px-3 py-2 text-xs", glassText.muted)}>Nenhum usuário disponível.</p>
@@ -152,8 +156,10 @@ export function GlassMultiSelect({
                   type="button"
                   onClick={() => toggleUser(option.id)}
                   className={cn(
-                    "flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm transition hover:bg-white/8",
-                    selected && "bg-white/6",
+                    "flex w-full items-center gap-2 rounded-lg border border-transparent px-2.5 py-2 text-left text-sm transition",
+                    selected
+                      ? "border-white/16 bg-white/14 backdrop-blur-[8px]"
+                      : "hover:border-white/12 hover:bg-white/10 hover:backdrop-blur-[8px]",
                   )}
                 >
                   <UserAvatar

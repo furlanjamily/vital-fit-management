@@ -2,6 +2,9 @@
 
 import { useCallback, useRef, type MouseEvent as ReactMouseEvent } from "react";
 
+const INTERACTIVE_SELECTOR =
+  "a, button, input, select, textarea, label, [role='button'], [role='menuitem'], [data-no-drag-scroll]";
+
 export function useDragScroll<T extends HTMLElement>() {
   const ref = useRef<T>(null);
   const dragState = useRef({ active: false, startX: 0, scrollLeft: 0 });
@@ -16,6 +19,10 @@ export function useDragScroll<T extends HTMLElement>() {
     (event: ReactMouseEvent<T>) => {
       const element = ref.current;
       if (!element) return;
+      if (event.button !== 0) return;
+      if ((event.target as Element | null)?.closest?.(INTERACTIVE_SELECTOR)) return;
+      // Sem overflow horizontal, não inicia drag.
+      if (element.scrollWidth <= element.clientWidth) return;
 
       dragState.current = {
         active: true,

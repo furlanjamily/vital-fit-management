@@ -38,8 +38,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, "..");
 
 const SEED_EMAIL_DOMAIN = "@classseed.vitalfit.local";
-const TARGET_APPOINTMENTS = 100;
-const APPOINTMENT_DAYS = 7;
+const TARGET_APPOINTMENTS = 420;
+const APPOINTMENT_DAYS = 14;
 
 type AppointmentStatus = "CONFIRMED" | "PENDING";
 
@@ -151,26 +151,33 @@ const CLASSES: ClassSeed[] = [
 ];
 
 const SCHEDULE_SLOTS: ScheduleSlotSeed[] = [
-  { className: "Crossfit", dayOfWeek: 1, startTime: "07:00", maxCapacity: 15 },
-  { className: "Crossfit", dayOfWeek: 1, startTime: "18:00", maxCapacity: 15 },
-  { className: "Crossfit", dayOfWeek: 3, startTime: "07:00", maxCapacity: 12 },
-  { className: "Crossfit", dayOfWeek: 5, startTime: "08:00", maxCapacity: 12 },
-  { className: "Yoga", dayOfWeek: 1, startTime: "09:00", maxCapacity: 10 },
-  { className: "Yoga", dayOfWeek: 3, startTime: "09:00", maxCapacity: 10 },
-  { className: "Yoga", dayOfWeek: 5, startTime: "09:00", maxCapacity: 8 },
-  { className: "Spinning", dayOfWeek: 2, startTime: "07:30", maxCapacity: 12 },
-  { className: "Spinning", dayOfWeek: 4, startTime: "19:00", maxCapacity: 12 },
-  { className: "Spinning", dayOfWeek: 6, startTime: "10:00", maxCapacity: 10 },
-  { className: "Dança", dayOfWeek: 2, startTime: "18:00", maxCapacity: 14 },
-  { className: "Dança", dayOfWeek: 4, startTime: "18:00", maxCapacity: 14 },
-  { className: "Dança", dayOfWeek: 6, startTime: "11:00", maxCapacity: 12 },
-  { className: "Pilates", dayOfWeek: 1, startTime: "10:30", maxCapacity: 8 },
-  { className: "Pilates", dayOfWeek: 3, startTime: "10:30", maxCapacity: 8 },
-  { className: "Pilates", dayOfWeek: 5, startTime: "17:00", maxCapacity: 8 },
-  { className: "TRX", dayOfWeek: 2, startTime: "08:00", maxCapacity: 10 },
-  { className: "TRX", dayOfWeek: 4, startTime: "19:00", maxCapacity: 10 },
-  { className: "Jump", dayOfWeek: 3, startTime: "18:30", maxCapacity: 12 },
-  { className: "Jump", dayOfWeek: 5, startTime: "18:30", maxCapacity: 12 },
+  { className: "Crossfit", dayOfWeek: 1, startTime: "07:00", maxCapacity: 18 },
+  { className: "Crossfit", dayOfWeek: 1, startTime: "18:00", maxCapacity: 18 },
+  { className: "Crossfit", dayOfWeek: 3, startTime: "07:00", maxCapacity: 15 },
+  { className: "Crossfit", dayOfWeek: 3, startTime: "19:00", maxCapacity: 15 },
+  { className: "Crossfit", dayOfWeek: 5, startTime: "08:00", maxCapacity: 15 },
+  { className: "Crossfit", dayOfWeek: 5, startTime: "19:00", maxCapacity: 15 },
+  { className: "Yoga", dayOfWeek: 1, startTime: "09:00", maxCapacity: 12 },
+  { className: "Yoga", dayOfWeek: 3, startTime: "09:00", maxCapacity: 12 },
+  { className: "Yoga", dayOfWeek: 5, startTime: "09:00", maxCapacity: 10 },
+  { className: "Yoga", dayOfWeek: 6, startTime: "09:00", maxCapacity: 12 },
+  { className: "Spinning", dayOfWeek: 2, startTime: "07:30", maxCapacity: 14 },
+  { className: "Spinning", dayOfWeek: 2, startTime: "18:30", maxCapacity: 14 },
+  { className: "Spinning", dayOfWeek: 4, startTime: "07:30", maxCapacity: 14 },
+  { className: "Spinning", dayOfWeek: 4, startTime: "19:00", maxCapacity: 14 },
+  { className: "Spinning", dayOfWeek: 6, startTime: "10:00", maxCapacity: 12 },
+  { className: "Dança", dayOfWeek: 2, startTime: "18:00", maxCapacity: 16 },
+  { className: "Dança", dayOfWeek: 4, startTime: "18:00", maxCapacity: 16 },
+  { className: "Dança", dayOfWeek: 6, startTime: "11:00", maxCapacity: 14 },
+  { className: "Pilates", dayOfWeek: 1, startTime: "10:30", maxCapacity: 10 },
+  { className: "Pilates", dayOfWeek: 3, startTime: "10:30", maxCapacity: 10 },
+  { className: "Pilates", dayOfWeek: 5, startTime: "17:00", maxCapacity: 10 },
+  { className: "TRX", dayOfWeek: 2, startTime: "08:00", maxCapacity: 12 },
+  { className: "TRX", dayOfWeek: 4, startTime: "08:00", maxCapacity: 12 },
+  { className: "TRX", dayOfWeek: 4, startTime: "19:00", maxCapacity: 12 },
+  { className: "Jump", dayOfWeek: 3, startTime: "18:30", maxCapacity: 14 },
+  { className: "Jump", dayOfWeek: 5, startTime: "18:30", maxCapacity: 14 },
+  { className: "Jump", dayOfWeek: 6, startTime: "09:30", maxCapacity: 12 },
 ];
 
 // ---------------------------------------------------------------------------
@@ -540,48 +547,45 @@ function buildAppointments(
   const candidates = buildAppointmentCandidates(schedules, APPOINTMENT_DAYS);
 
   if (candidates.length === 0) {
-    fail("Nenhum slot de grade coincide com os próximos 7 dias.");
+    fail(`Nenhum slot de grade coincide com os próximos ${APPOINTMENT_DAYS} dias.`);
   }
 
-  const slotOccupancy = new Map<string, number>();
+  const shuffled = [...candidates].sort(() => Math.random() - 0.5);
   const memberBookings = new Set<string>();
   const appointments: AppointmentInsert[] = [];
 
-  let attempts = 0;
-  const maxAttempts = TARGET_APPOINTMENTS * 80;
+  for (const candidate of shuffled) {
+    if (appointments.length >= TARGET_APPOINTMENTS) break;
 
-  while (appointments.length < TARGET_APPOINTMENTS && attempts < maxAttempts) {
-    attempts += 1;
+    const pool = [...memberIds].sort(() => Math.random() - 0.5);
+    let filled = 0;
 
-    const candidate = randomPick(candidates);
-    const slotKey = `${candidate.scheduleId}|${candidate.dateIso}`;
-    const occupied = slotOccupancy.get(slotKey) ?? 0;
+    for (const memberId of pool) {
+      if (appointments.length >= TARGET_APPOINTMENTS || filled >= candidate.maxCapacity) {
+        break;
+      }
 
-    if (occupied >= candidate.maxCapacity) continue;
+      const bookingKey = `${memberId}|${candidate.scheduleId}|${candidate.dateIso}`;
+      if (memberBookings.has(bookingKey)) continue;
 
-    const memberId = randomPick(memberIds);
-    const bookingKey = `${memberId}|${candidate.scheduleId}|${candidate.dateIso}`;
+      const status: AppointmentStatus =
+        appointments.length % 2 === 0 ? "CONFIRMED" : "PENDING";
 
-    if (memberBookings.has(bookingKey)) continue;
-
-    const status: AppointmentStatus =
-      appointments.length % 2 === 0 ? "CONFIRMED" : "PENDING";
-
-    slotOccupancy.set(slotKey, occupied + 1);
-    memberBookings.add(bookingKey);
-
-    appointments.push({
-      member_id: memberId,
-      schedule_id: candidate.scheduleId,
-      date: candidate.dateIso,
-      status,
-    });
+      memberBookings.add(bookingKey);
+      appointments.push({
+        member_id: memberId,
+        schedule_id: candidate.scheduleId,
+        date: candidate.dateIso,
+        status,
+      });
+      filled += 1;
+    }
   }
 
   if (appointments.length < TARGET_APPOINTMENTS) {
     fail(
       `Só foi possível gerar ${appointments.length}/${TARGET_APPOINTMENTS} agendamentos. ` +
-        "Adicione mais membros ou aumente a capacidade da grade.",
+        "Adicione mais membros, aumente APPOINTMENT_DAYS ou a capacidade da grade.",
     );
   }
 

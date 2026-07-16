@@ -32,9 +32,17 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         className="relative z-10 max-w-sm sm:max-w-md lg:max-w-lg  rounded-[2rem]  shadow-[0_48px_150px_rgba(32,22,14,0.38)] p-10"
       >
         <header className="mb-8 text-center">
-          <p className={cn(glassTextStyles.tableHeader, "mb-2 text-[10px] tracking-[0.28em]")}>
-            VitalFit Management
-          </p>
+          <div className="mb-6 flex flex-col items-center gap-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/vital-fit-logo.png"
+              alt="Vital Fit"
+              className="h-14 w-auto object-contain sm:h-16"
+            />
+            <p className={cn(glassTextStyles.tableHeader, "text-[10px] tracking-[0.28em]")}>
+              VitalFit Management
+            </p>
+          </div>
           <h1 className={cn(glassText.primary, "text-2xl font-semibold tracking-[-0.03em]")}>
             Acesso Administrativo
           </h1>

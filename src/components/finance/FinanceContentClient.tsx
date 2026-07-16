@@ -170,7 +170,7 @@ export function FinanceContentClient({
   const isBusy = isPending || isTransactionsPending;
 
   return (
-    <div className="flex w-full flex-col gap-6">
+    <div className="flex min-h-full w-full flex-col gap-6 lg:min-h-0">
       <FinanceHeader
         activeFilter={filter}
         onPeriodChange={handlePeriodChange}

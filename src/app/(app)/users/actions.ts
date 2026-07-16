@@ -19,6 +19,9 @@ import {
   type ActionResult,
 } from "@/lib/action-result";
 import {
+  resolveUserAvatarForMetadata,
+} from "@/lib/avatars/resolve-user-avatar";
+import {
   resolveAvatarUrl,
   resolveDisplayName,
 } from "@/lib/auth/resolve-user-display";
@@ -128,21 +131,45 @@ export async function createUserAction(
     const admin = createAdminClient();
     if (!admin) return actionSuccess<CreateUserData>({ persisted: false });
 
-    const { name, email, password, role } = parsed.data;
+    const { name, email, password, role, avatarUrl } = parsed.data;
     const { data, error } = await admin.auth.admin.createUser({
       email,
       password,
       email_confirm: true,
-      user_metadata: { name, role },
+      user_metadata: {
+        name,
+        role,
+        avatar_url: null,
+      },
     });
 
     if (error || !data.user) {
       return actionFailure(error?.message ?? "Não foi possível criar o usuário.");
     }
 
+    let createdUser = data.user;
+
+    if (avatarUrl) {
+      const resolved = await resolveUserAvatarForMetadata(admin, createdUser.id, avatarUrl);
+      if (!resolved.ok) return actionFailure(resolved.error);
+
+      const { data: updated, error: avatarError } = await admin.auth.admin.updateUserById(
+        createdUser.id,
+        { user_metadata: { name, role, avatar_url: resolved.url } },
+      );
+
+      if (avatarError || !updated.user) {
+        return actionFailure(
+          avatarError?.message ?? "Usuário criado, mas a foto não pôde ser salva.",
+        );
+      }
+
+      createdUser = updated.user;
+    }
+
     return actionSuccess<CreateUserData>({
       persisted: true,
-      user: mapAuthUserToManaged(data.user),
+      user: mapAuthUserToManaged(createdUser),
     });
   } catch (error) {
     return actionFailure(toActionError(error, "Erro ao criar usuário."));
@@ -162,10 +189,18 @@ export async function updateUserAction(
     const admin = createAdminClient();
     if (!admin) return actionSuccess<UpdateUserData>({ persisted: false });
 
-    const { id, name, email, role, password } = parsed.data;
+    const { id, name, email, role, password, avatarUrl } = parsed.data;
+
+    const resolved = await resolveUserAvatarForMetadata(admin, id, avatarUrl ?? null);
+    if (!resolved.ok) return actionFailure(resolved.error);
+
     const { data, error } = await admin.auth.admin.updateUserById(id, {
       email,
-      user_metadata: { name, role },
+      user_metadata: {
+        name,
+        role,
+        avatar_url: resolved.url,
+      },
       ...(password ? { password } : {}),
     });
 

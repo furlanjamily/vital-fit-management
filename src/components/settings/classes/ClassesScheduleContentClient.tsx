@@ -184,7 +184,7 @@ export function ClassesScheduleContentClient({
   const errorMessage = loadError ?? actionError;
 
   return (
-    <div className="flex h-full min-h-0 w-full flex-col gap-6">
+    <div className="flex min-h-full w-full flex-col gap-6 lg:h-full lg:min-h-0">
       <div className="flex shrink-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <Link
@@ -220,7 +220,7 @@ export function ClassesScheduleContentClient({
         getRowId={(schedule) => schedule.id}
         filters={scheduleFilters}
         emptyMessage="Nenhum horário cadastrado."
-        className={cn("min-h-0 flex-1", isPending && "pointer-events-none opacity-70")}
+        className={cn("lg:min-h-0 lg:flex-1", isPending && "pointer-events-none opacity-70")}
       />
 
       {formOpen ? (

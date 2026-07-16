@@ -8,6 +8,11 @@ const baseUserFields = {
   name: z.string().trim().min(1, "Informe o nome completo."),
   email: z.string().trim().pipe(z.email("Informe um e-mail válido.")),
   role: z.enum(USER_ROLES, "Permissão inválida."),
+  avatarUrl: z
+    .string()
+    .nullable()
+    .optional()
+    .transform((value) => value?.trim() || null),
 };
 
 export const createUserSchema = z.object({

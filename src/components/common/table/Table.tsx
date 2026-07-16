@@ -1,6 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
 import { Search } from "lucide-react";
 import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
 import { GlobalFilters } from "@/components/common/table/GlobalFilters";
@@ -13,8 +20,11 @@ import {
   getTableAlignClassName,
   getTableCellContentClassName,
   getTableEdgeCellClassName,
+  getTableMinWidthPx,
+  getTableStickyClassName,
 } from "@/components/common/table/table.helpers";
 import { glassTextStyles } from "@/config/glass-typography";
+import { useDragScroll } from "@/hooks/useDragScroll";
 import { cn } from "@/lib/cn";
 
 export type { TableColumn } from "@/components/common/table/table.types";
@@ -24,6 +34,8 @@ const DEFAULT_PAGE_SIZE = 10;
 const DEFAULT_PAGE_SIZE_OPTIONS = [5, 10, 20, 50];
 const DEFAULT_EMPTY_MESSAGE = "Nenhum registro encontrado.";
 const DEFAULT_SEARCH_PLACEHOLDER = "Search";
+
+const tableClassName = "table-fixed border-separate border-spacing-0";
 
 type TableGroupBy<T> = {
   key: (row: T) => string;
@@ -126,10 +138,39 @@ export function Table<T>({
   );
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(defaultPageSize);
+  const [scrollbarWidth, setScrollbarWidth] = useState(0);
+  const [canDragScroll, setCanDragScroll] = useState(false);
+  const { ref: headerScrollRef, handleMouseDown: handleHeaderDragScroll } =
+    useDragScroll<HTMLDivElement>();
+  const { ref: bodyScrollRef, handleMouseDown: handleBodyDragScroll } =
+    useDragScroll<HTMLDivElement>();
+  const isSyncingScroll = useRef(false);
 
   const activeFilterValues = filterValues ?? internalFilterValues;
 
   const fillsParent = Boolean(className?.includes("h-full") || className?.includes("flex-1"));
+  const tableMinWidthPx = useMemo(() => getTableMinWidthPx(columns), [columns]);
+  const tableStyle: CSSProperties = {
+    minWidth: tableMinWidthPx,
+    width: `max(100%, ${tableMinWidthPx}px)`,
+  };
+
+  function syncHorizontalScroll(source: "header" | "body") {
+    if (isSyncingScroll.current) return;
+    const headerEl = headerScrollRef.current;
+    const bodyEl = bodyScrollRef.current;
+    if (!headerEl || !bodyEl) return;
+
+    isSyncingScroll.current = true;
+    if (source === "body") {
+      headerEl.scrollLeft = bodyEl.scrollLeft;
+    } else {
+      bodyEl.scrollLeft = headerEl.scrollLeft;
+    }
+    requestAnimationFrame(() => {
+      isSyncingScroll.current = false;
+    });
+  }
 
   const resolvedPageSizeOptions = useMemo(() => {
     const options = [...new Set([...pageSizeOptions, defaultPageSize, pageSize])].sort(
@@ -137,7 +178,6 @@ export function Table<T>({
     );
     return options.filter((option) => option > 0);
   }, [pageSizeOptions, defaultPageSize, pageSize]);
-
   const filteredData = useMemo(
     () => applyTableFilters(data, columns, resolvedFilters, activeFilterValues),
     [data, columns, resolvedFilters, activeFilterValues],
@@ -154,6 +194,22 @@ export function Table<T>({
     const start = (currentPage - 1) * pageSize;
     return filteredData.slice(start, start + pageSize);
   }, [filteredData, currentPage, pageSize]);
+
+  useEffect(() => {
+    const bodyEl = bodyScrollRef.current;
+    if (!bodyEl) return;
+
+    function updateScrollMetrics() {
+      if (!bodyEl) return;
+      setScrollbarWidth(Math.max(0, bodyEl.offsetWidth - bodyEl.clientWidth));
+      setCanDragScroll(bodyEl.scrollWidth > bodyEl.clientWidth + 1);
+    }
+
+    updateScrollMetrics();
+    const observer = new ResizeObserver(updateScrollMetrics);
+    observer.observe(bodyEl);
+    return () => observer.disconnect();
+  }, [paginatedData.length, pageSize, tableMinWidthPx]);
 
   const tableBodyRows = useMemo(() => {
     if (!groupBy) {
@@ -208,12 +264,14 @@ export function Table<T>({
     setPage(1);
   }
 
+  const isEmpty = filteredData.length === 0;
+
   return (
     <div
       className={cn(
-        "flex min-h-0 flex-col gap-4",
-        fillsParent && "h-full flex-1",
+        "flex w-full min-w-0 min-h-0 flex-col gap-4",
         className,
+        fillsParent && "max-lg:flex-none lg:h-full lg:min-h-0 lg:flex-1",
       )}
     >
       <div className="flex shrink-0 flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -233,118 +291,142 @@ export function Table<T>({
 
       {filterAccessory ? <div className="shrink-0">{filterAccessory}</div> : null}
 
-      <GlassPanel
-        variant="subtle"
-        intensity="low"
-        elevation="floating"
+      <div
         className={cn(
-          "flex min-h-0 flex-1 flex-col rounded-2xl px-4 pt-3 sm:px-5",
-          panelClassName,
+          "relative min-h-0 min-w-0 w-full max-w-full rounded-2xl",
+          "h-[100cqh] min-h-[100cqh]",
+          fillsParent && "lg:h-full lg:min-h-0 lg:flex-1",
         )}
       >
-        {title ? (
-          <div className="mb-5 flex shrink-0 items-center justify-between gap-4">
-            <p className={glassTextStyles.panelTitle}>{title}</p>
-          </div>
-        ) : null}
-
+        {/* Shadow on a non-blurred sibling so it follows border-radius
+            instead of compositing as a straight fringe with backdrop-filter. */}
         <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -z-10 rounded-2xl shadow-[0_14px_36px_-12px_rgba(0,0,0,0.28)]"
+        />
+        <GlassPanel
+          variant="subtle"
+          intensity="low"
+          elevation="floating"
           className={cn(
-            "flex min-h-0 flex-1 flex-col overflow-x-auto",
-            !fillsParent && "max-h-[min(480px,55vh)]",
+            "flex h-full min-h-0 min-w-0 w-full max-w-full flex-col overflow-hidden rounded-2xl px-4 pt-3 shadow-none after:shadow-none sm:px-5",
+            panelClassName,
           )}
         >
-          <div className="shrink-0">
-            <table className="w-full table-fixed border-separate border-spacing-0">
-              <TableColGroup columns={columns} />
-              <TableHead columns={columns} />
-            </table>
-          </div>
+          {title ? (
+            <div className="mb-5 flex shrink-0 items-center justify-between gap-4">
+              <p className={glassTextStyles.panelTitle}>{title}</p>
+            </div>
+          ) : null}
 
-          <div
-            className={cn(
-              "min-h-0 flex-1 overflow-x-auto",
-              fillsParent
-                ? "flex flex-col overflow-y-auto scrollbar-none"
-                : "overflow-y-auto scrollbar-none",
-            )}
-          >
-            {filteredData.length === 0 ? (
-              <div
-                className={cn(
-                  "flex items-center justify-center px-4 py-10 text-center",
-                  fillsParent && "flex-1",
-                  glassTextStyles.tableEmpty,
-                )}
-              >
-                {emptyMessage}
-              </div>
-            ) : (
-              <table className="w-full table-fixed border-separate border-spacing-0">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+            <div
+              ref={headerScrollRef}
+              onScroll={() => syncHorizontalScroll("header")}
+              onMouseDown={canDragScroll ? handleHeaderDragScroll : undefined}
+              className={cn(
+                "shrink-0 overflow-x-auto overflow-y-hidden scrollbar-none [-webkit-overflow-scrolling:touch]",
+                canDragScroll && "cursor-grab active:cursor-grabbing",
+              )}
+              style={{ paddingRight: scrollbarWidth }}
+            >
+              <table className={tableClassName} style={tableStyle}>
                 <TableColGroup columns={columns} />
-                <tbody>
-                  {tableBodyRows.map((item) =>
-                    item.type === "header" ? (
-                      <tr key={`group-${item.groupKey}`}>
-                        <td colSpan={columns.length} className="px-0 pb-2 pt-3">
-                          <div className="border-l-2 border-orange-500/70 bg-transparent px-3 py-2">
-                            <span
-                              className={cn(
-                                "block text-xs font-semibold capitalize tracking-wide",
-                                glassTextStyles.tableHeader,
-                              )}
-                            >
-                              {groupBy!.renderHeader(item.groupKey)}
-                            </span>
-                          </div>
-                        </td>
-                      </tr>
-                    ) : (
-                      <tr
-                        key={getRowId(item.row)}
-                        className={cn(
-                          "border-b rounded-xl border-white/6 transition hover:bg-white/4",
-                          rowClassName?.(item.row),
-                        )}
+                <TableHead columns={columns} />
+              </table>
+            </div>
+
+            <div
+              ref={bodyScrollRef}
+              onScroll={() => syncHorizontalScroll("body")}
+              onMouseDown={canDragScroll ? handleBodyDragScroll : undefined}
+              className={cn(
+                "min-h-0 min-w-0 flex-1 overflow-auto overscroll-contain",
+                "[-webkit-overflow-scrolling:touch] scrollbar-thin",
+                "pb-4 sm:pb-3",
+                canDragScroll && "cursor-grab select-none active:cursor-grabbing",
+              )}
+            >
+              <table className={cn(tableClassName, isEmpty && "h-full")} style={tableStyle}>
+                <TableColGroup columns={columns} />
+                <tbody className={isEmpty ? "h-full" : undefined}>
+                  {isEmpty ? (
+                    <tr className="h-full">
+                      <td
+                        colSpan={columns.length}
+                        className={cn("px-0 pb-2 pt-3 align-middle", glassTextStyles.tableEmpty)}
                       >
-                        {columns.map((column, columnIndex) => (
-                          <td
-                            key={column.key}
-                            className={cn(
-                              "py-3.5",
-                              getTableEdgeCellClassName(columnIndex, columns.length, column.align),
-                              getTableAlignClassName(column.align),
-                              glassTextStyles.tableCell,
-                              column.className,
-                            )}
-                          >
-                            <div className={getTableCellContentClassName(column.align)}>
-                              {column.render(item.row)}
+                        <div className="flex items-center justify-center px-4 py-10 text-center">
+                          {emptyMessage}
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    tableBodyRows.map((item) =>
+                      item.type === "header" ? (
+                        <tr key={`group-${item.groupKey}`}>
+                          <td colSpan={columns.length} className="px-0 pb-2 pt-3">
+                            <div className="border-l-2 border-orange-500/70 bg-transparent px-3 py-2">
+                              <span
+                                className={cn(
+                                  "block text-xs font-semibold capitalize tracking-wide",
+                                  glassTextStyles.tableHeader,
+                                )}
+                              >
+                                {groupBy!.renderHeader(item.groupKey)}
+                              </span>
                             </div>
                           </td>
-                        ))}
-                      </tr>
-                    ),
+                        </tr>
+                      ) : (
+                        <tr
+                          key={getRowId(item.row)}
+                          className={cn(
+                            "border-b rounded-xl border-white/6 transition hover:bg-white/4",
+                            rowClassName?.(item.row),
+                          )}
+                        >
+                          {columns.map((column, columnIndex) => (
+                            <td
+                              key={column.key}
+                              className={cn(
+                                "py-3.5",
+                                getTableEdgeCellClassName(columnIndex, columns.length, column.align),
+                                getTableAlignClassName(column.align),
+                                getTableStickyClassName(column.sticky),
+                                glassTextStyles.tableCell,
+                                column.className,
+                              )}
+                            >
+                              <div className={getTableCellContentClassName(column.align)}>
+                                {column.render(item.row)}
+                              </div>
+                            </td>
+                          ))}
+                        </tr>
+                      ),
+                    )
                   )}
                 </tbody>
               </table>
-            )}
+            </div>
           </div>
-        </div>
 
-        <TableFooter
-          rangeStart={rangeStart}
-          rangeEnd={rangeEnd}
-          totalItems={filteredData.length}
-          pageSize={pageSize}
-          pageSizeOptions={resolvedPageSizeOptions}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          showPageControls={showPageControls}
-          onPageChange={goToPage}
-          onPageSizeChange={handlePageSizeChange}
-        />
-      </GlassPanel>
+          <TableFooter
+            className="shrink-0"
+            rangeStart={rangeStart}
+            rangeEnd={rangeEnd}
+            totalItems={filteredData.length}
+            pageSize={pageSize}
+            pageSizeOptions={resolvedPageSizeOptions}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            showPageControls={showPageControls}
+            onPageChange={goToPage}
+            onPageSizeChange={handlePageSizeChange}
+          />
+        </GlassPanel>
+      </div>
     </div>
   );
 }

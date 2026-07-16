@@ -26,10 +26,18 @@ export function resolveFirstName(metadata: UserMetadata, email?: string): string
 }
 
 export function resolveAvatarUrl(metadata: UserMetadata): string | null {
-  const candidates = [metadata.avatar_url, metadata.picture, metadata.photo];
+  const candidates = [
+    metadata.avatar_url,
+    metadata.avatarUrl,
+    metadata.picture,
+    metadata.photo,
+  ];
 
   for (const value of candidates) {
-    if (typeof value === "string" && value.trim()) return value;
+    // data: no JWT/cookie estoura headers (HTTP 431) — ignora se ainda existir.
+    if (typeof value === "string" && value.trim() && !value.startsWith("data:")) {
+      return value;
+    }
   }
 
   return null;

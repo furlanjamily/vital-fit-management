@@ -231,7 +231,7 @@ export function ClassScheduleContentClient({
   const errorMessage = loadError ?? scheduleError ?? actionError;
 
   return (
-    <div className="flex h-full min-h-0 w-full flex-col gap-6">
+    <div className="flex min-h-full w-full flex-col gap-6 lg:h-full lg:min-h-0">
       <div className="flex shrink-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className={glassTextStyles.pageTitle}>Agenda — {classRecord.name}</h1>
@@ -262,7 +262,7 @@ export function ClassScheduleContentClient({
         getRowId={(appointment) => appointment.id}
         filters={appointmentFilters}
         emptyMessage="Nenhum agendamento encontrado para o período selecionado."
-        className={cn("min-h-0 flex-1", isBusy && "pointer-events-none opacity-70")}
+        className={cn("lg:min-h-0 lg:flex-1", isBusy && "pointer-events-none opacity-70")}
         groupBy={
           isGroupedView
             ? {

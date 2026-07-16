@@ -50,7 +50,7 @@ export function DashboardRightSidebar() {
           className="relative grid size-10 shrink-0 place-items-center rounded-2xl border border-white/10 bg-white/[0.06] transition hover:scale-[1.03] hover:border-orange-400/25 hover:bg-orange-500/10"
           aria-label="Abrir agenda"
         >
-          <CalendarDays className="size-4 text-orange-300" strokeWidth={2} />
+          <CalendarDays className="size-4 text-orange-600" strokeWidth={2} />
           {upcomingTodayCount > 0 ? (
             <span className={cn("absolute -right-1 -top-1 grid min-w-[18px] place-items-center rounded-full bg-gradient-to-r from-orange-500 to-orange-600 px-1 py-0.5 text-[9px] font-bold leading-none shadow-[0_4px_12px_rgba(249,115,22,0.45)]", glassText.primary)}>
               {upcomingTodayCount > 9 ? "9+" : upcomingTodayCount}

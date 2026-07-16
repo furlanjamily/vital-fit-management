@@ -15,7 +15,7 @@ export function AppContentSkeleton({
   rows = 6,
 }: AppContentSkeletonProps) {
   return (
-    <div className="flex h-full min-h-0 w-full flex-col gap-6" aria-busy="true" aria-label={label}>
+    <div className="flex min-h-full w-full flex-col gap-6 lg:h-full lg:min-h-0" aria-busy="true" aria-label={label}>
       <div className="flex shrink-0 items-start justify-between gap-4">
         <div className="space-y-2">
           <Skeleton className="h-8 w-52 rounded-lg" />

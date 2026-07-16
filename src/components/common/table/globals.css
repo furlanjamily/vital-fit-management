@@ -1,0 +1,101 @@
+@import "tailwindcss";
+
+:root {
+  --background: transparent;
+  --foreground: #f7f7f2;
+  --mobile-content-top-gap: 1.5rem;
+  --mobile-nav-bottom-gap: 1.5rem;
+  --mobile-nav-content-gap: 1.5rem;
+  --mobile-nav-bar-height: 4.75rem;
+  --mobile-nav-reserved-height: calc(
+    var(--mobile-nav-content-gap) + var(--mobile-nav-bottom-gap) +
+      var(--mobile-nav-bar-height) + env(safe-area-inset-bottom, 0px)
+  );
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  /* Glass-on-glass text hierarchy */
+  --color-glass-primary: #ffffff;
+  --color-glass-secondary: rgb(255 255 255 / 0.63);
+  --color-glass-tertiary: rgb(255 255 255 / 0.47);
+  --color-glass-muted: rgb(255 255 255 / 0.47);
+  --color-glass-placeholder: rgb(255 255 255 / 0.45);
+}
+
+@utility text-glass-contrast-shadow {
+  text-shadow: 0 1px 3px rgb(20 12 6 / 0.32);
+}
+
+/* Esconde a scrollbar nativa mantendo o scroll funcional (usado em listas verticais). */
+@utility scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+@utility scrollbar-none {
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/*
+ * Indicador de scroll horizontal sem JS, compatível com o fundo translúcido
+ * do glass (não depende de "cobrir" com uma cor sólida, como o truque
+ * clássico de background faria — aqui usamos mask-image para desvanecer o
+ * conteúdo perto das bordas).
+ *
+ * Cada mask tem duas camadas: uma "scroll" (fixa ao container, cria o fade
+ * nos primeiros/últimos 20px) e o resultado é combinado por multiplicação
+ * de alfa. mask-attachment: local faria a mesma coisa que background-
+ * attachment: local — "andaria" com o conteúdo — mas para o fade sempre
+ * visível nas bordas do container basta a camada fixa.
+ */
+@utility table-scroll-fade {
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 20px,
+    black calc(100% - 20px),
+    transparent
+  );
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 20px,
+    black calc(100% - 20px),
+    transparent
+  );
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: transparent;
+}
+
+body {
+  background: transparent;
+  color: var(--foreground);
+}
+
+::selection {
+  background: rgba(255, 122, 0, 0.36);
+  color: #ffffff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

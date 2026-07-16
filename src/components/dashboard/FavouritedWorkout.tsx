@@ -44,7 +44,7 @@ export function FavouritedWorkout({
       variant="subtle"
       intensity="low"
       elevation="floating"
-      className="rounded-2xl p-5"
+      className="rounded-2xl p-5 shadow-none after:shadow-none"
     >
       <p className={cn(glassTextStyles.panelTitle, "mb-4")}>Treinos favoritos</p>
 

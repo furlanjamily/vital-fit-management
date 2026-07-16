@@ -28,13 +28,16 @@ export function ExpenseBreakdownCard({ data, className }: ExpenseBreakdownCardPr
       <div className="flex h-full min-h-[300px] flex-col p-4 sm:min-h-[320px] sm:p-5 md:p-6 lg:min-h-0">
         <div className={cn(
           glassText.primary,
-          "w-full flex items-center justify-between gap-2 shrink-0 text-center text-[16px] font-semibold tracking-normal sm:text-left sm:text-[17px] md:text-[18px]",
+          "w-full flex flex-col items-center shrink-0 text-center text-[16px] font-semibold tracking-normal sm:text-left sm:text-[17px] md:text-[18px]",
         )}
         >
           <h2>
             {data.title}
           </h2>
-          <span className="bg-orange-600/60 px-2 py-2 rounded-xl text-[12px] font-medium tracking-[-0.01em]">{data.periodLabel}</span>
+          <span className="bg-white/30 px-2 py-2 rounded-xl text-[8px] text-orange-600/70 font-medium tracking-[-0.01em]">
+          {data.periodLabel}
+
+          </span>
         </div>
 
         <div className="mt-4 flex flex-1 flex-col items-center justify-center gap-5 sm:mt-3 sm:gap-6">

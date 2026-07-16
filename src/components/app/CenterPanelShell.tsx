@@ -7,14 +7,19 @@ type CenterPanelShellProps = {
 
 export function CenterPanelShell({ children }: CenterPanelShellProps) {
   return (
-    <GlassPanel
-      variant="hero"
-      intensity="high"
-      className="h-[calc(100dvh-152px)] w-full rounded-[2rem] p-5  sm:p-6 lg:h-[clamp(600px,85vh,880px)] lg:w-[clamp(500px,52vw,1000px)] lg:rounded-[34px]"
-    >
-      <div className="flex h-full min-h-0 flex-col overflow-y-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {children}
-      </div>
-    </GlassPanel>
+    <div className="h-[calc(100dvh-152px)] w-full overflow-hidden rounded-[2rem] lg:h-[clamp(600px,85vh,880px)] lg:w-[clamp(500px,52vw,1000px)] lg:rounded-[34px]">
+      <GlassPanel
+        variant="hero"
+        intensity="high"
+        className="h-full w-full rounded-[inherit] p-5 shadow-none after:shadow-none sm:p-6"
+      >
+        <div
+          className="flex h-full min-h-0 flex-col overflow-y-auto overscroll-contain [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          style={{ containerType: "size" }}
+        >
+          {children}
+        </div>
+      </GlassPanel>
+    </div>
   );
 }
