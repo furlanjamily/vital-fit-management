@@ -4,6 +4,7 @@ import { useId, type ReactNode } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { AnimatePresence, motion, type Variants } from "framer-motion";
 import { X } from "lucide-react";
+import { IconButton } from "@/components/common/form";
 import { useHydrated } from "@/hooks/useHydrated";
 import { useIsMobile } from "@/hooks/useMediaQuery";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
@@ -51,12 +52,20 @@ const PANEL_CLASS = cn(
   "md:rounded-t-none md:rounded-l-[32px] md:border-t-0 md:border-l",
 );
 
-const CLOSE_BUTTON_CLASS = cn(
-  "shrink-0 rounded-full p-1.5 text-white/60 transition",
-  "hover:bg-white/10 hover:text-white",
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400/60",
-  "disabled:pointer-events-none disabled:opacity-40",
-);
+function ModalCloseButton({ onClick }: { onClick: () => void }) {
+  return (
+    <IconButton
+      shape="round"
+      size="sm"
+      variant="ghost"
+      aria-label="Fechar"
+      onClick={onClick}
+      className="shrink-0 text-white/60 hover:bg-white/10 hover:text-white"
+    >
+      <X className="size-4" aria-hidden="true" />
+    </IconButton>
+  );
+}
 
 function buildDrawerVariants(isMobile: boolean, reduceMotion: boolean): Variants {
   if (reduceMotion) {
@@ -185,26 +194,12 @@ export function ResponsiveModal({
 
                       <div className="flex shrink-0 items-center gap-1.5">
                         {headerActions}
-                        <button
-                          type="button"
-                          onClick={onClose}
-                          className={CLOSE_BUTTON_CLASS}
-                          aria-label="Fechar"
-                        >
-                          <X className="size-4" aria-hidden="true" />
-                        </button>
+                        <ModalCloseButton onClick={onClose} />
                       </div>
                     </div>
                   ) : (
                     <div className="absolute right-4 top-4 z-10 md:right-5 md:top-5">
-                      <button
-                        type="button"
-                        onClick={onClose}
-                        className={CLOSE_BUTTON_CLASS}
-                        aria-label="Fechar"
-                      >
-                        <X className="size-4" aria-hidden="true" />
-                      </button>
+                      <ModalCloseButton onClick={onClose} />
                     </div>
                   )}
 
