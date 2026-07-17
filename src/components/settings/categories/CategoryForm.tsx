@@ -1,23 +1,22 @@
 "use client";
 
 import { useState, useTransition, type FormEvent } from "react";
-import { Loader2, Palette, Tag, X } from "lucide-react";
+import { Loader2, Palette, Tag } from "lucide-react";
 import { InlineAlert } from "@/components/common/feedback/InlineAlert";
 import {
   FormField,
   GlassButton,
   GlassInput,
   GlassSelect,
-  IconButton,
 } from "@/components/common/form";
-import { ModalPanel } from "@/components/common/modal/ModalPanel";
+import { ResponsiveModal } from "@/components/common/modal/ResponsiveModal";
 import {
   DEFAULT_CATEGORY_COLOR,
   financialCategoryTypeOptions,
   type FinancialCategory,
   type FinancialCategoryFormValues,
 } from "@/components/finance/finance-category.types";
-import { glassText, glassTextStyles } from "@/config/glass-typography";
+import { glassText } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
 
 const EMPTY_VALUES: FinancialCategoryFormValues = {
@@ -78,28 +77,13 @@ export function CategoryForm({
   }
 
   return (
-    <ModalPanel className="relative w-full max-w-md">
-      <div className="mb-5 flex items-start justify-between gap-4">
-        <div>
-          <h2 className={glassTextStyles.modalTitle}>
-            {isEditing ? "Editar categoria" : "Nova categoria"}
-          </h2>
-          <p className={cn("mt-1 text-sm", glassText.muted)}>
-            Categorias aparecem automaticamente no financeiro e nos formulários
-          </p>
-        </div>
-
-        <IconButton
-          shape="round"
-          size="sm"
-          aria-label="Fechar"
-          onClick={onCancel}
-          disabled={isPending}
-        >
-          <X className="size-4" />
-        </IconButton>
-      </div>
-
+    <ResponsiveModal
+      isOpen
+      onClose={onCancel}
+      title={isEditing ? "Editar categoria" : "Nova categoria"}
+      description="Categorias aparecem automaticamente no financeiro e nos formulários"
+      size="md"
+    >
       {errorMessage ? <InlineAlert className="mb-4 text-xs">{errorMessage}</InlineAlert> : null}
 
       <form className="space-y-4" onSubmit={handleSubmit} noValidate>
@@ -191,6 +175,6 @@ export function CategoryForm({
           </GlassButton>
         </div>
       </form>
-    </ModalPanel>
+    </ResponsiveModal>
   );
 }

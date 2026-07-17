@@ -1,16 +1,12 @@
 import type { LucideIcon } from "lucide-react";
-import {
-  BarChart3,
-  CalendarDays,
-  Grid2X2,
-  HelpCircle,
-  LineChart,
-  Settings,
-  UsersRound,
-  User2Icon,
-  CircleDollarSignIcon,
-} from "lucide-react";
 import type { UserRole } from "@/components/users/users.types";
+import {
+  getMobileNavigationRoutes,
+  isClassesRouteActive,
+  isNavActive,
+  navigationRoutes,
+  type RouteItem,
+} from "@/config/navigation";
 
 export type AppNavItem = {
   icon: LucideIcon;
@@ -19,30 +15,35 @@ export type AppNavItem = {
   badge?: string;
 };
 
+export type { RouteItem };
+export { isNavActive, isClassesRouteActive, navigationRoutes };
+
+/** Rotas principais da sidebar (sem Classes drawer e sem utility). */
+export const mainNavItems: AppNavItem[] = navigationRoutes
+  .filter((route) => !route.isDrawerTrigger && !route.isUtility)
+  .map(({ icon, label, path }) => ({
+    icon,
+    label,
+    href: path,
+  }));
+
+/** @deprecated Classes vêm da API via ClassesSidebarSection / ClassesDrawer. */
 export type ClassNavItem = {
   label: string;
   count: string;
   href: string;
 };
 
-export const mainNavItems: AppNavItem[] = [
-  { icon: Grid2X2, label: "Dashboard", href: "/dashboard" },
-  { icon: CircleDollarSignIcon, label: "Financeiro", href: "/finance" },
-  { icon: CalendarDays, label: "Agenda", href: "/agenda" },
-];
+/** @deprecated Prefer listClassesNavAction / useClassesNavItems. */
+export const classNavItems: ClassNavItem[] = [];
 
-export const classNavItems: ClassNavItem[] = [
-  { label: "Crossfit", count: "2", href: "/classes/crossfit" },
-  { label: "TRX", count: "11", href: "/classes/trx" },
-  { label: "Yoga", count: "2", href: "/classes/yoga" },
-];
-
-export const utilityNavItems: AppNavItem[] = [
-  { icon: UsersRound, label: "Alunos", href: "/members" },
-  { icon: UsersRound, label: "Profissionais", href: "/professionals" },
-  { icon: User2Icon, label: "Usuários", href: "/users" },
-  { icon: Settings, label: "Configurações", href: "/settings" },
-];
+export const utilityNavItems: AppNavItem[] = navigationRoutes
+  .filter((route) => route.isUtility)
+  .map(({ icon, label, path }) => ({
+    icon,
+    label,
+    href: path,
+  }));
 
 const USERS_NAV_HREF = "/users";
 
@@ -52,23 +53,12 @@ export function getUtilityNavItemsForRole(role: UserRole | null): AppNavItem[] {
   );
 }
 
-export function getMobileNavItemsForRole(role: UserRole | null): AppNavItem[] {
-  return [
-    ...mainNavItems,
-    ...classNavItems.map(({ label, href }) => ({
-      icon: BarChart3,
-      label,
-      href,
-    })),
-    ...getUtilityNavItemsForRole(role),
-  ];
+/** Bottom bar: rotas com `showInMobileNav` (Classes = drawer; utility após Classes). */
+export function getMobileNavItemsForRole(role: UserRole | null): RouteItem[] {
+  return getMobileNavigationRoutes(role === "SUPER_ADMIN");
 }
 
 export const profileHref = "/profile";
 
-/** @deprecated Use getMobileNavItemsForRole(role) — inclui filtro RBAC. */
-export const mobileNavItems: AppNavItem[] = getMobileNavItemsForRole("SUPER_ADMIN");
-
-export function isNavActive(pathname: string, href: string) {
-  return pathname === href;
-}
+/** @deprecated Use getMobileNavItemsForRole(role). */
+export const mobileNavItems: RouteItem[] = getMobileNavItemsForRole("SUPER_ADMIN");

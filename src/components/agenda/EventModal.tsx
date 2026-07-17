@@ -5,10 +5,8 @@ import {
   Calendar,
   Clock,
   Link2,
-  Loader2,
   MapPin,
   Tag,
-  X,
 } from "lucide-react";
 import { createAgendaEventAction } from "@/app/(app)/agenda/actions";
 import { dispatchAgendaChanged } from "@/components/agenda/agenda-events";
@@ -22,13 +20,9 @@ import {
   GlassButton,
   GlassInput,
   GlassSelect,
-  IconButton,
 } from "@/components/common/form";
 import { DatePicker } from "@/components/common/date-picker/DatePicker";
-import { ModalOverlay } from "@/components/common/modal/ModalOverlay";
-import { ModalPanel } from "@/components/common/modal/ModalPanel";
-import { glassText, glassTextStyles } from "@/config/glass-typography";
-import { cn } from "@/lib/cn";
+import { ResponsiveModal } from "@/components/common/modal/ResponsiveModal";
 
 type EventModalProps = {
   userOptions: AgendaUserOption[];
@@ -117,135 +111,136 @@ export function EventModal({
   }
 
   return (
-    <ModalOverlay scrollable>
-      <ModalPanel className="relative w-full max-w-lg">
-        <div className="mb-5 flex items-start justify-between gap-3">
-          <div>
-            <h2 className={cn(glassTextStyles.panelTitle, "text-lg font-bold tracking-[-0.03em]")}>
-              Novo evento
-            </h2>
-            <p className={cn("mt-1 text-sm", glassText.muted)}>
-              Preencha os detalhes e convide participantes.
-            </p>
-          </div>
+    <ResponsiveModal
+      isOpen
+      onClose={onClose}
+      title="Novo evento"
+      description="Preencha os detalhes e convide participantes."
+      size="lg"
+    >
+      {errorMessage ? (
+        <InlineAlert className="mb-4 shrink-0 text-xs">{errorMessage}</InlineAlert>
+      ) : null}
 
-          <IconButton
-            aria-label="Fechar modal"
-            onClick={onClose}
-            disabled={isPending}
-          >
-            <X className="size-4" />
-          </IconButton>
-        </div>
-
-        <form className="grid gap-4" onSubmit={handleSubmit}>
-          <FormField label="Título" htmlFor="event-title">
-            <GlassInput
-              id="event-title"
-              value={values.title}
-              onChange={(event) => updateField("title", event.target.value)}
-              placeholder="Ex.: Reunião com equipe"
-              disabled={isPending}
-              autoFocus
-            />
-          </FormField>
-
-          <FormField label="Data" htmlFor="event-date">
-            <DatePicker
-              id="event-date"
-              value={values.date}
-              onChange={(value) => updateField("date", value)}
-              disabled={isPending}
-            />
-          </FormField>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <FormField label="Início" htmlFor="event-start">
-              <GlassSelect
-                id="event-start"
-                leftIcon={Clock}
-                options={timeOptions}
-                value={values.startTime}
-                onChange={(event) => updateField("startTime", event.target.value)}
-                disabled={isPending}
-              />
-            </FormField>
-
-            <FormField label="Fim" htmlFor="event-end">
-              <GlassSelect
-                id="event-end"
-                leftIcon={Clock}
-                options={timeOptions}
-                value={values.endTime}
-                onChange={(event) => updateField("endTime", event.target.value)}
-                disabled={isPending}
-              />
-            </FormField>
-          </div>
-
-          <FormField label="Tipo" htmlFor="event-type">
-            <GlassSelect
-              id="event-type"
-              leftIcon={Tag}
-              options={eventTypeOptions}
-              value={values.type}
-              onChange={(event) =>
-                updateField("type", event.target.value as CreateEventFormValues["type"])
-              }
-              disabled={isPending}
-            />
-          </FormField>
-
-          {showMeetingLink ? (
-            <FormField label="Link da reunião" htmlFor="event-link">
+      <form className="flex min-h-0 flex-1 flex-col" onSubmit={handleSubmit} noValidate>
+        <div className="min-h-0 flex-1 space-y-4 pb-5">
+            <FormField label="Título" htmlFor="event-title">
               <GlassInput
-                id="event-link"
-                leftIcon={Link2}
-                type="url"
-                value={values.meetingLink}
-                onChange={(event) => updateField("meetingLink", event.target.value)}
-                placeholder="https://meet.google.com/..."
+                id="event-title"
+                value={values.title}
+                onChange={(event) => updateField("title", event.target.value)}
+                placeholder="Ex.: Reunião com equipe"
+                disabled={isPending}
+                autoFocus
+              />
+            </FormField>
+
+            <FormField label="Data" htmlFor="event-date">
+              <DatePicker
+                id="event-date"
+                value={values.date}
+                onChange={(value) => updateField("date", value)}
                 disabled={isPending}
               />
             </FormField>
-          ) : null}
 
-          <FormField label="Local" htmlFor="event-location">
-            <GlassInput
-              id="event-location"
-              leftIcon={MapPin}
-              value={values.location}
-              onChange={(event) => updateField("location", event.target.value)}
-              placeholder="Ex.: Sala 2 — Unidade Centro"
+            <div className="grid gap-4 sm:grid-cols-2">
+              <FormField label="Início" htmlFor="event-start">
+                <GlassSelect
+                  id="event-start"
+                  leftIcon={Clock}
+                  options={timeOptions}
+                  value={values.startTime}
+                  onChange={(event) => updateField("startTime", event.target.value)}
+                  disabled={isPending}
+                />
+              </FormField>
+
+              <FormField label="Fim" htmlFor="event-end">
+                <GlassSelect
+                  id="event-end"
+                  leftIcon={Clock}
+                  options={timeOptions}
+                  value={values.endTime}
+                  onChange={(event) => updateField("endTime", event.target.value)}
+                  disabled={isPending}
+                />
+              </FormField>
+            </div>
+
+            <FormField label="Tipo" htmlFor="event-type">
+              <GlassSelect
+                id="event-type"
+                leftIcon={Tag}
+                options={eventTypeOptions}
+                value={values.type}
+                onChange={(event) =>
+                  updateField("type", event.target.value as CreateEventFormValues["type"])
+                }
+                disabled={isPending}
+              />
+            </FormField>
+
+            {showMeetingLink ? (
+              <FormField label="Link da reunião" htmlFor="event-link">
+                <GlassInput
+                  id="event-link"
+                  leftIcon={Link2}
+                  type="url"
+                  value={values.meetingLink}
+                  onChange={(event) => updateField("meetingLink", event.target.value)}
+                  placeholder="https://meet.google.com/..."
+                  disabled={isPending}
+                />
+              </FormField>
+            ) : null}
+
+            <FormField label="Local" htmlFor="event-location">
+              <GlassInput
+                id="event-location"
+                leftIcon={MapPin}
+                value={values.location}
+                onChange={(event) => updateField("location", event.target.value)}
+                placeholder="Ex.: Sala 2 — Unidade Centro"
+                disabled={isPending}
+              />
+            </FormField>
+
+            <FormField label="Participantes">
+              <GlassMultiSelect
+                options={userOptions}
+                value={values.participantIds}
+                onChange={(participantIds) => updateField("participantIds", participantIds)}
+                disabled={isPending}
+                placement="top"
+              />
+            </FormField>
+          </div>
+
+          <div className="flex shrink-0 gap-3 border-t border-white/10 pt-4 flex-row justify-end">
+            <GlassButton
+              variant="subtle"
+              size="sm"
+              type="button"
+              onClick={onClose}
               disabled={isPending}
-            />
-          </FormField>
+            >
+              Cancelar
+            </GlassButton>
 
-          <FormField label="Participantes">
-            <GlassMultiSelect
-              options={userOptions}
-              value={values.participantIds}
-              onChange={(participantIds) => updateField("participantIds", participantIds)}
-              disabled={isPending}
-              placement="top"
-            />
-          </FormField>
-
-          {errorMessage ? <InlineAlert>{errorMessage}</InlineAlert> : null}
-
-          <div className="flex items-center justify-center gap-2 pt-1">
             <GlassButton
               type="submit"
+              size="sm"
               variant="strong"
               loading={isPending}
               leftIcon={isPending ? undefined : <Calendar className="size-4" />}
+              className="bg-gradient-to-r from-orange-500 to-orange-600"
             >
               {isPending ? "Salvando…" : "Adicionar evento"}
             </GlassButton>
           </div>
         </form>
-      </ModalPanel>
-    </ModalOverlay>
+    </ResponsiveModal>
   );
 }
 

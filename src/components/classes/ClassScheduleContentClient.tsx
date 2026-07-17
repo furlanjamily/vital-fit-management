@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, Trash2 } from "lucide-react";
+import { CirclePlus, Plus, Trash2 } from "lucide-react";
 import { useCallback, useMemo, useState, useTransition } from "react";
 import { deleteAppointmentAction } from "@/app/(app)/classes/actions";
 import { InlineAlert } from "@/components/common/feedback/InlineAlert";
@@ -244,7 +244,7 @@ export function ClassScheduleContentClient({
           <ClassGradeTooltip grade={grade} />
           <GlassButton
             size="sm"
-            rightIcon={<Plus className="size-4" aria-hidden="true" />}
+            rightIcon={<CirclePlus className="size-4" aria-hidden="true" />}
             onClick={() =>
               openScheduleModal({ defaultClassId: classRecord.id, slug })
             }

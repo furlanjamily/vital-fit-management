@@ -2,7 +2,6 @@
 
 import type { CSSProperties, ReactNode } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { SquareArrowUp } from "lucide-react";
 import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
 import { GlassSelect } from "@/components/common/select/GlassSelect";
 import { RevenueOverviewExactSkeleton } from "@/components/dashboard/RevenueOverviewExactSkeleton";
@@ -206,8 +205,8 @@ function RevenueBarColumn({
   );
 }
 
-const CONNECTOR_HEIGHT = 28;
-const CONNECTOR_LINE_Y = 22;
+/** Altura reservada para o badge do pico acima da coluna. */
+const PEAK_CALLOUT_HEIGHT = 40;
 
 type RevenueOverviewExactProps = {
   filter?: RevenueChartFilter;
@@ -222,17 +221,9 @@ export function RevenueOverviewExact({
   const filter = controlledFilter ?? internalFilter;
   const chartAreaRef = useRef<HTMLDivElement>(null);
   const chartPlotRef = useRef<HTMLDivElement>(null);
-  const chartRowRef = useRef<HTMLDivElement>(null);
-  const kpiRef = useRef<HTMLDivElement>(null);
-  const peakBadgeRef = useRef<HTMLDivElement>(null);
   const chartContentRef = useRef<HTMLDivElement>(null);
   const { ref: scrollRef, handleMouseDown } = useDragScroll<HTMLDivElement>();
   const [chartAreaWidth, setChartAreaWidth] = useState(0);
-  const [connectorLayout, setConnectorLayout] = useState({
-    lineLeft: 0,
-    lineWidth: 0,
-    bottom: 0,
-  });
   const [hoveredBar, setHoveredBar] = useState<HoveredRevenueBar | null>(null);
 
   const { bars, totalRevenue, isLoading, error } = useRevenueChartData(filter);
@@ -282,57 +273,7 @@ export function RevenueOverviewExact({
   const peakCenterX =
     peakBarIndex * (barColumnWidth + barGap) + barColumnWidth / 2;
 
-  const showConnector = displayBars.length > 0 && maxRevenueInPeriod > 0;
-
-  useEffect(() => {
-    if (!showConnector) return;
-
-    function updateConnectorLine() {
-      const row = chartRowRef.current;
-      const kpi = kpiRef.current;
-      const badge = peakBadgeRef.current;
-      const content = chartContentRef.current;
-      if (!row || !kpi || !content) return;
-
-      const rowRect = row.getBoundingClientRect();
-      const badgeRect = badge?.getBoundingClientRect();
-      const kpiRect = kpi.getBoundingClientRect();
-      const contentRect = content.getBoundingClientRect();
-
-      const lineLeft = badgeRect
-        ? badgeRect.right - rowRect.left + 4
-        : kpiRect.left - rowRect.left;
-      const peakX = contentRect.left - rowRect.left + peakCenterX;
-      const lineBottom = badgeRect
-        ? rowRect.bottom - (badgeRect.top + badgeRect.height / 2)
-        : rowRect.bottom - contentRect.top - CONNECTOR_LINE_Y;
-
-      setConnectorLayout({
-        lineLeft,
-        lineWidth: Math.max(peakX - lineLeft, 0),
-        bottom: Math.max(lineBottom, 0),
-      });
-    }
-
-    updateConnectorLine();
-
-    const row = chartRowRef.current;
-    const scrollEl = scrollRef.current;
-    const observer = new ResizeObserver(updateConnectorLine);
-
-    if (row) observer.observe(row);
-    if (chartAreaRef.current) observer.observe(chartAreaRef.current);
-    if (chartContentRef.current) observer.observe(chartContentRef.current);
-    if (peakBadgeRef.current) observer.observe(peakBadgeRef.current);
-    scrollEl?.addEventListener("scroll", updateConnectorLine, { passive: true });
-    window.addEventListener("resize", updateConnectorLine);
-
-    return () => {
-      observer.disconnect();
-      scrollEl?.removeEventListener("scroll", updateConnectorLine);
-      window.removeEventListener("resize", updateConnectorLine);
-    };
-  }, [showConnector, peakCenterX, isScrollable, contentWidth, filter, isLoading]);
+  const showPeakCallout = displayBars.length > 0 && maxRevenueInPeriod > 0;
 
   function handleBarEnter(bar: RevenueBar, element: HTMLElement) {
     const chartEl = chartPlotRef.current;
@@ -363,11 +304,28 @@ export function RevenueOverviewExact({
       className="relative"
       style={{ width: contentWidth }}
     >
+      {showPeakCallout ? (
+        <div
+          className="pointer-events-none absolute top-0 z-20 flex -translate-x-1/2 flex-col items-center"
+          style={{ left: peakCenterX, height: PEAK_CALLOUT_HEIGHT }}
+        >
+          <RevenueGlass className="shrink-0 rounded-full">
+            <span
+              className="block whitespace-nowrap px-2 py-0.5 text-[10px] font-semibold tracking-[-0.03em] sm:px-2.5 sm:py-1 sm:text-[12px]"
+              style={{ color: HIGHLIGHT_ACCENT }}
+            >
+              R$ {formatBrlAmount(peakValue)}
+            </span>
+          </RevenueGlass>
+          <div aria-hidden className="w-px flex-1 bg-white/40" />
+        </div>
+      ) : null}
+
       <div
         className="relative z-10 flex items-end"
         style={{
           gap: barGap,
-          paddingTop: showConnector ? CONNECTOR_HEIGHT - 14 : 0,
+          paddingTop: showPeakCallout ? PEAK_CALLOUT_HEIGHT : 0,
         }}
       >
         {displayBars.map((bar, index) => (
@@ -390,16 +348,15 @@ export function RevenueOverviewExact({
 
   return (
     <RevenueGlass className="w-full rounded-2xl px-4 py-4 sm:px-5 sm:py-5 lg:px-6 lg:py-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+      <div className="flex gap-3 sm:flex-row sm:items-center justify-between sm:gap-4">
         <div className="min-w-0">
           <h2 className={cn(glassText.primary, "text-base font-semibold tracking-[-0.04em]")}>
-            Receitas Totais
+            Faturamento Gerado
           </h2>
           <p className={cn(glassText.muted, "mt-0.5 text-[11px] leading-snug")}>
-            fique de olho nas receitas totais geradas
+            Fique de olho no seu faturamento!
           </p>
         </div>
-
           <GlassSelect
             aria-label="Período de receitas"
             selectSize="sm"
@@ -414,8 +371,9 @@ export function RevenueOverviewExact({
                 setInternalFilter(nextFilter);
               }
             }}
-            wrapperClassName="w-auto"
-          />
+            className="max-w-24"
+            wrapperClassName="flex items-center justify-center"
+      />
       </div>
 
       {error ? (
@@ -424,44 +382,24 @@ export function RevenueOverviewExact({
         </div>
       ) : null}
 
-      <div ref={chartRowRef} className="relative mt-4 flex items-end gap-3 sm:mt-5 sm:gap-4">
-        {showConnector ? (
-          <div
-            aria-hidden
-            className="pointer-events-none absolute z-[1] h-px bg-white/40"
-            style={{
-              left: connectorLayout.lineLeft,
-              width: connectorLayout.lineWidth,
-              bottom: connectorLayout.bottom,
-            }}
-          />
-        ) : null}
-
-        <div ref={kpiRef} className="z-10 mb-4 flex shrink-0 flex-col items-start gap-2 self-end">
-          {showConnector ? (
-            <div ref={peakBadgeRef} className="shrink-0">
-              <RevenueGlass className="rounded-full">
-                <span
-                  className="block whitespace-nowrap px-2.5 py-1 text-[12px] font-semibold tracking-[-0.03em]"
-                  style={{ color: HIGHLIGHT_ACCENT }}
-                >
-                  R$ {formatBrlAmount(peakValue)}
-                </span>
-              </RevenueGlass>
-            </div>
-          ) : null}
-
-          <RevenueGlass className="rounded-full">
-            <div className="inline-flex items-baseline px-4 py-2 sm:px-5 sm:py-2.5">
+      <div className="relative mt-4 flex flex-col gap-3 sm:mt-5">
+        <div className="z-10 flex shrink-0 flex-col items-start self-start">
+          <RevenueGlass className="min-w-0 max-w-full rounded-full">
+            <div className="inline-flex max-w-full items-baseline truncate px-3 py-1.5 sm:px-4 sm:py-2 md:px-5 md:py-2.5">
               <span
                 className={cn(
-                  "mr-1 text-xl font-semibold tracking-tighter sm:text-2xl",
+                  "mr-0.5 shrink-0 text-base font-semibold tracking-tighter sm:mr-1 sm:text-xl md:text-2xl",
                   glassText.tertiary,
                 )}
               >
                 R$
               </span>
-              <span className={cn(glassTextStyles.kpiValue, "text-xl sm:text-2xl")}>
+              <span
+                className={cn(
+                  glassTextStyles.kpiValue,
+                  "truncate text-base sm:text-xl md:text-2xl",
+                )}
+              >
                 {formatBrlAmount(totalRevenue)}
               </span>
             </div>
@@ -470,7 +408,7 @@ export function RevenueOverviewExact({
 
         <div
           ref={chartPlotRef}
-          className="relative min-w-0 flex-1 overflow-visible"
+          className="relative min-w-0 w-full overflow-visible"
           onMouseLeave={handleBarLeave}
         >
           <div ref={chartAreaRef} className="relative min-w-0">

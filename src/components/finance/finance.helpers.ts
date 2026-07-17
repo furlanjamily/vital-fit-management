@@ -382,7 +382,8 @@ export function resolveRevenueChartLayout(
   const gap = REVENUE_CHART_COLUMN_GAP[period];
   const totalGapWidth = Math.max(barCount - 1, 0) * gap;
   const contentWidth = barCount * columnWidth + totalGapWidth;
-  const forceScroll = period === "monthly" || period === "yearly";
+  /** Só o mês (~30 dias) força scroll; ano (12 meses) centraliza como dia/semana quando cabe. */
+  const forceScroll = period === "monthly";
   const isScrollable = forceScroll || (containerWidth > 0 && contentWidth > containerWidth);
 
   return {

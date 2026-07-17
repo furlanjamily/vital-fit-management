@@ -70,7 +70,7 @@ type MetricValueProps = {
 
 function MetricValue({ value }: MetricValueProps) {
   return (
-    <div className="mt-2 flex min-w-0 items-start gap-1.5 leading-none">
+    <div className="mt-2 flex min-w-0 items-start justify-center gap-1.5 leading-none">
       <span className={cn("mt-0.5 shrink-0 text-[12px] font-semibold tracking-[-0.04em] sm:text-[13px]", glassText.tertiary)}>
         R$
       </span>
@@ -89,12 +89,19 @@ function MetricValue({ value }: MetricValueProps) {
 
 type PortfolioMetricItemProps = {
   metric: PortfolioMetric;
+  aloneOnRow?: boolean;
 };
 
-function PortfolioMetricItem({ metric }: PortfolioMetricItemProps) {
+function PortfolioMetricItem({ metric, aloneOnRow = false }: PortfolioMetricItemProps) {
   return (
-    <div className="min-w-0 flex-1 basis-0 overflow-hidden pr-2 last:pr-0 md:pr-3 md:last:pr-0">
-      <div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5">
+    <div
+      className={cn(
+        "min-w-0 text-center md:flex-1 md:basis-0 md:overflow-hidden md:pr-3 md:last:pr-0",
+        aloneOnRow &&
+          "col-span-2 w-[calc(50%-0.5rem)] justify-self-center md:col-span-1 md:w-auto md:justify-self-auto",
+      )}
+    >
+      <div className="flex min-w-0 flex-wrap items-center justify-center gap-x-1.5 gap-y-0.5">
         <span className={cn("truncate text-[12px] font-medium leading-none tracking-[-0.02em]", glassText.secondary)}>
           {metric.title}
         </span>
@@ -113,9 +120,12 @@ export function PortfolioSummaryCard({
   className,
 }: PortfolioSummaryCardProps) {
   return (
-    <GlassPanel {...PORTFOLIO_GLASS} className={cn("w-full rounded-[20px]", className)}>
-      <div className="px-6 py-6 sm:px-8 sm:py-7">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+    <GlassPanel
+      {...PORTFOLIO_GLASS}
+      className={cn("w-full shrink-0 rounded-[20px]", className)}
+    >
+      <div className="flex max-h-full min-h-0 flex-col overflow-y-auto overscroll-contain px-6 py-6 sm:px-8 sm:py-7 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="flex shrink-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
           <h2 className={cn(glassText.primary, "text-[20px] font-bold leading-tight tracking-[-0.04em] sm:text-[22px]")}>
             Resumo Geral
           </h2>
@@ -132,9 +142,13 @@ export function PortfolioSummaryCard({
           </button>
         </div>
 
-        <div className="mt-8 flex flex-col gap-6 sm:mt-9 md:flex-row md:gap-5 lg:gap-8">
-          {metrics.map((metric) => (
-            <PortfolioMetricItem key={metric.title} metric={metric} />
+        <div className="mt-8 grid grid-cols-2 place-items-center gap-x-4 gap-y-6 sm:mt-9 md:flex md:flex-row md:place-items-stretch md:gap-5 lg:gap-8">
+          {metrics.map((metric, index) => (
+            <PortfolioMetricItem
+              key={metric.title}
+              metric={metric}
+              aloneOnRow={metrics.length % 2 === 1 && index === metrics.length - 1}
+            />
           ))}
         </div>
       </div>

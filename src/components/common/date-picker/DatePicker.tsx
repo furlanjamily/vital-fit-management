@@ -36,7 +36,7 @@ export function DatePicker({
   value = "",
   onChange,
   pickerSize = "md",
-  tone = "muted",
+  tone = "default",
   wrapperClassName,
   placeholder = "dd / mm / aaaa",
   disabled,
@@ -44,6 +44,7 @@ export function DatePicker({
   ...props
 }: DatePickerProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const iconClassName = pickerSize === "sm" ? "right-2 size-3" : "right-3.5 size-3.5";
 
   function openPicker() {
     if (disabled) return;
@@ -67,17 +68,19 @@ export function DatePicker({
         disabled={disabled}
         onClick={openPicker}
         className={cn(
-          "flex w-full items-center rounded-full border text-left",
+          // Mesmo shell do GlassSelect (sem ícone à esquerda)
+          "flex w-full appearance-none items-center rounded-xl border text-left text-glass-primary",
           inputToneClasses[tone],
           inputSizeClasses[pickerSize],
           inputPaddingPlain[pickerSize],
-          "pr-10",
+          "pr-9",
           formControlFocusClassName,
           disabled && "cursor-not-allowed opacity-60",
+          !value && glassText.muted,
           className,
         )}
       >
-        <span className={cn("truncate", value ? glassText.primary : glassText.muted)}>
+        <span className="min-w-0 flex-1 truncate">
           {value ? formatDisplayDate(value) : placeholder}
         </span>
       </button>
@@ -85,8 +88,9 @@ export function DatePicker({
       <Calendar
         aria-hidden
         className={cn(
-          cn("pointer-events-none absolute top-1/2 -translate-y-1/2", glassText.muted),
-          pickerSize === "sm" ? "right-2.5 size-3.5" : "right-3.5 size-4",
+          "pointer-events-none absolute top-1/2 -translate-y-1/2",
+          glassText.tertiary,
+          iconClassName,
         )}
       />
 

@@ -6,7 +6,6 @@ import { InlineAlert } from "@/components/common/feedback/InlineAlert";
 import { GlassButton } from "@/components/common/form";
 import { RowActionsMenu, type RowAction } from "@/components/common/menu/RowActionsMenu";
 import { ConfirmRemoveDialog } from "@/components/common/modal/ConfirmRemoveDialog";
-import { ModalOverlay } from "@/components/common/modal/ModalOverlay";
 import {
   Table,
   type TableColumn,
@@ -197,15 +196,13 @@ export function CategoriesContentClient({
       />
 
       {formOpen ? (
-        <ModalOverlay scrollable>
-          <CategoryForm
-            editingCategory={editingCategory}
-            onSuccess={handleFormSuccess}
-            onCancel={closeForm}
-            createAction={createFinancialCategoryAction}
-            updateAction={updateFinancialCategoryAction}
-          />
-        </ModalOverlay>
+        <CategoryForm
+          editingCategory={editingCategory}
+          onSuccess={handleFormSuccess}
+          onCancel={closeForm}
+          createAction={createFinancialCategoryAction}
+          updateAction={updateFinancialCategoryAction}
+        />
       ) : null}
 
       {removingCategory ? (

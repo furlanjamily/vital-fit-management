@@ -10,7 +10,6 @@ import {
   Mail,
   User,
   UserPlus,
-  X,
 } from "lucide-react";
 import {
   createMemberAction,
@@ -23,9 +22,8 @@ import {
   GlassInput,
   GlassSelect,
   GlassSwitch,
-  IconButton,
 } from "@/components/common/form";
-import { ModalPanel } from "@/components/common/modal/ModalPanel";
+import { ResponsiveModal } from "@/components/common/modal/ResponsiveModal";
 import { formatBirthDate, formatCpf } from "@/components/members/member.helpers";
 import {
   originOptions,
@@ -36,7 +34,7 @@ import {
   type MemberFormValues,
   type ProfessionalOption,
 } from "@/components/members/members.types";
-import { glassText, glassTextStyles } from "@/config/glass-typography";
+import { glassText } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
 
 const EMPTY_VALUES: MemberFormValues = {
@@ -135,31 +133,17 @@ export function MemberRegistrationForm({
   }
 
   return (
-    <ModalPanel className="relative z-50 w-full max-w-2xl">
-      <div className="mb-5 flex items-center justify-between">
-        <div>
-          <p className={glassTextStyles.modalTitle}>
-            {isEditing ? "Editar aluno" : "Cadastrar aluno"}
-          </p>
-          <p className={glassTextStyles.modalSubtitle}>
-            {isEditing
-              ? `Alterando matrícula de ${editingMember.name}`
-              : "Nova matrícula na academia"}
-          </p>
-        </div>
-
-        <IconButton
-          aria-label="Fechar"
-          disabled={isPending}
-          className={cn(
-            "bg-white/7 text-glass-secondary hover:bg-white/13 hover:text-glass-primary",
-          )}
-          onClick={onCancel}
-        >
-          <X className="size-3.5" />
-        </IconButton>
-      </div>
-
+    <ResponsiveModal
+      isOpen
+      onClose={onCancel}
+      title={isEditing ? "Editar aluno" : "Cadastrar aluno"}
+      description={
+        isEditing
+          ? `Alterando matrícula de ${editingMember.name}`
+          : "Nova matrícula na academia"
+      }
+      size="xl"
+    >
       <form onSubmit={handleSubmit} className="grid gap-5" noValidate>
         {errorMessage ? <InlineAlert className="text-xs">{errorMessage}</InlineAlert> : null}
 
@@ -281,6 +265,6 @@ export function MemberRegistrationForm({
           </GlassButton>
         </div>
       </form>
-    </ModalPanel>
+    </ResponsiveModal>
   );
 }

@@ -1,15 +1,15 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import { CheckCircle2, CreditCard, Loader2, X } from "lucide-react";
+import { CheckCircle2, CreditCard, Loader2 } from "lucide-react";
 import {
   confirmMemberPaymentAction,
   getMemberPaymentPreviewAction,
   type MemberPaymentPreview,
 } from "@/app/(app)/members/actions";
 import { InlineAlert } from "@/components/common/feedback/InlineAlert";
-import { GlassButton, GlassSelect, IconButton } from "@/components/common/form";
-import { ModalPanel } from "@/components/common/modal/ModalPanel";
+import { GlassButton, GlassSelect } from "@/components/common/form";
+import { ResponsiveModal } from "@/components/common/modal/ResponsiveModal";
 import {
   formatCurrencyBrl,
   formatIsoDateToDisplay,
@@ -22,7 +22,7 @@ import {
 } from "@/components/members/payment.types";
 import { planLabels, type ManagedMember } from "@/components/members/members.types";
 import { resolvePlanPrice } from "@/config/plan-prices";
-import { glassText, glassTextStyles } from "@/config/glass-typography";
+import { glassText } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
 
 type MemberPaymentFormProps = {
@@ -95,26 +95,13 @@ export function MemberPaymentForm({ member, onSuccess, onCancel }: MemberPayment
   }
 
   return (
-    <ModalPanel className="relative w-full max-w-md">
-      <div className="mb-5 flex items-start justify-between gap-4">
-        <div>
-          <h2 className={glassTextStyles.modalTitle}>Pagamento de Mensalidade</h2>
-          <p className={cn("mt-1 text-sm", glassText.muted)}>
-            Confirme o recebimento da mensalidade do aluno
-          </p>
-        </div>
-
-        <IconButton
-          shape="round"
-          size="sm"
-          aria-label="Fechar"
-          onClick={onCancel}
-          disabled={isPending}
-        >
-          <X className="size-4" />
-        </IconButton>
-      </div>
-
+    <ResponsiveModal
+      isOpen
+      onClose={onCancel}
+      title="Pagamento de Mensalidade"
+      description="Confirme o recebimento da mensalidade do aluno"
+      size="md"
+    >
       <div className="mb-5 space-y-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3">
         <div className="flex justify-between gap-4 text-sm">
           <span className={glassText.muted}>Aluno</span>
@@ -222,6 +209,6 @@ export function MemberPaymentForm({ member, onSuccess, onCancel }: MemberPayment
           </button>
         ) : null}
       </div>
-    </ModalPanel>
+    </ResponsiveModal>
   );
 }

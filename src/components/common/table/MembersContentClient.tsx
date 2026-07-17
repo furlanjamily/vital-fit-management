@@ -5,7 +5,6 @@ import { InlineAlert } from "@/components/common/feedback/InlineAlert";
 import { GlassButton } from "@/components/common/form";
 import { RowActionsMenu, type RowAction } from "@/components/common/menu/RowActionsMenu";
 import { ConfirmRemoveDialog } from "@/components/common/modal/ConfirmRemoveDialog";
-import { ModalOverlay } from "@/components/common/modal/ModalOverlay";
 import {
   Table,
   type TableColumn,
@@ -322,15 +321,13 @@ export function MembersContentClient({
       />
 
       {formOpen && (
-        <ModalOverlay scrollable>
-          <MemberRegistrationForm
-            key={editingMember?.id ?? "new"}
-            editingMember={editingMember}
-            professionalOptions={professionalOptions}
-            onSuccess={handleFormSuccess}
-            onCancel={closeForm}
-          />
-        </ModalOverlay>
+        <MemberRegistrationForm
+          key={editingMember?.id ?? "new"}
+          editingMember={editingMember}
+          professionalOptions={professionalOptions}
+          onSuccess={handleFormSuccess}
+          onCancel={closeForm}
+        />
       )}
 
       {removingMember && (
@@ -344,13 +341,11 @@ export function MembersContentClient({
       )}
 
       {payingMember && (
-        <ModalOverlay scrollable>
-          <MemberPaymentForm
-            member={payingMember}
-            onSuccess={handlePaymentSuccess}
-            onCancel={closePaymentForm}
-          />
-        </ModalOverlay>
+        <MemberPaymentForm
+          member={payingMember}
+          onSuccess={handlePaymentSuccess}
+          onCancel={closePaymentForm}
+        />
       )}
     </div>
   );

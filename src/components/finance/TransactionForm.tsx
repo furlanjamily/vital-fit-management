@@ -2,15 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowDownCircle, ArrowUpCircle, CreditCard, Loader2, X } from "lucide-react";
+import { ArrowDownCircle, ArrowUpCircle, CreditCard, Loader2 } from "lucide-react";
 import { Controller, useForm } from "react-hook-form";
 import {
   createTransactionAction,
   updateTransactionAction,
 } from "@/app/(app)/finance/actions";
 import { InlineAlert } from "@/components/common/feedback/InlineAlert";
-import { FormField, GlassButton, GlassInput, GlassSelect, IconButton } from "@/components/common/form";
-import { ModalPanel } from "@/components/common/modal/ModalPanel";
+import { FormField, GlassButton, GlassInput, GlassSelect } from "@/components/common/form";
+import { ResponsiveModal } from "@/components/common/modal/ResponsiveModal";
 import type { FinancialTransaction } from "@/components/finance/financial-transactions/financial-transaction.types";
 import { TransactionCategorySelect } from "@/components/finance/TransactionCategorySelect";
 import {
@@ -28,14 +28,13 @@ import {
   type TransactionPaymentMethod,
   type TransactionType,
 } from "@/components/finance/transaction.types";
-import { glassText, glassTextStyles } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
 
 function buildDefaultValues(): TransactionFormValues {
   return {
     description: "",
     amount: "",
-    type: "",
+    type: "RECEITA",
     category_id: "",
     payment_method: "PIX",
   };
@@ -122,30 +121,17 @@ export function TransactionForm({
   }
 
   return (
-    <ModalPanel className="relative w-full max-w-lg">
-      <div className="mb-5 flex items-start justify-between gap-4">
-        <div>
-          <h2 className={glassTextStyles.modalTitle}>
-            {isEditing ? "Editar transação" : "Nova transação"}
-          </h2>
-          <p className={cn("mt-1 text-sm", glassText.muted)}>
-            {isEditing
-              ? "Altere os dados do lançamento manual"
-              : "Lançamentos avulsos — mensalidades são registradas em Alunos"}
-          </p>
-        </div>
-
-        <IconButton
-          shape="round"
-          size="sm"
-          aria-label="Fechar"
-          onClick={onCancel}
-          disabled={isSubmitting}
-        >
-          <X className="size-4" />
-        </IconButton>
-      </div>
-
+    <ResponsiveModal
+      isOpen
+      onClose={onCancel}
+      title={isEditing ? "Editar transação" : "Nova transação"}
+      description={
+        isEditing
+          ? "Altere os dados do lançamento manual"
+          : "(Mensalidades são lançadas automaticamente!)"
+      }
+      size="lg"
+    >
       {hasType ? (
         <div
           className={cn(
@@ -265,24 +251,25 @@ export function TransactionForm({
             />
           </FormField>
 
-          <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
+          <div className="flex gap-3 pt-2 justify-end">
             <GlassButton variant="subtle" size="sm" type="button" onClick={onCancel} disabled={isSubmitting}>
               Cancelar
             </GlassButton>
 
-            <button
+            <GlassButton
               type="submit"
+              size="md"
+              variant="subtle"
               disabled={isSubmitting}
               className={cn(
-                "inline-flex items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60",
                 isReceita
                   ? "border-emerald-400/20 bg-emerald-500/20 text-emerald-100 hover:bg-emerald-500/30"
-                  : "border-red-400/20 bg-red-500/15 text-red-100 hover:bg-red-500/25",
+                  : "border-red-400/20 bg-red-500 text-red-100 hover:bg-red-500/25",
               )}
+              rightIcon={isSubmitting ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : null}
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="size-4 animate-spin" aria-hidden="true" />
                   Salvando…
                 </>
               ) : isEditing ? (
@@ -290,16 +277,16 @@ export function TransactionForm({
               ) : (
                 "Registrar transação"
               )}
-            </button>
+            </GlassButton>
           </div>
         </form>
       ) : (
         <div className="flex justify-end">
-          <GlassButton variant="subtle" size="sm" onClick={onCancel}>
+          <GlassButton variant="subtle" size="sm" onClick={onCancel} disabled={isSubmitting}>
             Fechar
           </GlassButton>
         </div>
       )}
-    </ModalPanel>
+    </ResponsiveModal>
   );
 }

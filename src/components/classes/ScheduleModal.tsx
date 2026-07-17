@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, useTransition, type FormEvent } from "react";
-import { Clock, Loader2, User, X } from "lucide-react";
+import { Loader2, User } from "lucide-react";
 import {
   createAppointmentAction,
   getClassScheduleSlotsAction,
@@ -14,11 +14,9 @@ import {
   FormField,
   GlassButton,
   GlassSelect,
-  IconButton,
 } from "@/components/common/form";
 import { DatePicker } from "@/components/common/date-picker/DatePicker";
-import { ModalOverlay } from "@/components/common/modal/ModalOverlay";
-import { ModalPanel } from "@/components/common/modal/ModalPanel";
+import { ResponsiveModal } from "@/components/common/modal/ResponsiveModal";
 import {
   getDayOfWeekFromIso,
   toIsoDate,
@@ -28,7 +26,7 @@ import {
   weekdayLabels,
 } from "@/components/settings/classes/schedule.types";
 import type { ManagedMember } from "@/components/members/members.types";
-import { glassText, glassTextStyles } from "@/config/glass-typography";
+import { glassText } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
 import type { AvailableClass, ClassRecord } from "@/services/class-manager";
 
@@ -233,144 +231,126 @@ export function ScheduleModal({
       ? `Sem horários na grade para ${weekdayLabels[selectedDayOfWeek] ?? "este dia"}`
       : "Nenhum horário configurado na grade para esta data";
 
-  return (
-    <ModalOverlay scrollable>
-      <ModalPanel className="relative w-full max-w-md">
-        <div className="mb-5 flex items-start justify-between gap-4">
-          <div>
-            <h2 className={glassTextStyles.modalTitle}>Agendar aula</h2>
-            <p className={cn("mt-1 text-sm", glassText.muted)}>
-              {isClassLocked
-                ? "Horários disponíveis conforme a grade desta modalidade"
-                : "Selecione a modalidade e um horário da grade"}
-            </p>
-          </div>
+  const description = isClassLocked
+    ? "Horários disponíveis conforme a grade desta modalidade"
+    : "Selecione a modalidade e um horário da grade";
 
-          <IconButton
-            shape="round"
+  return (
+    <ResponsiveModal
+      isOpen
+      onClose={onClose}
+      title="Agendar aula"
+      description={description}
+      size="md"
+    >
+      {errorMessage ? <InlineAlert className="mb-4 text-xs">{errorMessage}</InlineAlert> : null}
+
+      <form className="space-y-4" onSubmit={handleSubmit} noValidate>
+        <FormField label="Aula" htmlFor="schedule-class">
+          <GlassSelect
+            id="schedule-class"
+            options={classOptions}
+            value={classId}
+            disabled={isClassLocked || isSubmitting}
+            onChange={(event) => {
+              setClassId(event.target.value);
+              setScheduleId("");
+            }}
+          />
+        </FormField>
+
+        {gradeWeekdays.length > 0 ? (
+          <p className={cn("text-xs", glassText.muted)}>
+            Grade: {formatScheduleWeekdays(gradeWeekdays)}
+          </p>
+        ) : null}
+
+        <FormField label="Data" htmlFor="schedule-date">
+          <DatePicker
+            id="schedule-date"
+            value={date}
+            onChange={setDate}
+            disabled={isSubmitting}
+          />
+          <p className={cn("mt-1.5 text-xs", isGradeDay ? glassText.muted : "text-orange-300")}>
+            {weekdayLabels[selectedDayOfWeek]}
+            {!isGradeDay && gradeWeekdays.length > 0
+              ? " — escolha um dia com horário na grade"
+              : ""}
+          </p>
+        </FormField>
+
+        <FormField label="Horário (grade)" htmlFor="schedule-slot">
+          <GlassSelect
+            id="schedule-slot"
+            options={
+              bookableSlotOptions.length > 0
+                ? bookableSlotOptions
+                : [{ value: "", label: slotsEmptyMessage }]
+            }
+            value={scheduleId}
+            disabled={
+              isSubmitting ||
+              slotsLoading ||
+              bookableSlotOptions.length === 0 ||
+              !isGradeDay
+            }
+            onChange={(event) => setScheduleId(event.target.value)}
+          />
+          {availableSlots.length > 0 && bookableSlotOptions.length === 0 && isGradeDay ? (
+            <p className={cn("mt-1.5 text-xs text-orange-300")}>
+              Todos os horários deste dia estão esgotados.
+            </p>
+          ) : null}
+        </FormField>
+
+        <FormField label="Aluno" htmlFor="schedule-member">
+          <GlassSelect
+            id="schedule-member"
+            options={
+              memberOptions.length > 0
+                ? memberOptions
+                : [{ value: "", label: "Nenhum aluno ativo" }]
+            }
+            value={memberId}
+            disabled={isSubmitting || memberOptions.length === 0}
+            onChange={(event) => setMemberId(event.target.value)}
+            leftIcon={User}
+          />
+        </FormField>
+
+        <div className="flex justify-end gap-3 pt-2">
+          <GlassButton
+            variant="subtle"
             size="sm"
-            aria-label="Fechar"
+            type="button"
             onClick={onClose}
             disabled={isSubmitting}
           >
-            <X className="size-4" />
-          </IconButton>
+            Cancelar
+          </GlassButton>
+
+          <GlassButton
+            type="submit"
+            size="sm"
+            disabled={
+              isSubmitting ||
+              slotsLoading ||
+              !scheduleId ||
+              !memberId ||
+              !isGradeDay
+            }
+            className="bg-green-600 text-white hover:bg-green-700"
+            rightIcon={
+              isSubmitting ? (
+                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+              ) : null
+            }
+          >
+            {submitLabel}
+          </GlassButton>
         </div>
-
-        {errorMessage ? <InlineAlert className="mb-4 text-xs">{errorMessage}</InlineAlert> : null}
-
-        <form className="space-y-4" onSubmit={handleSubmit} noValidate>
-          <FormField label="Aula" htmlFor="schedule-class">
-            <GlassSelect
-              id="schedule-class"
-              options={classOptions}
-              value={classId}
-              disabled={isClassLocked || isSubmitting}
-              onChange={(event) => {
-                setClassId(event.target.value);
-                setScheduleId("");
-              }}
-            />
-          </FormField>
-
-          {gradeWeekdays.length > 0 ? (
-            <p className={cn("text-xs", glassText.muted)}>
-              Grade: {formatScheduleWeekdays(gradeWeekdays)}
-            </p>
-          ) : null}
-
-          <FormField label="Data" htmlFor="schedule-date">
-            <DatePicker
-              id="schedule-date"
-              value={date}
-              onChange={setDate}
-              pickerSize="sm"
-              tone="muted"
-              disabled={isSubmitting}
-            />
-            <p className={cn("mt-1.5 text-xs", isGradeDay ? glassText.muted : "text-orange-300")}>
-              {weekdayLabels[selectedDayOfWeek]}
-              {!isGradeDay && gradeWeekdays.length > 0
-                ? " — escolha um dia com horário na grade"
-                : ""}
-            </p>
-          </FormField>
-
-          <FormField label="Horário (grade)" htmlFor="schedule-slot">
-            <GlassSelect
-              id="schedule-slot"
-              options={
-                bookableSlotOptions.length > 0
-                  ? bookableSlotOptions
-                  : [{ value: "", label: slotsEmptyMessage }]
-              }
-              value={scheduleId}
-              disabled={
-                isSubmitting ||
-                slotsLoading ||
-                bookableSlotOptions.length === 0 ||
-                !isGradeDay
-              }
-              onChange={(event) => setScheduleId(event.target.value)}
-              leftIcon={Clock}
-            />
-            {availableSlots.length > 0 && bookableSlotOptions.length === 0 && isGradeDay ? (
-              <p className={cn("mt-1.5 text-xs text-orange-300")}>
-                Todos os horários deste dia estão esgotados.
-              </p>
-            ) : null}
-          </FormField>
-
-          <FormField label="Aluno" htmlFor="schedule-member">
-            <GlassSelect
-              id="schedule-member"
-              options={
-                memberOptions.length > 0
-                  ? memberOptions
-                  : [{ value: "", label: "Nenhum aluno ativo" }]
-              }
-              value={memberId}
-              disabled={isSubmitting || memberOptions.length === 0}
-              onChange={(event) => setMemberId(event.target.value)}
-              leftIcon={User}
-            />
-          </FormField>
-
-          <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
-            <GlassButton
-              variant="subtle"
-              size="sm"
-              type="button"
-              onClick={onClose}
-              disabled={isSubmitting}
-            >
-              Cancelar
-            </GlassButton>
-
-            <GlassButton
-              type="submit"
-              size="sm"
-              disabled={
-                isSubmitting ||
-                slotsLoading ||
-                !scheduleId ||
-                !memberId ||
-                !isGradeDay
-              }
-              className="bg-orange-600 hover:bg-orange-700"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-                  {submitLabel}
-                </>
-              ) : (
-                submitLabel
-              )}
-            </GlassButton>
-          </div>
-        </form>
-      </ModalPanel>
-    </ModalOverlay>
+      </form>
+    </ResponsiveModal>
   );
 }

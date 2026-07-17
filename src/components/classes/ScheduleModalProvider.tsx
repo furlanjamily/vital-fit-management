@@ -4,11 +4,16 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
 } from "react";
 import { ScheduleModal } from "@/components/classes/ScheduleModal";
+import {
+  OPEN_SCHEDULE_MODAL_EVENT,
+  type OpenScheduleModalDetail,
+} from "@/components/classes/schedule-modal-events";
 import type { ClassRecord } from "@/services/class-manager";
 import type { ManagedMember } from "@/components/members/members.types";
 
@@ -50,6 +55,16 @@ export function ScheduleModalProvider({
     setDefaultClassId(null);
     setSlug(undefined);
   }, []);
+
+  useEffect(() => {
+    const handleOpen = (event: Event) => {
+      const detail = (event as CustomEvent<OpenScheduleModalDetail>).detail;
+      openScheduleModal(detail);
+    };
+
+    window.addEventListener(OPEN_SCHEDULE_MODAL_EVENT, handleOpen);
+    return () => window.removeEventListener(OPEN_SCHEDULE_MODAL_EVENT, handleOpen);
+  }, [openScheduleModal]);
 
   const value = useMemo(
     () => ({ openScheduleModal, closeScheduleModal }),

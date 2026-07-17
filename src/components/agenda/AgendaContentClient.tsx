@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState, useTransition } from "react";
-import { Plus } from "lucide-react";
+import { CirclePlus, Plus } from "lucide-react";
 import { deleteAgendaEventAction } from "@/app/(app)/agenda/actions";
 import { dispatchAgendaChanged } from "@/components/agenda/agenda-events";
 import { toIsoDate } from "@/components/classes/class-schedule.helpers";
@@ -116,8 +116,8 @@ export function AgendaContentClient({
   }, [removingEvent, refreshEvents]);
 
   return (
-    <div className="flex min-h-full w-full flex-col gap-6 lg:h-full lg:min-h-0 p-2">
-      <div className="flex shrink-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex min-h-full w-full flex-col gap-6 lg:h-full lg:min-h-0">
+      <div className="mb-2 flex shrink-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className={glassTextStyles.pageTitle}>Agenda</h1>
           <p className={cn("mt-1 text-sm", glassText.muted)}>
@@ -129,7 +129,7 @@ export function AgendaContentClient({
           size="sm"
           variant="strong"
           className="self-end sm:self-auto"
-          rightIcon={<Plus className="size-4" aria-hidden="true" />}
+          rightIcon={<CirclePlus className="size-4" aria-hidden="true" />}
           onClick={() => openCreateModal()}
         >
           Adicionar evento

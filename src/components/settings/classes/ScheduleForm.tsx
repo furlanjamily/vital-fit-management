@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, useTransition, type FormEvent } from "react";
-import { Clock, Loader2, User, X } from "lucide-react";
+import { Clock, Loader2, User } from "lucide-react";
 import { listAllClassesAction } from "@/app/(app)/classes/actions";
 import { getScheduleProfessionalsAction } from "@/app/(app)/professionals/actions";
 import { InlineAlert } from "@/components/common/feedback/InlineAlert";
@@ -10,9 +10,8 @@ import {
   GlassButton,
   GlassInput,
   GlassSelect,
-  IconButton,
 } from "@/components/common/form";
-import { ModalPanel } from "@/components/common/modal/ModalPanel";
+import { ResponsiveModal } from "@/components/common/modal/ResponsiveModal";
 import type { ScheduleProfessionalOption } from "@/components/professionals/professionals.types";
 import {
   classScheduleNameOptions,
@@ -21,7 +20,7 @@ import {
   type ClassScheduleFormValues,
 } from "@/components/settings/classes/schedule.types";
 import { specialtyMatchesClass } from "@/config/professional-specialties";
-import { glassText, glassTextStyles } from "@/config/glass-typography";
+import { glassText } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
 
 const EMPTY_VALUES: ClassScheduleFormValues = {
@@ -211,28 +210,13 @@ export function ScheduleForm({
     Boolean(values.maxCapacity);
 
   return (
-    <ModalPanel className="relative w-full max-w-md">
-      <div className="mb-5 flex items-start justify-between gap-4">
-        <div>
-          <h2 className={glassTextStyles.modalTitle}>
-            {isEditing ? "Editar aula" : "Adicionar aula"}
-          </h2>
-          <p className={cn("mt-1 text-sm", glassText.muted)}>
-            Vincule a modalidade a um profissional habilitado na grade
-          </p>
-        </div>
-
-        <IconButton
-          shape="round"
-          size="sm"
-          aria-label="Fechar"
-          onClick={onCancel}
-          disabled={isSubmitting}
-        >
-          <X className="size-4" />
-        </IconButton>
-      </div>
-
+    <ResponsiveModal
+      isOpen
+      onClose={onCancel}
+      title={isEditing ? "Editar aula" : "Adicionar aula"}
+      description="Vincule a modalidade a um profissional habilitado na grade"
+      size="md"
+    >
       {errorMessage ? <InlineAlert className="mb-4 text-xs">{errorMessage}</InlineAlert> : null}
 
       <form className="space-y-4" onSubmit={handleSubmit} noValidate>
@@ -341,6 +325,6 @@ export function ScheduleForm({
           </GlassButton>
         </div>
       </form>
-    </ModalPanel>
+    </ResponsiveModal>
   );
 }

@@ -156,7 +156,7 @@ page.tsx (RSC)
 O design system depende da **reutilização rigorosa** dos componentes globais. Nunca recriar padrões visuais manualmente quando já existem no design system:
 
 - `<GlassPanel>` — containers glass (elevations: `base`, `floating`, `popover`, `modal`, `solid`)
-- `<ModalOverlay>` + `<ModalPanel>` — modais glass on glass
+- `<ResponsiveModal>` — drawer híbrido (bottom sheet no mobile, slide-over à direita no desktop)
 - `<Table>` + `<GlobalFilters>` — listagens com filtros e paginação
 - Botões e inputs em `common/form/` (`GlassButton`, `GlassInput`, `GlassSelect`, etc.)
 - `<RowActionsMenu>`, `<ConfirmRemoveDialog>`, `<InlineAlert>` — padrões de UI recorrentes
@@ -237,8 +237,7 @@ src/
       select/
         GlassSelect.tsx
       modal/
-        ModalOverlay.tsx          # camada 1: scrim âmbar fosco + blur (glass on glass)
-        ModalPanel.tsx            # camada 2: painel modal legível (wrapper GlassPanel modal)
+        ResponsiveModal.tsx       # drawer híbrido: bottom sheet (mobile) + slide-over (desktop)
         ConfirmRemoveDialog.tsx   # confirmação de remoção reutilizável
       menu/
         RowActionsMenu.tsx        # menu ⋮ de ações por linha (elevation popover)
@@ -600,7 +599,7 @@ Grid `md:grid-cols-2`:
 - Origem: Academia / Gympass / TotalPass
 - Plano: Mensal Base / Trimestral Premium / Anual Pro
 - Toggle iOS (`GlassSwitch`) para status Ativo/Inativo
-- Submit via `GlassButton`; modais usam `ModalOverlay` + `ModalPanel` (glass on glass)
+- Submit via `GlassButton`; modais/formulários usam `ResponsiveModal`
 
 ## Gestão de Classes e Agendamentos (`/classes/[slug]`)
 
@@ -836,29 +835,37 @@ Menu dropdown de ações por linha (ícone ⋮). Reutilizado em `/members` e `/u
 - Trigger (⋮): `text-glass-secondary` → hover `text-glass-primary`
 - Ação destrutiva: `text-red-300` + hover `bg-red-500/12`
 
-### `ModalOverlay` + `ModalPanel` (glass on glass)
+### `ResponsiveModal` (`common/modal/ResponsiveModal.tsx`)
 
-Padrão obrigatório para modais de formulário e confirmação — **sem preto sólido**.
+Padrão obrigatório para modais, formulários e confirmações. Alias: `ResponsiveDrawer`.
 
-**Camada 1 — `ModalOverlay`:** scrim marrom-escuro translúcido (`rgba(15,10,5,0.45)`) + `backdrop-blur-[16px]` + `backdrop-saturate-[1.6]`. Funde com o fundo âmbar sem preto sólido.
+| Viewport | Comportamento |
+|---|---|
+| `< md` (mobile) | Bottom sheet — sobe no eixo Y, `max-h-[85vh]`, `rounded-t-[32px]`, drag handle |
+| `≥ md` (desktop) | Slide-over à direita — eixo X, `h-screen`, largura `450px` (`size="md"`), `rounded-l-[32px]` |
 
-**Camada 2 — `ModalPanel`:** wrapper sobre `GlassPanel elevation="modal"` com frost blindado (`bg-white/[0.16]`, blur `32px`, saturate `2`), `rounded-3xl` e `intensity="high"`. Aplica `text-glass-secondary` como cor base do painel.
+- Overlay: `bg-black/40 backdrop-blur-[8px]`
+- Painel: `bg-[#130F0C]/85 backdrop-blur-[30px]` + borda `white/12`
+- A11y: ESC, focus trap e dismiss no overlay via Radix Dialog; animação via Framer Motion
+- Props: `isOpen`, `onClose`, `title?`, `description?`, `size?` (`sm` \| `md` \| `lg` \| `xl`), `headerActions?`, `children`
 
 ```tsx
-<ModalOverlay scrollable>
-  <ModalPanel className="w-full max-w-2xl">
-    <p className={glassTextStyles.modalTitle}>Título</p>
-    <p className={glassTextStyles.modalSubtitle}>Descrição de apoio</p>
-    {/* conteúdo */}
-  </ModalPanel>
-</ModalOverlay>
+<ResponsiveModal
+  isOpen={open}
+  onClose={onClose}
+  title="Título"
+  description="Descrição de apoio"
+  size="md"
+>
+  {/* conteúdo — sem header/X duplicados */}
+</ResponsiveModal>
 ```
 
-**Tipografia em modais:** usar `glassTextStyles.modalTitle` / `modalSubtitle` ou `glassText.primaryElevated` / `secondaryElevated` (inclui `font-medium` para compensar blur denso). Evitar `text-white/XX` hardcoded.
+**Tipografia:** o chrome do drawer aplica `glassTextStyles.modalTitle` no `title`. No body, preferir `glassText` / `glassTextStyles` (evitar `text-white/XX` hardcoded).
 
 ### `ConfirmRemoveDialog` (`common/modal/ConfirmRemoveDialog.tsx`)
 
-Modal de confirmação de remoção com `ModalOverlay` + `ModalPanel`. Props: `title`, `subjectName`, `pending`, `onConfirm`, `onCancel`.
+Confirmação de remoção via `ResponsiveModal`. Props: `title`, `subjectName`, `pending`, `onConfirm`, `onCancel`.
 
 ### `InlineAlert` (`common/feedback/InlineAlert.tsx`)
 
@@ -888,8 +895,7 @@ Barrel: `common/form/index.ts`
 | `IconButton` | alias → `Button iconOnly` (sempre com `aria-label`) |
 | `FormField` | label + erro + children (labels: `text-glass-secondary`, hints: `text-glass-muted`) |
 | `GlassSwitch` | toggle iOS |
-| `ModalOverlay` | scrim glass (camada 1) — blur + tint âmbar |
-| `ModalPanel` | painel modal legível (camada 2) — wrapper GlassPanel modal + base `text-glass-secondary` |
+| `ResponsiveModal` | drawer híbrido (bottom sheet / slide-over) — ver seção acima |
 
 Tokens compartilhados: `form.styles.ts` (`inputToneClasses`, `inputSizeClasses`, etc.)
 
@@ -1058,13 +1064,13 @@ Regra Liquid Glass: camadas superiores ganham **mais opacidade/contraste**; blur
 | `base` | shells, painel principal | `20px` | `1.6` | `bg-white/[0.03]` | inset top `0.1` + `0 4px 30px` |
 | `floating` | cards internos, pills, chrome de tabela | `12px` | `1.4` | `bg-white/[0.08]` + borda `white/8` | inset top `0.16` |
 | `popover` | selects, menus ⋮, tooltips | `24px` | `1.8` | `bg-white/[0.14]` + warm underlay | inset top `0.2` + drop suave |
-| `modal` | painel sobre `ModalOverlay` | `32px` | `2.0` | `bg-white/[0.16]` | inset `0 1px 1px` + drop profundo |
+| `modal` | painéis densos legados (drawers usam `ResponsiveModal`) | `32px` | `2.0` | `bg-white/[0.16]` | inset `0 1px 1px` + drop profundo |
 | `solid` | fallback opaco (raro; preferir `popover`) | nenhum | — | `#8B6F4E` | shine + drop curto |
 
-### Glass on glass — modais
+### Drawers / modais — `ResponsiveModal`
 
-1. `ModalOverlay` — scrim `rgba(15,10,5,0.45)` + `backdrop-blur-[16px]` + `backdrop-saturate-[1.6]` (camada 1)
-2. `ModalPanel` / `GlassPanel elevation="modal"` — frost blindado (camada 2), `rounded-3xl`
+1. Overlay — `bg-black/40` + `backdrop-blur-[8px]`
+2. Painel — `bg-[#130F0C]/85` + `backdrop-blur-[30px]`; bottom sheet no mobile, slide-over no desktop
 3. Tipografia via `glassText` / `glassTextStyles` — ver seção **Tipografia Glass-on-Glass**
 
 ### Controles de formulário (recessivo → elevado)
@@ -1135,7 +1141,7 @@ import { glassText, glassTextStyles } from "@/config/glass-typography";
 
 - Cards da UI: `<GlassPanel variant="subtle" elevation="floating">`
 - Menus dropdown (⋮): `elevation="popover"` via `RowActionsMenu`
-- Modais/formulários: `ModalOverlay` + `ModalPanel` (não usar `bg-[#13111f]/94` nem `bg-black/*` sólido)
+- Modais/formulários: `ResponsiveModal` (não recriar overlay/painel manualmente)
 - **Proibido:** `bg-white/5 backdrop-blur-md` manual em cards — causa blur composto
 
 ### Glass sobre glass no fluxo (NavUserMenu)
@@ -1231,7 +1237,7 @@ Evitar:
 - [ ] Tabelas usam `Table` + `GlobalFilters` (não glass manual no container)?
 - [ ] Filtros `select`/`date` têm `match(row)` correto?
 - [ ] Cards internos usam `<GlassPanel>` (não glass manual)?
-- [ ] Modais usam `ModalOverlay` + `ModalPanel` (glass on glass, sem preto sólido)?
+- [ ] Modais/formulários usam `ResponsiveModal` (drawer híbrido, sem overlay/painel manual)?
 - [ ] Dropdowns/menus usam `elevation="popover"` (ou `solid` quando precisar de base opaca)?
 - [ ] Iluminação `before:`/`after:` preservada?
 - [ ] Menus de ação usam `<RowActionsMenu>` (não duplicar dropdown)?
@@ -1289,7 +1295,7 @@ Arquitetura:
 - Tabela: src/components/common/table/Table.tsx
 - Filtros: GlobalFilters (colapsável, acima do GlassPanel) + DatePicker
 - Formulários: common/form/index.ts (GlassInput, GlassSelect, botões...)
-- Modais: ModalOverlay (scrim) + ModalPanel (painel legível)
+- Modais: ResponsiveModal (bottom sheet mobile / slide-over desktop)
 - UI compartilhada: RowActionsMenu (popover), ConfirmRemoveDialog, InlineAlert
 - Glass: GlassPanel (elevations: base | floating | popover | modal | solid)
 - Tipografia glass: src/config/glass-typography.ts (glassText, glassTextStyles) + tokens em globals.css
@@ -1306,7 +1312,7 @@ Regras glass:
 - NUNCA backdrop-blur manual nos cards internos
 - NUNCA fundos pretos sólidos — usar frost branco + underlay quente translúcido
 - Cards: GlassPanel variant subtle + elevation floating
-- Modais: ModalOverlay + ModalPanel (glass on glass)
+- Modais: ResponsiveModal (drawer híbrido)
 - Dropdowns/menus: elevation popover (ou solid se bleed-through); RowActionsMenu, NavUserMenu
 - GlobalFilters: glass próprio acima da tabela; corpo da tabela em GlassPanel separado
 - HeroBackground só no root layout — não duplicar nos shells

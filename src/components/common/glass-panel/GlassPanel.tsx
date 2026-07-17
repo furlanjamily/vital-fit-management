@@ -29,7 +29,7 @@ const variantClasses: Record<GlassVariant, string> = {
  * - base:     thin shell — prioritize seeing through to the warm background
  * - floating: light separator for nested cards / table chrome
  * - popover:  dense frost + warm amber underlay (menus, selects, ⋮)
- * - modal:    armored glass over ModalOverlay scrim
+ * - modal:    armored glass for dense panels (legacy elevation; drawers use ResponsiveModal)
  * - solid:    opaque warm base when bleed-through must be blocked
  */
 const elevationClasses: Record<GlassElevation, string> = {

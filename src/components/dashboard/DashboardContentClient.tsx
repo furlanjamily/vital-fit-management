@@ -78,14 +78,15 @@ export function DashboardContentClient({ userName }: DashboardContentClientProps
 
   return (
     <div className="flex w-full flex-col gap-6">
-      <div className="mb-8 flex items-center justify-between">
-        <div>
+      <div className="flex flex-col">
+        <div className="w-full">
           <h1 className={glassTextStyles.pageTitle}>
             Bem vindo de volta, {userName ?? DEFAULT_USER_NAME}!
           </h1>
           <HeaderDateWeather />
         </div>
-        <div className="flex items-center gap-2">
+
+        <div className="flex items-center justify-end gap-2">
             <label className="flex items-center gap-1.5 px-2.5 py-1.5">
               <GlassSelect
                 options={DASHBOARD_PERIOD_OPTIONS.map((option) => ({
@@ -128,26 +129,34 @@ export function DashboardContentClient({ userName }: DashboardContentClientProps
         onFilterChange={setRevenueFilter}
       />
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <DashboardStatsSection
-          data={statsOverviewData ?? EMPTY_STATS}
-          isLoading={isLoading}
-        />
-        <DashboardMemberActivitySection
-          data={memberActivityData ?? EMPTY_MEMBER_ACTIVITY}
-          isLoading={isLoading}
-        />
-      </div>
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-10">
-        <div className="lg:col-span-7">
-          <DashboardWorkoutScheduleSection />
+      {/*
+        md+ (tablet/desktop): stats full → alunos | gym → agenda full
+        <md: stack stats → alunos → agenda → gym
+      */}
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div className="order-1 md:col-span-2">
+          <DashboardStatsSection
+            data={statsOverviewData ?? EMPTY_STATS}
+            isLoading={isLoading}
+          />
         </div>
-        <div className="lg:col-span-3">
+
+        <div className="order-2">
+          <DashboardMemberActivitySection
+            data={memberActivityData ?? EMPTY_MEMBER_ACTIVITY}
+            isLoading={isLoading}
+          />
+        </div>
+
+        <div className="order-4 md:order-3">
           <DashboardGymCapacitySection
             data={gymCapacityData ?? EMPTY_GYM_CAPACITY}
             isLoading={isLoading}
           />
+        </div>
+
+        <div className="order-3 md:order-4 md:col-span-2">
+          <DashboardWorkoutScheduleSection />
         </div>
       </div>
 

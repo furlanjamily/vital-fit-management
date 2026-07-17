@@ -14,27 +14,20 @@ export function RevenueOverviewExactSkeleton() {
       className="w-full rounded-2xl px-4 py-4 sm:px-5 sm:py-5 lg:px-6 lg:py-6"
       label="Carregando receitas"
     >
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+      <div className="flex gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
         <div className="min-w-0 flex flex-col gap-2">
           <Skeleton className="h-4 w-32 rounded-md sm:h-[18px] sm:w-36" />
           <Skeleton className="h-3 w-48 max-w-full rounded-md sm:w-56" />
         </div>
 
-        <div className="flex shrink-0 items-center gap-1.5 self-start">
-          <Skeleton className="h-7 w-[5.5rem] rounded-full" />
-          <Skeleton className="size-7 rounded-full" />
-        </div>
+        <Skeleton className="h-7 w-24 shrink-0 rounded-full" />
       </div>
 
-      <div className="mt-4 flex items-end gap-3 sm:mt-5 sm:gap-4">
-        <div className="mb-4 shrink-0 self-end">
-          <Skeleton className="h-11 w-28 rounded-full sm:h-12 sm:w-32" />
-        </div>
+      <div className="mt-4 flex flex-col gap-3 sm:mt-5">
+        <Skeleton className="h-9 w-36 rounded-full self-start sm:h-11 sm:w-40 md:h-12" />
 
-        <div className="relative min-w-0 flex-1 overflow-hidden">
-          <Skeleton className="mb-3 h-7 w-full rounded-md" />
-
-          <div className="flex items-end" style={{ gap }}>
+        <div className="relative min-w-0 w-full overflow-hidden">
+          <div className="flex items-end pt-10" style={{ gap }}>
             {BAR_HEIGHTS.map((height, index) => (
               <div
                 key={index}

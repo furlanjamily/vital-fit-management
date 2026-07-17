@@ -2,9 +2,8 @@
 
 import { Trash2 } from "lucide-react";
 import { Button, DangerButton } from "@/components/common/form";
-import { ModalOverlay } from "@/components/common/modal/ModalOverlay";
-import { ModalPanel } from "@/components/common/modal/ModalPanel";
-import { glassText, glassTextStyles } from "@/config/glass-typography";
+import { ResponsiveModal } from "@/components/common/modal/ResponsiveModal";
+import { glassText } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
 
 type ConfirmRemoveDialogProps = {
@@ -24,28 +23,25 @@ export function ConfirmRemoveDialog({
   onCancel,
 }: ConfirmRemoveDialogProps) {
   return (
-    <ModalOverlay>
-      <ModalPanel className="w-full max-w-sm">
-        <p className={glassTextStyles.modalTitle}>{title}</p>
-        <p className={cn("mt-2 text-xs leading-relaxed", glassText.secondaryElevated)}>
-          Tem certeza que deseja remover{" "}
-          <span className={cn(glassText.primaryElevated, "font-semibold")}>{subjectName}</span>? Esta ação
-          não pode ser desfeita.
-        </p>
+    <ResponsiveModal isOpen onClose={onCancel} title={title} size="sm">
+      <p className={cn("text-xs leading-relaxed", glassText.secondaryElevated)}>
+        Tem certeza que deseja remover{" "}
+        <span className={cn(glassText.primaryElevated, "font-semibold")}>{subjectName}</span>? Esta ação
+        não pode ser desfeita.
+      </p>
 
-        <div className="mt-6 flex justify-end gap-3">
-          <Button variant="glass" size="sm" onClick={onCancel} disabled={pending}>
-            Cancelar
-          </Button>
-          <DangerButton
-            leftIcon={<Trash2 className="size-3.5" />}
-            onClick={onConfirm}
-            disabled={pending}
-          >
-            {pending ? "Removendo..." : "Remover"}
-          </DangerButton>
-        </div>
-      </ModalPanel>
-    </ModalOverlay>
+      <div className="mt-6 flex justify-end gap-3">
+        <Button variant="glass" size="sm" onClick={onCancel} disabled={pending}>
+          Cancelar
+        </Button>
+        <DangerButton
+          leftIcon={<Trash2 className="size-3.5" />}
+          onClick={onConfirm}
+          disabled={pending}
+        >
+          {pending ? "Removendo..." : "Remover"}
+        </DangerButton>
+      </div>
+    </ResponsiveModal>
   );
 }

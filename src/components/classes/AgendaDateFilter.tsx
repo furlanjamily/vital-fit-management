@@ -53,52 +53,60 @@ export function AgendaDateFilter({
   return (
     <div
       className={cn(
-        "flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 sm:flex-row sm:items-center sm:justify-between",
+        "flex flex-col items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3",
+        "sm:flex-row sm:items-center sm:justify-between",
         className,
       )}
     >
-      <div className="flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          aria-label="Período anterior"
-          className={navButtonClass}
-          onClick={() => shift(-1)}
-        >
-          <ChevronLeft className="size-4" />
-        </button>
-
+      {/*
+        Mobile: data em cima; setas + Hoje abaixo, centralizados.
+        sm+: ← data → Hoje em linha (sm:contents dissolve o wrapper das setas).
+      */}
+      <div className="flex w-full flex-col items-center gap-2 sm:w-auto sm:flex-row sm:items-center">
         <div
           className={cn(
-            "inline-flex min-w-[9.5rem] items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2 text-xs font-medium",
+            "order-1 inline-flex min-w-[9.5rem] max-w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2 text-center text-xs font-medium",
+            "sm:order-2",
             glassText.primary,
           )}
         >
           <Calendar className={cn("size-4 shrink-0", glassText.secondary)} strokeWidth={2} />
-          {label}
+          <span className="truncate">{label}</span>
         </div>
 
-        <button
-          type="button"
-          aria-label="Próximo período"
-          className={navButtonClass}
-          onClick={() => shift(1)}
-        >
-          <ChevronRight className="size-4" />
-        </button>
+        <div className="order-2 flex items-center justify-center gap-2 sm:contents">
+          <button
+            type="button"
+            aria-label="Período anterior"
+            className={cn(navButtonClass, "sm:order-1")}
+            onClick={() => shift(-1)}
+          >
+            <ChevronLeft className="size-4" />
+          </button>
 
-        <button
-          type="button"
-          onClick={goToToday}
-          className={cn(
-            "rounded-full border border-white/10 bg-white/[0.06] px-3 py-1.5 text-xs font-medium transition hover:bg-white/10",
-            glassText.secondary,
-          )}
-        >
-          Hoje
-        </button>
+          <button
+            type="button"
+            aria-label="Próximo período"
+            className={cn(navButtonClass, "sm:order-3")}
+            onClick={() => shift(1)}
+          >
+            <ChevronRight className="size-4" />
+          </button>
+
+          <button
+            type="button"
+            onClick={goToToday}
+            className={cn(
+              "rounded-full border border-white/10 bg-white/[0.06] px-3 py-1.5 text-xs font-medium transition hover:bg-white/10 sm:order-4",
+              glassText.secondary,
+            )}
+          >
+            Hoje
+          </button>
+        </div>
       </div>
 
-      <div className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.04] p-1">
+      <div className="inline-flex items-center gap-1 self-center rounded-full border border-white/10 bg-white/[0.04] p-1 sm:self-auto">
         {VIEW_OPTIONS.map(({ value, label: optionLabel }) => {
           const isActive = viewMode === value;
 

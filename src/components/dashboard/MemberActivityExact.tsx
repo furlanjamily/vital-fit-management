@@ -66,7 +66,7 @@ type ActivityLegendRowProps = {
 
 function ActivityLegendRow({ item }: ActivityLegendRowProps) {
   return (
-    <div className="flex min-w-0 items-center gap-1.5">
+    <div className="flex w-full min-w-0 items-center justify-center gap-1.5">
       <span
         className="size-[7px] shrink-0 rounded-full"
         style={{ backgroundColor: item.color }}

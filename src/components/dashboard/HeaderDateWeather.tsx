@@ -61,7 +61,7 @@ export function HeaderDateWeather() {
   }
 
   return (
-    <div className={cn(glassTextStyles.pageSubtitle, "mt-1 flex items-center gap-2.5")}>
+    <div className={cn(glassTextStyles.pageSubtitle, "w-full mt-1 flex gap-2.5")}>
       <span>{formatToday()}</span>
 
       {loading ? (

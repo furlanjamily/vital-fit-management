@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { Eye, EyeOff, Lock, Mail, Shield, User, UserPlus, X } from "lucide-react";
+import { Eye, EyeOff, Lock, Mail, Shield, User, UserPlus } from "lucide-react";
 import { InlineAlert } from "@/components/common/feedback/InlineAlert";
 import {
   AvatarUploadTrigger,
@@ -10,13 +10,13 @@ import {
   GlassSelect,
   IconButton,
 } from "@/components/common/form";
-import { ModalPanel } from "@/components/common/modal/ModalPanel";
+import { ResponsiveModal } from "@/components/common/modal/ResponsiveModal";
 import {
   roleOptions,
   type ManagedUser,
   type UserFormValues,
 } from "@/components/users/users.types";
-import { glassText, glassTextStyles } from "@/config/glass-typography";
+import { glassText } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
 
 const EMPTY_VALUES: UserFormValues = {
@@ -75,30 +75,17 @@ export function UserForm({
   }
 
   return (
-    <ModalPanel className="w-full max-w-md">
-      <div className="mb-5 flex items-center justify-between">
-        <div>
-          <p className={glassTextStyles.modalTitle}>
-            {isEditing ? "Editar usuário" : "Cadastrar usuário"}
-          </p>
-          <p className={glassTextStyles.modalSubtitle}>
-            {isEditing
-              ? `Alterando dados de ${editingUser.name}`
-              : "Novo acesso ao VitalFit Management"}
-          </p>
-        </div>
-
-        <IconButton
-          aria-label="Fechar"
-          className={cn(
-            "bg-white/7 text-glass-secondary hover:bg-white/13 hover:text-glass-primary",
-          )}
-          onClick={onCancelEdit}
-        >
-          <X className="size-3.5" />
-        </IconButton>
-      </div>
-
+    <ResponsiveModal
+      isOpen
+      onClose={onCancelEdit}
+      title={isEditing ? "Editar usuário" : "Cadastrar usuário"}
+      description={
+        isEditing
+          ? `Alterando dados de ${editingUser.name}`
+          : "Novo acesso ao VitalFit Management"
+      }
+      size="md"
+    >
       <form onSubmit={handleSubmit} className="grid gap-4" noValidate>
         {errorMessage ? <InlineAlert className="text-xs">{errorMessage}</InlineAlert> : null}
 
@@ -176,6 +163,6 @@ export function UserForm({
           </GlassButton>
         </div>
       </form>
-    </ModalPanel>
+    </ResponsiveModal>
   );
 }

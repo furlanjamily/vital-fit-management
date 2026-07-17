@@ -10,6 +10,12 @@ export const CALENDAR_END_HOUR = 20;
 export const CALENDAR_HOUR_HEIGHT = 56;
 export const CALENDAR_GRID_HEIGHT =
   (CALENDAR_END_HOUR - CALENDAR_START_HOUR) * CALENDAR_HOUR_HEIGHT;
+/** Eixo de horas — fixo à esquerda no scroll horizontal. */
+export const TIME_AXIS_WIDTH_PX = 52;
+/** Largura mínima por dia (semana) — evita compressão; ativa scroll horizontal. */
+export const DAY_COLUMN_MIN_WIDTH_PX = 152;
+/** Largura mínima por célula no mês — evita compressão no mobile. */
+export const MONTH_CELL_MIN_WIDTH_PX = 108;
 
 type EventParticipantJoin = {
   user_id: string;

@@ -5,7 +5,6 @@ import { InlineAlert } from "@/components/common/feedback/InlineAlert";
 import { GlassButton } from "@/components/common/form";
 import { RowActionsMenu, type RowAction } from "@/components/common/menu/RowActionsMenu";
 import { ConfirmRemoveDialog } from "@/components/common/modal/ConfirmRemoveDialog";
-import { ModalOverlay } from "@/components/common/modal/ModalOverlay";
 import { Table, type TableColumn } from "@/components/common/table/Table";
 import { TableIdentityCell } from "@/components/common/table/TableIdentityCell";
 import { UserForm } from "@/components/users/UserForm";
@@ -156,16 +155,14 @@ export function UsersContent({ initialUsers, loadError = null }: UsersContentPro
       />
 
       {formOpen && (
-        <ModalOverlay scrollable>
-          <UserForm
-            key={editingUser?.id ?? "new"}
-            editingUser={editingUser}
-            submitting={saving}
-            errorMessage={formError}
-            onSubmit={handleSubmit}
-            onCancelEdit={closeForm}
-          />
-        </ModalOverlay>
+        <UserForm
+          key={editingUser?.id ?? "new"}
+          editingUser={editingUser}
+          submitting={saving}
+          errorMessage={formError}
+          onSubmit={handleSubmit}
+          onCancelEdit={closeForm}
+        />
       )}
 
       {removingUser && (

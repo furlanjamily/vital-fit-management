@@ -6,7 +6,6 @@ import { InlineAlert } from "@/components/common/feedback/InlineAlert";
 import { GlassButton } from "@/components/common/form";
 import { RowActionsMenu, type RowAction } from "@/components/common/menu/RowActionsMenu";
 import { ConfirmRemoveDialog } from "@/components/common/modal/ConfirmRemoveDialog";
-import { ModalOverlay } from "@/components/common/modal/ModalOverlay";
 import {
   Table,
   type TableColumn,
@@ -224,15 +223,13 @@ export function ClassesScheduleContentClient({
       />
 
       {formOpen ? (
-        <ModalOverlay scrollable>
-          <ScheduleForm
-            editingSchedule={editingSchedule}
-            onSuccess={handleFormSuccess}
-            onCancel={closeForm}
-            createAction={createClassScheduleAction}
-            updateAction={updateClassScheduleAction}
-          />
-        </ModalOverlay>
+        <ScheduleForm
+          editingSchedule={editingSchedule}
+          onSuccess={handleFormSuccess}
+          onCancel={closeForm}
+          createAction={createClassScheduleAction}
+          updateAction={updateClassScheduleAction}
+        />
       ) : null}
 
       {removingSchedule ? (

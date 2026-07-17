@@ -5,7 +5,6 @@ import { InlineAlert } from "@/components/common/feedback/InlineAlert";
 import { GlassButton } from "@/components/common/form";
 import { RowActionsMenu, type RowAction } from "@/components/common/menu/RowActionsMenu";
 import { ConfirmRemoveDialog } from "@/components/common/modal/ConfirmRemoveDialog";
-import { ModalOverlay } from "@/components/common/modal/ModalOverlay";
 import {
   Table,
   type TableColumn,
@@ -249,14 +248,12 @@ export function ProfessionalsContentClient({
       />
 
       {formOpen && (
-        <ModalOverlay scrollable>
-          <ProfessionalRegistrationForm
-            key={editingProfessional?.id ?? "new"}
-            editingProfessional={editingProfessional}
-            onSuccess={handleFormSuccess}
-            onCancel={closeForm}
-          />
-        </ModalOverlay>
+        <ProfessionalRegistrationForm
+          key={editingProfessional?.id ?? "new"}
+          editingProfessional={editingProfessional}
+          onSuccess={handleFormSuccess}
+          onCancel={closeForm}
+        />
       )}
 
       {removingProfessional && (

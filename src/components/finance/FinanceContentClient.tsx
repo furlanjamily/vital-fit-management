@@ -4,7 +4,6 @@ import { useMemo, useState, useTransition } from "react";
 import { getFinanceDashboardAction } from "@/app/(app)/finance/actions";
 import { InlineAlert } from "@/components/common/feedback/InlineAlert";
 import { ConfirmRemoveDialog } from "@/components/common/modal/ConfirmRemoveDialog";
-import { ModalOverlay } from "@/components/common/modal/ModalOverlay";
 import { Table } from "@/components/common/table/Table";
 import { ExpenseBreakdownCard, ExpenseBreakdownCardLoading } from "@/components/finance/expense-breakdown";
 import {
@@ -182,11 +181,12 @@ export function FinanceContentClient({
       <div className="flex flex-col gap-6 lg:flex-row lg:items-stretch">
         <div className="flex w-full min-h-0 min-w-0 flex-col gap-6 lg:w-[70%]">
           <PortfolioSummaryCard
+            className="shrink-0"
             metrics={portfolioMetrics}
             onNewTransaction={() => setTransactionFormOpen(true)}
           />
           <FinancialOverviewChart
-            className="h-full min-w-0 flex-1"
+            className="h-full min-h-0 min-w-0 flex-1"
             data={chartData}
             period={chartPeriod}
             range={chartRange}
@@ -222,22 +222,18 @@ export function FinanceContentClient({
       />
 
       {transactionFormOpen ? (
-        <ModalOverlay scrollable>
-          <TransactionForm
-            onSuccess={handleTransactionSuccess}
-            onCancel={() => setTransactionFormOpen(false)}
-          />
-        </ModalOverlay>
+        <TransactionForm
+          onSuccess={handleTransactionSuccess}
+          onCancel={() => setTransactionFormOpen(false)}
+        />
       ) : null}
 
       {editingTransaction ? (
-        <ModalOverlay scrollable>
-          <TransactionForm
-            editingTransaction={editingTransaction}
-            onSuccess={handleEditSuccess}
-            onCancel={closeEditForm}
-          />
-        </ModalOverlay>
+        <TransactionForm
+          editingTransaction={editingTransaction}
+          onSuccess={handleEditSuccess}
+          onCancel={closeEditForm}
+        />
       ) : null}
 
       {removingTransaction ? (

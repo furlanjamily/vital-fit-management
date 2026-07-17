@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Calendar, Clock, Link2, MapPin, Tag, Trash2, X } from "lucide-react";
+import { Calendar, Clock, Link2, MapPin, Tag, Trash2 } from "lucide-react";
 import { AvatarStack } from "@/components/agenda/AvatarStack";
 import {
   formatEventTimeRange,
@@ -12,10 +12,9 @@ import {
   eventTypeLabels,
   type AgendaEvent,
 } from "@/components/agenda/agenda.types";
-import { DangerButton, GhostButton, IconButton } from "@/components/common/form";
-import { ModalOverlay } from "@/components/common/modal/ModalOverlay";
-import { ModalPanel } from "@/components/common/modal/ModalPanel";
-import { glassText, glassTextStyles } from "@/config/glass-typography";
+import { DangerButton, GhostButton } from "@/components/common/form";
+import { ResponsiveModal } from "@/components/common/modal/ResponsiveModal";
+import { glassText } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
 
 type EventDetailModalProps = {
@@ -51,27 +50,15 @@ export function EventDetailModal({ event, onClose, onDelete }: EventDetailModalP
   const hasMeetingLink = event.type === "reuniao" && Boolean(event.meetingLink);
 
   return (
-    <ModalOverlay scrollable>
-      <ModalPanel className="relative w-full max-w-md">
-        <div className="mb-5 flex items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <span
-              className="mb-2 inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-bold"
-              style={{ backgroundColor: colors.background, color: colors.text }}
-            >
-              {eventTypeLabels[event.type]}
-            </span>
-            <h2 className={cn(glassTextStyles.panelTitle, "text-lg font-bold tracking-[-0.03em]")}>
-              {event.title}
-            </h2>
-          </div>
+    <ResponsiveModal isOpen onClose={onClose} title={event.title} size="md">
+      <span
+        className="mb-4 inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-bold"
+        style={{ backgroundColor: colors.background, color: colors.text }}
+      >
+        {eventTypeLabels[event.type]}
+      </span>
 
-          <IconButton aria-label="Fechar" onClick={onClose}>
-            <X className="size-4" />
-          </IconButton>
-        </div>
-
-        <div className="grid gap-4">
+      <div className="grid gap-4">
           <DetailRow icon={Clock} label="Horário">
             {formatEventTimeRange(event.startTime, event.endTime)}
           </DetailRow>
@@ -125,7 +112,6 @@ export function EventDetailModal({ event, onClose, onDelete }: EventDetailModalP
             <GhostButton onClick={onClose}>Fechar</GhostButton>
           </div>
         </div>
-      </ModalPanel>
-    </ModalOverlay>
+    </ResponsiveModal>
   );
 }

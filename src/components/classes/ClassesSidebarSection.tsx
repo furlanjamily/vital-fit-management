@@ -3,16 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronDown, ChevronUp, Plus } from "lucide-react";
-import { useEffect, useState, useTransition } from "react";
-import { listClassesNavAction } from "@/app/(app)/classes/actions";
-import { APPOINTMENTS_CHANGED_EVENT } from "@/components/classes/appointments-events";
+import { useState } from "react";
+import { useClassesNavItems } from "@/components/classes/useClassesNavItems";
 import { GhostButton, GlassButton } from "@/components/common/form";
 import { Skeleton } from "@/components/common/skeleton";
 import { useScheduleModal } from "@/components/classes/ScheduleModalProvider";
-import { isNavActive } from "@/config/app-nav.config";
+import { isNavActive } from "@/config/navigation";
 import { glassText } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
-import type { ClassNavEntry } from "@/services/class-manager";
 
 const VISIBLE_COUNT = 3;
 
@@ -20,36 +18,7 @@ export function ClassesSidebarSection() {
   const pathname = usePathname();
   const { openScheduleModal } = useScheduleModal();
   const [showAllClasses, setShowAllClasses] = useState(false);
-  const [classItems, setClassItems] = useState<ClassNavEntry[]>([]);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
-
-  useEffect(() => {
-    startTransition(async () => {
-      const result = await listClassesNavAction();
-
-      if (!result.success) {
-        setLoadError(result.error);
-        return;
-      }
-
-      setClassItems(result.data);
-      setLoadError(null);
-    });
-  }, []);
-
-  useEffect(() => {
-    const handleAppointmentsChanged = () => {
-      startTransition(async () => {
-        const result = await listClassesNavAction();
-        if (result.success) setClassItems(result.data);
-      });
-    };
-
-    window.addEventListener(APPOINTMENTS_CHANGED_EVENT, handleAppointmentsChanged);
-    return () =>
-      window.removeEventListener(APPOINTMENTS_CHANGED_EVENT, handleAppointmentsChanged);
-  }, []);
+  const { classItems, loadError, isPending } = useClassesNavItems();
 
   const visibleItems = showAllClasses
     ? classItems
