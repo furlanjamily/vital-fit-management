@@ -34,6 +34,77 @@ interface NavUserMenuProps {
   compact?: boolean;
 }
 
+type MenuPanelProps = {
+  sessionUser: SessionUser;
+  compact: boolean;
+  loggingOut: boolean;
+  onClose: () => void;
+  onLogout: () => void;
+  className?: string;
+};
+
+function UserMenuPanel({
+  sessionUser,
+  compact,
+  loggingOut,
+  onClose,
+  onLogout,
+  className,
+}: MenuPanelProps) {
+  return (
+    <GlassPanel
+      role="menu"
+      variant="strong"
+      intensity="high"
+      elevation="solid"
+      className={cn("rounded-2xl p-1.5", className)}
+    >
+      {compact ? (
+        <div className="px-3 py-2">
+          <p
+            className={cn(
+              "truncate text-sm font-semibold tracking-[-0.02em]",
+              glassText.primary,
+            )}
+          >
+            {sessionUser.displayName}
+          </p>
+          {sessionUser.email ? (
+            <p className={cn("truncate text-[11px]", glassText.muted)}>
+              {sessionUser.email}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
+
+      <GhostButton
+        transparent
+        href={profileHref}
+        fullWidth
+        size="sm"
+        leftIcon={<User className="size-3.5" />}
+        onClick={onClose}
+        className={cn("justify-start text-left", glassText.primaryElevated)}
+      >
+        Meu perfil
+      </GhostButton>
+
+      <GhostButton
+        transparent
+        fullWidth
+        size="sm"
+        onClick={onLogout}
+        disabled={loggingOut}
+        isLoading={loggingOut}
+        className="justify-start text-left text-red-500 hover:text-red-600"
+        leftIcon={<LogOut className="size-3.5" />}
+      >
+        Sair
+      </GhostButton>
+    </GlassPanel>
+  );
+}
+
 export function NavUserMenu({ compact = false }: NavUserMenuProps) {
   const router = useRouter();
   const hydrated = useHydrated();
@@ -86,7 +157,7 @@ export function NavUserMenu({ compact = false }: NavUserMenuProps) {
 
     const rect = trigger.getBoundingClientRect();
     const gap = 8;
-    const menuWidth = compact ? 224 : Math.max(rect.width, 200);
+    const menuWidth = 224;
 
     setPosition({
       bottom: window.innerHeight - rect.top + gap,
@@ -95,8 +166,9 @@ export function NavUserMenu({ compact = false }: NavUserMenuProps) {
     });
   }
 
+  // Portal + posição fixa só no compact (mobile). Na sidebar, o menu fica no fluxo 3D.
   useLayoutEffect(() => {
-    if (!open) {
+    if (!compact || !open) {
       setPosition(null);
       return;
     }
@@ -155,8 +227,23 @@ export function NavUserMenu({ compact = false }: NavUserMenuProps) {
 
   if (!sessionUser) return null;
 
-  const menu =
-    open && hydrated && position
+  const menuContent = (
+    <UserMenuPanel
+      sessionUser={sessionUser}
+      compact={compact}
+      loggingOut={loggingOut}
+      onClose={() => setOpen(false)}
+      onLogout={handleLogout}
+      className={
+        compact
+          ? "shadow-[0_20px_50px_-12px_rgba(0,0,0,0.55)]"
+          : undefined
+      }
+    />
+  );
+
+  const compactPortalMenu =
+    compact && open && hydrated && position
       ? createPortal(
           <div
             ref={menuRef}
@@ -169,63 +256,21 @@ export function NavUserMenu({ compact = false }: NavUserMenuProps) {
               pointerEvents: "auto",
             }}
           >
-            <GlassPanel
-              role="menu"
-              variant="strong"
-              intensity="high"
-              elevation="solid"
-              className="rounded-2xl p-1.5 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.55)]"
-            >
-              {compact ? (
-                <div className="px-3 py-2">
-                  <p
-                    className={cn(
-                      "truncate text-sm font-semibold tracking-[-0.02em]",
-                      glassText.primary,
-                    )}
-                  >
-                    {sessionUser.displayName}
-                  </p>
-                  {sessionUser.email ? (
-                    <p className={cn("truncate text-[11px]", glassText.muted)}>
-                      {sessionUser.email}
-                    </p>
-                  ) : null}
-                </div>
-              ) : null}
-
-              <GhostButton
-                transparent
-                href={profileHref}
-                fullWidth
-                size="sm"
-                leftIcon={<User className="size-3.5" />}
-                onClick={() => setOpen(false)}
-                className={cn("justify-start text-left", glassText.primaryElevated)}
-              >
-                Meu perfil
-              </GhostButton>
-
-              <GhostButton
-                transparent
-                fullWidth
-                size="sm"
-                onClick={handleLogout}
-                disabled={loggingOut}
-                isLoading={loggingOut}
-                className="justify-start text-left text-red-500 hover:text-red-600"
-                leftIcon={<LogOut className="size-3.5" />}
-              >
-                Sair
-              </GhostButton>
-            </GlassPanel>
+            {menuContent}
           </div>,
           document.body,
         )
       : null;
 
   return (
-    <div ref={containerRef} className={cn(compact && "relative")}>
+    <div
+      ref={containerRef}
+      className={cn(
+        !compact && "flex flex-col-reverse gap-2",
+        compact && "relative",
+        open && !compact && "relative z-50",
+      )}
+    >
       <div ref={triggerRef}>
         <GlassPanel
           variant="default"
@@ -287,7 +332,14 @@ export function NavUserMenu({ compact = false }: NavUserMenuProps) {
         </GlassPanel>
       </div>
 
-      {menu}
+      {/* Sidebar: no fluxo 3D da coluna, acompanha a rotação do painel */}
+      {!compact && open ? (
+        <div ref={menuRef} className="relative z-50">
+          {menuContent}
+        </div>
+      ) : null}
+
+      {compactPortalMenu}
     </div>
   );
 }
