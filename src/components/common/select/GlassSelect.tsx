@@ -3,6 +3,7 @@
 import type { ChangeEvent, ReactNode, SelectHTMLAttributes } from "react";
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { Branch as DismissableLayerBranch } from "@radix-ui/react-dismissable-layer";
 import { ChevronDown, type LucideIcon } from "lucide-react";
 import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
 import {
@@ -155,15 +156,19 @@ export function GlassSelect({
 
   const listbox =
     open && hydrated && position ? (
-      <div
+      // Branch: registra o portal no DismissableLayer do Dialog (hover/click + não fecha o modal).
+      // pointer-events:auto: o Dialog seta pointer-events:none no body enquanto aberto.
+      <DismissableLayerBranch
         ref={listboxRef}
+        data-glass-portal="select"
         style={{
           position: "fixed",
           top: position.top,
           bottom: position.bottom,
           left: position.left,
           width: position.width,
-          zIndex: 300,
+          zIndex: 1000,
+          pointerEvents: "auto",
         }}
       >
         <GlassPanel
@@ -204,12 +209,12 @@ export function GlassSelect({
                     "w-full rounded-lg border border-transparent px-3 py-2 text-left text-[11px] font-medium transition",
                     selected
                       ? cn(
-                          "border-white/16 bg-white/14 backdrop-blur-[8px]",
+                          "border-white/16 bg-white/14 backdrop-blur-sm",
                           glassText.primary,
                         )
                       : cn(
                           glassText.secondary,
-                          "hover:border-white/12 hover:bg-white/10 hover:text-glass-primary hover:backdrop-blur-[8px]",
+                          "hover:border-white/12 hover:bg-white/10 hover:text-glass-primary hover:backdrop-blur-sm",
                         ),
                   )}
                 >
@@ -219,7 +224,7 @@ export function GlassSelect({
             })}
           </div>
         </GlassPanel>
-      </div>
+      </DismissableLayerBranch>
     ) : null;
 
   return (

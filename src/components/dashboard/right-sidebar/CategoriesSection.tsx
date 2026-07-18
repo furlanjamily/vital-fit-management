@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { eventTypeCategoryAccent, type EventType } from "@/components/agenda/agenda.types";
 import { computeCategoryProgress } from "@/components/dashboard/right-sidebar/right-sidebar.helpers";
+import { GhostButton } from "@/components/common/button/GhostButton";
 import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
 import { glassText } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
@@ -29,14 +30,20 @@ export function CategoriesSection({ categoryCounts, className }: CategoriesSecti
       elevation="floating"
       className={cn("w-full min-w-0 rounded-[20px] p-4", className)}
     >
-      <button
+      <GhostButton
         type="button"
+        size="sm"
+        fullWidth
         onClick={() => setOpen((current) => !current)}
-        className="flex w-full items-center justify-between gap-2 rounded-xl px-0.5 py-0.5 transition hover:bg-white/[0.04]"
+        className="justify-between"
+        rightIcon={
+          <ChevronDown
+            className={cn("size-4 shrink-0 transition", glassText.muted, open && "rotate-180")}
+          />
+        }
       >
         <span className={cn("text-xs font-semibold", glassText.secondary)}>Categorias</span>
-        <ChevronDown className={cn("size-4 shrink-0 transition", glassText.muted, open && "rotate-180")} />
-      </button>
+      </GhostButton>
 
       {open ? (
         <ul className="mt-3 space-y-3">

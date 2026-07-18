@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, useTransition, type FormEvent } from "react";
-import { Loader2, User } from "lucide-react";
+import { User } from "lucide-react";
 import {
   createAppointmentAction,
   getClassScheduleSlotsAction,
@@ -332,7 +332,7 @@ export function ScheduleModal({
 
           <GlassButton
             type="submit"
-            size="sm"
+            size="md"
             disabled={
               isSubmitting ||
               slotsLoading ||
@@ -340,12 +340,8 @@ export function ScheduleModal({
               !memberId ||
               !isGradeDay
             }
+            loading={isSubmitting}
             className="bg-green-600 text-white hover:bg-green-700"
-            rightIcon={
-              isSubmitting ? (
-                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-              ) : null
-            }
           >
             {submitLabel}
           </GlassButton>

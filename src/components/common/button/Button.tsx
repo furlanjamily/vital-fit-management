@@ -6,11 +6,20 @@ import { motion, type HTMLMotionProps } from "framer-motion";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/cn";
 
+/** Proporções de padding/tipografia para botões pill (rounded-full). */
+export const buttonSizes = {
+  sm: "px-3.5 py-1.5 text-xs font-medium min-h-[32px] md:px-4 md:py-2",
+  md: "px-5 py-2.5 text-sm font-medium min-h-[44px]",
+  lg: "px-6 py-3 text-base font-semibold min-h-[50px] md:px-7 md:py-3.5",
+} as const;
+
+export type ButtonSize = keyof typeof buttonSizes;
+
 const buttonVariants = cva(
   [
-    "inline-flex items-center justify-center gap-2",
-    "rounded-full font-medium tracking-[-0.01em]",
-    "transition-[background-color,box-shadow,color,filter,opacity,border-color] duration-200",
+    "inline-flex items-center justify-center gap-2 shrink-0",
+    "rounded-full tracking-[-0.01em]",
+    "transition-all duration-200",
     "select-none cursor-pointer",
     "disabled:opacity-50 disabled:pointer-events-none disabled:grayscale-[30%]",
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF9A4A]/50",
@@ -21,7 +30,7 @@ const buttonVariants = cva(
       variant: {
         primary: [
           "bg-gradient-to-r from-[#FF8A35] to-[#FF9A4A]",
-          "text-white font-medium",
+          "text-white",
           "shadow-[inset_0_1px_0_0_rgba(255,255,255,0.25),0_4px_15px_rgba(255,110,0,0.3)]",
           "hover:brightness-110 hover:saturate-125",
           "hover:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.35),0_6px_20px_rgba(255,110,0,0.4)]",
@@ -46,11 +55,7 @@ const buttonVariants = cva(
           "hover:bg-red-500/20 hover:border-red-500/30",
         ].join(" "),
       },
-      size: {
-        sm: "px-3 py-1.5 text-xs",
-        md: "px-5 py-2.5 text-sm",
-        lg: "px-7 py-3 text-base font-semibold",
-      },
+      size: buttonSizes,
       iconOnly: {
         true: "",
         false: "",
@@ -61,9 +66,22 @@ const buttonVariants = cva(
       },
     },
     compoundVariants: [
-      { iconOnly: true, size: "sm", class: "size-8 gap-0 px-0 py-0" },
-      { iconOnly: true, size: "md", class: "size-9 gap-0 px-0 py-0" },
-      { iconOnly: true, size: "lg", class: "size-11 gap-0 px-0 py-0" },
+      // Hit-area fixa; zera padding base + breakpoints (sm tem md:px/py que esmagava o ícone).
+      {
+        iconOnly: true,
+        size: "sm",
+        class: "size-8 min-h-0 gap-0 px-0 py-0 md:px-0 md:py-0",
+      },
+      {
+        iconOnly: true,
+        size: "md",
+        class: "size-11 min-h-0 gap-0 px-0 py-0",
+      },
+      {
+        iconOnly: true,
+        size: "lg",
+        class: "size-[50px] min-h-0 gap-0 px-0 py-0",
+      },
     ],
     defaultVariants: {
       variant: "primary",
@@ -95,7 +113,7 @@ export interface ButtonProps
   fullWidth?: boolean;
 }
 
-const iconSizeByButtonSize: Record<NonNullable<ButtonVariantProps["size"]>, string> = {
+const iconSizeByButtonSize: Record<ButtonSize, string> = {
   sm: "size-3.5",
   md: "size-4",
   lg: "size-5",

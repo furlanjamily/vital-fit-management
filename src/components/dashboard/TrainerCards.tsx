@@ -29,7 +29,7 @@ function TrainerCard() {
         <IconButton
           size="sm"
           aria-label="Ver perfil do personal"
-          className="size-7 bg-white/7 hover:bg-white/13 hover:text-glass-primary"
+          className="bg-white/7 hover:bg-white/13 hover:text-glass-primary"
         >
           <ArrowUpRight className="size-3" />
         </IconButton>

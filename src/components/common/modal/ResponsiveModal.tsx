@@ -143,6 +143,25 @@ export function ResponsiveModal({
               asChild
               forceMount
               aria-describedby={description ? descriptionId : undefined}
+              // Fallback se algum portal não usar DismissableLayer.Branch.
+              onPointerDownOutside={(event) => {
+                const target = event.target as HTMLElement | null;
+                if (target?.closest("[data-glass-portal]")) {
+                  event.preventDefault();
+                }
+              }}
+              onInteractOutside={(event) => {
+                const target = event.target as HTMLElement | null;
+                if (target?.closest("[data-glass-portal]")) {
+                  event.preventDefault();
+                }
+              }}
+              onFocusOutside={(event) => {
+                const target = event.target as HTMLElement | null;
+                if (target?.closest("[data-glass-portal]")) {
+                  event.preventDefault();
+                }
+              }}
             >
               <motion.div
                 className={cn(PANEL_CLASS, DESKTOP_WIDTH[size], glassText.secondary)}

@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState, useTransition, type FormEvent } from "react";
-import { Clock, Loader2, User } from "lucide-react";
+import { Clock, User } from "lucide-react";
 import { listAllClassesAction } from "@/app/(app)/classes/actions";
 import { getScheduleProfessionalsAction } from "@/app/(app)/professionals/actions";
+import { Button } from "@/components/common/button/Button";
 import { InlineAlert } from "@/components/common/feedback/InlineAlert";
 import {
   FormField,
@@ -306,23 +307,15 @@ export function ScheduleForm({
             Cancelar
           </GlassButton>
 
-          <GlassButton
+          <Button
             type="submit"
-            size="sm"
+            variant="primary"
+            size="md"
             disabled={!canSubmit}
-            className="bg-gradient-to-r from-orange-500 to-orange-600"
+            isLoading={isSubmitting}
           >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-                Salvando…
-              </>
-            ) : isEditing ? (
-              "Salvar alterações"
-            ) : (
-              "Salvar"
-            )}
-          </GlassButton>
+            {isEditing ? "Salvar alterações" : "Salvar"}
+          </Button>
         </div>
       </form>
     </ResponsiveModal>

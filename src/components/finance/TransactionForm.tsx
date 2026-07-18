@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowDownCircle, ArrowUpCircle, CreditCard, Loader2 } from "lucide-react";
+import { ArrowDownCircle, ArrowUpCircle, CreditCard } from "lucide-react";
 import { Controller, useForm } from "react-hook-form";
 import {
   createTransactionAction,
@@ -261,22 +261,14 @@ export function TransactionForm({
               size="md"
               variant="subtle"
               disabled={isSubmitting}
+              loading={isSubmitting}
               className={cn(
                 isReceita
                   ? "border-emerald-400/20 bg-emerald-500/20 text-emerald-100 hover:bg-emerald-500/30"
                   : "border-red-400/20 bg-red-500 text-red-100 hover:bg-red-500/25",
               )}
-              rightIcon={isSubmitting ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : null}
             >
-              {isSubmitting ? (
-                <>
-                  Salvando…
-                </>
-              ) : isEditing ? (
-                "Salvar alterações"
-              ) : (
-                "Registrar transação"
-              )}
+              {isEditing ? "Salvar alterações" : "Registrar transação"}
             </GlassButton>
           </div>
         </form>

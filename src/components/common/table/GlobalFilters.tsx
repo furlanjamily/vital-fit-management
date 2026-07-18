@@ -89,36 +89,47 @@ export function GlobalFilters<T>({
       className={cn("rounded-xl p-3", className)}
     >
       <div className="flex items-center gap-3">
-        <button
+        <GhostButton
           type="button"
+          size="sm"
           aria-expanded={expanded}
           onClick={() => setExpanded((current) => !current)}
-          className="flex min-w-0 flex-1 items-center gap-2 text-left"
+          className="min-w-0 flex-1 justify-start text-left"
+          rightIcon={
+            <ChevronDown
+              aria-hidden
+              className={cn(
+                "size-4 shrink-0 transition-transform duration-200",
+                glassText.tertiary,
+                expanded && "rotate-180",
+              )}
+            />
+          }
         >
-          <p className={cn("shrink-0 text-sm font-medium", glassText.secondary)}>Filtrar por</p>
-
-          {!expanded && activeCount > 0 ? (
-            <span className={cn("inline-flex min-w-5 items-center justify-center rounded-full bg-white/12 px-1.5 py-0.5 text-[10px] font-semibold", glassText.primary)}>
-              {activeCount}
+          <span className="flex min-w-0 flex-1 items-center gap-2">
+            <span className={cn("shrink-0 text-sm font-medium", glassText.secondary)}>
+              Filtrar por
             </span>
-          ) : null}
-
-          <ChevronDown
-            aria-hidden
-            className={cn(
-              "ml-auto size-4 shrink-0 transition-transform duration-200",
-              glassText.tertiary,
-              expanded && "rotate-180",
-            )}
-          />
-        </button>
+            {!expanded && activeCount > 0 ? (
+              <span
+                className={cn(
+                  "inline-flex min-w-5 items-center justify-center rounded-full bg-white/12 px-1.5 py-0.5 text-[10px] font-semibold",
+                  glassText.primary,
+                )}
+              >
+                {activeCount}
+              </span>
+            ) : null}
+          </span>
+        </GhostButton>
 
         {!expanded && canClear ? (
           <GhostButton
+            size="sm"
             onClick={onClear}
-            className="shrink-0 gap-1.5 px-2 py-1.5 text-[11px] font-medium"
+            className="shrink-0"
+            leftIcon={<X className="size-3" />}
           >
-            <X className="size-3" />
             Limpar
           </GhostButton>
         ) : null}

@@ -2,7 +2,7 @@
 
 import { Edit3, Trash2, UserCheck, UserMinus, UserPlus, Wallet } from "lucide-react";
 import { InlineAlert } from "@/components/common/feedback/InlineAlert";
-import { GlassButton } from "@/components/common/form";
+import { Button } from "@/components/common/button/Button";
 import { RowActionsMenu, type RowAction } from "@/components/common/menu/RowActionsMenu";
 import { ConfirmRemoveDialog } from "@/components/common/modal/ConfirmRemoveDialog";
 import {
@@ -296,14 +296,15 @@ export function MembersContentClient({
           </p>
         </div>
 
-        <GlassButton
-          variant="subtle"
-          size="sm"
-          rightIcon={<UserPlus className="size-3" />}
+        <Button
+          type="button"
+          variant="primary"
+          size="lg"
+          leftIcon={<UserPlus className="size-5" />}
           onClick={openCreateForm}
         >
           Novo Aluno
-        </GlassButton>
+        </Button>
       </div>
 
       {loadError ? <InlineAlert>{loadError}</InlineAlert> : null}

@@ -1,6 +1,6 @@
 "use client";
 
-import { CirclePlus, Plus, Trash2 } from "lucide-react";
+import { CirclePlus, Trash2 } from "lucide-react";
 import { useCallback, useMemo, useState, useTransition } from "react";
 import { deleteAppointmentAction } from "@/app/(app)/classes/actions";
 import { InlineAlert } from "@/components/common/feedback/InlineAlert";
@@ -234,14 +234,18 @@ export function ClassScheduleContentClient({
     <div className="flex min-h-full w-full flex-col gap-6 lg:h-full lg:min-h-0">
       <div className="flex shrink-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className={glassTextStyles.pageTitle}>{classRecord.name}</h1>
+          <div className="flex gap-4">
+          <ClassGradeTooltip grade={grade} />
+          <h1 className={glassTextStyles.pageTitle}>{classRecord.name}
+          </h1>
+          </div>
+            
           <p className={cn("mt-1 text-sm", glassText.muted)}>
             {classRecord.description ?? "Agendamentos e reservas da modalidade"}
           </p>
         </div>
 
         <div className="flex items-center gap-2 self-end sm:self-auto">
-          <ClassGradeTooltip grade={grade} />
           <GlassButton
             size="sm"
             rightIcon={<CirclePlus className="size-4" aria-hidden="true" />}
@@ -266,9 +270,9 @@ export function ClassScheduleContentClient({
         groupBy={
           isGroupedView
             ? {
-                key: (appointment) => appointment.date,
-                renderHeader: formatAgendaDayGroupLabel,
-              }
+              key: (appointment) => appointment.date,
+              renderHeader: formatAgendaDayGroupLabel,
+            }
             : undefined
         }
         filterAccessory={

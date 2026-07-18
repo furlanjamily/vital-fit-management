@@ -1,5 +1,5 @@
 import { Plus } from "lucide-react";
-import { GlassButton } from "@/components/common/form";
+import { Button } from "@/components/common/button/Button";
 import { glassTextStyles } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
 
@@ -11,9 +11,9 @@ export function BusinessHeader() {
       </h2>
 
       <div className="flex flex-col gap-2.5">
-        <GlassButton variant="subtle" size="sm" leftIcon={<Plus className="size-3" />}>
+        <Button type="button" variant="primary" size="sm" leftIcon={<Plus className="size-3.5" />}>
           Novo Aluno
-        </GlassButton>
+        </Button>
       </div>
     </div>
   );

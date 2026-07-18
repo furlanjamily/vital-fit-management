@@ -102,11 +102,12 @@ export function EventDetailModal({ event, onClose, onDelete }: EventDetailModalP
 
           <div className="flex items-center gap-2">
             {hasMeetingLink ? (
-              <GhostButton onClick={() => handleEventClick(event)}>
-                <span className="inline-flex items-center gap-1.5">
-                  <Link2 className="size-3.5" />
-                  Abrir reunião
-                </span>
+              <GhostButton
+                size="sm"
+                leftIcon={<Link2 className="size-3.5" />}
+                onClick={() => handleEventClick(event)}
+              >
+                Abrir reunião
               </GhostButton>
             ) : null}
             <GhostButton onClick={onClose}>Fechar</GhostButton>

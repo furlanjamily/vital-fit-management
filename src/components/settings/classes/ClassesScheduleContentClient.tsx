@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ArrowLeft, Edit3, Plus, Trash2 } from "lucide-react";
 import { InlineAlert } from "@/components/common/feedback/InlineAlert";
-import { GlassButton } from "@/components/common/form";
+import { Button } from "@/components/common/button/Button";
 import { RowActionsMenu, type RowAction } from "@/components/common/menu/RowActionsMenu";
 import { ConfirmRemoveDialog } from "@/components/common/modal/ConfirmRemoveDialog";
 import {
@@ -202,13 +202,15 @@ export function ClassesScheduleContentClient({
           </p>
         </div>
 
-        <GlassButton
+        <Button
+          type="button"
+          variant="primary"
           size="sm"
           onClick={openCreateForm}
-          rightIcon={<Plus className="size-4" aria-hidden="true" />}
+          leftIcon={<Plus className="size-4" aria-hidden="true" />}
         >
           Adicionar Aula
-        </GlassButton>
+        </Button>
       </div>
 
       {errorMessage ? <InlineAlert className="shrink-0">{errorMessage}</InlineAlert> : null}

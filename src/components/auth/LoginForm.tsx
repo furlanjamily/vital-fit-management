@@ -52,9 +52,10 @@ export function LoginForm({ redirectPath = DEFAULT_REDIRECT_PATH }: LoginFormPro
             <IconButton
               shape="round"
               size="sm"
+              variant="ghost"
               aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
               className={cn(
-                "mr-1 size-8 border-0 bg-transparent hover:bg-transparent hover:text-glass-secondary",
+                "mr-1 border-0 bg-transparent hover:bg-transparent hover:text-glass-secondary",
                 glassText.tertiary,
               )}
               onClick={() => setShowPassword((current) => !current)}

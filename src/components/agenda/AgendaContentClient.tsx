@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState, useTransition } from "react";
-import { CirclePlus, Plus } from "lucide-react";
+import { CirclePlus } from "lucide-react";
 import { deleteAgendaEventAction } from "@/app/(app)/agenda/actions";
 import { dispatchAgendaChanged } from "@/components/agenda/agenda-events";
 import { toIsoDate } from "@/components/classes/class-schedule.helpers";
@@ -10,8 +10,8 @@ import { EventDetailModal } from "@/components/agenda/EventDetailModal";
 import { EventModal, padHour } from "@/components/agenda/EventModal";
 import { formatEventSubject } from "@/components/agenda/agenda.helpers";
 import type { AgendaEvent, AgendaUserOption } from "@/components/agenda/agenda.types";
+import { Button } from "@/components/common/button/Button";
 import { InlineAlert } from "@/components/common/feedback/InlineAlert";
-import { GlassButton } from "@/components/common/form";
 import { ConfirmRemoveDialog } from "@/components/common/modal/ConfirmRemoveDialog";
 import { useCollaborativeAgenda } from "@/hooks/useCollaborativeAgenda";
 import { glassText, glassTextStyles } from "@/config/glass-typography";
@@ -125,15 +125,16 @@ export function AgendaContentClient({
           </p>
         </div>
 
-        <GlassButton
-          size="sm"
-          variant="strong"
+        <Button
+          type="button"
+          variant="primary"
+          size="lg"
           className="self-end sm:self-auto"
-          rightIcon={<CirclePlus className="size-4" aria-hidden="true" />}
+          leftIcon={<CirclePlus className="size-5" aria-hidden="true" />}
           onClick={() => openCreateModal()}
         >
           Adicionar evento
-        </GlassButton>
+        </Button>
       </div>
 
       {errorMessage ? <InlineAlert className="shrink-0">{errorMessage}</InlineAlert> : null}

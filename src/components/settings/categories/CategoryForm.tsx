@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useTransition, type FormEvent } from "react";
-import { Loader2, Palette, Tag } from "lucide-react";
+import { Palette, Tag } from "lucide-react";
+import { Button } from "@/components/common/button/Button";
 import { InlineAlert } from "@/components/common/feedback/InlineAlert";
 import {
   FormField,
@@ -156,23 +157,15 @@ export function CategoryForm({
             Cancelar
           </GlassButton>
 
-          <GlassButton
+          <Button
             type="submit"
-            size="sm"
+            variant="primary"
+            size="md"
             disabled={isPending}
-            className="bg-gradient-to-r from-orange-500 to-orange-600"
+            isLoading={isPending}
           >
-            {isPending ? (
-              <>
-                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-                Salvando…
-              </>
-            ) : isEditing ? (
-              "Salvar alterações"
-            ) : (
-              "Criar categoria"
-            )}
-          </GlassButton>
+            {isEditing ? "Salvar alterações" : "Criar categoria"}
+          </Button>
         </div>
       </form>
     </ResponsiveModal>

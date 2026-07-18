@@ -16,6 +16,7 @@ type GlassButtonChrome = {
   size?: GlassButtonSize;
   shape?: GlassButtonShape;
   fullWidth?: boolean;
+  iconOnly?: boolean;
   loading?: boolean;
   isLoading?: boolean;
   leftIcon?: ReactNode;
@@ -67,6 +68,7 @@ export function GlassButton({
   size = "md",
   shape = "rounded",
   fullWidth = false,
+  iconOnly = false,
   loading = false,
   isLoading,
   leftIcon,
@@ -90,7 +92,7 @@ export function GlassButton({
             variant: "glass",
             size,
             fullWidth,
-            iconOnly: false,
+            iconOnly,
           }),
           shape === "pill" ? "rounded-full" : "rounded-xl",
           legacyVariantClass[variant],
@@ -102,11 +104,15 @@ export function GlassButton({
       >
         {pending ? (
           <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden="true" />
+        ) : iconOnly ? (
+          (leftIcon ?? children)
         ) : (
-          leftIcon
+          <>
+            {leftIcon}
+            {children != null ? <span className="truncate">{children}</span> : null}
+            {rightIcon}
+          </>
         )}
-        {children != null ? <span className="truncate">{children}</span> : null}
-        {!pending && rightIcon}
       </a>
     );
   }
@@ -122,11 +128,13 @@ export function GlassButton({
         | "children"
         | "isLoading"
         | "fullWidth"
+        | "iconOnly"
         | "className"
       >)}
       variant="glass"
       size={size}
       fullWidth={fullWidth}
+      iconOnly={iconOnly}
       leftIcon={leftIcon}
       rightIcon={rightIcon}
       isLoading={pending}

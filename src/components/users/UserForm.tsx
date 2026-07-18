@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { Eye, EyeOff, Lock, Mail, Shield, User, UserPlus } from "lucide-react";
+import { Eye, EyeOff, Lock, Mail, Shield, User, UserCircle2Icon, UserCircleIcon, UserPlus } from "lucide-react";
 import { InlineAlert } from "@/components/common/feedback/InlineAlert";
 import {
   AvatarUploadTrigger,
@@ -125,9 +125,10 @@ export function UserForm({
             <IconButton
               shape="round"
               size="sm"
+              variant="ghost"
               aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
               className={cn(
-                "mr-1 size-8 border-0 bg-transparent hover:bg-transparent",
+                "mr-1 border-0 bg-transparent hover:bg-transparent",
                 glassText.tertiary,
                 "hover:text-glass-secondary",
               )}
@@ -152,7 +153,6 @@ export function UserForm({
             size="md"
             type="submit"
             loading={submitting}
-            rightIcon={!submitting ? <UserPlus className="size-4" /> : undefined}
             className="mt-1"
           >
             {submitting

@@ -7,6 +7,12 @@ import { cn } from "@/lib/cn";
 type IconButtonShape = "round" | "square";
 type IconButtonSize = "sm" | "md" | "lg";
 
+const iconSvgBySize: Record<IconButtonSize, string> = {
+  sm: "[&_svg]:size-3.5",
+  md: "[&_svg]:size-4",
+  lg: "[&_svg]:size-5",
+};
+
 export type IconButtonProps = Omit<
   ButtonProps,
   "iconOnly" | "leftIcon" | "rightIcon" | "children"
@@ -38,7 +44,12 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
         iconOnly
         size={size}
         variant={variant}
-        className={cn(shape === "square" && "!rounded-lg", className)}
+        className={cn(
+          "shrink-0 overflow-visible",
+          iconSvgBySize[size],
+          shape === "square" && "!rounded-lg",
+          className,
+        )}
         {...props}
       >
         {children}

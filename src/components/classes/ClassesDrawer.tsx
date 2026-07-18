@@ -6,7 +6,7 @@ import { Plus } from "lucide-react";
 import { dispatchOpenScheduleModal } from "@/components/classes/schedule-modal-events";
 import { useClassesNavItems } from "@/components/classes/useClassesNavItems";
 import { ResponsiveModal } from "@/components/common/modal/ResponsiveModal";
-import { GlassButton } from "@/components/common/form";
+import { IconButton } from "@/components/common/form";
 import { Skeleton } from "@/components/common/skeleton";
 import { isNavActive } from "@/config/navigation";
 import { glassText } from "@/config/glass-typography";
@@ -30,11 +30,9 @@ export function ClassesDrawer({ open, onOpenChange }: ClassesDrawerProps) {
       title="Classes"
       size="md"
       headerActions={
-        <GlassButton
+        <IconButton
           size="sm"
-          variant="subtle"
-          shape="pill"
-          className="h-8 px-3"
+          variant="glass"
           aria-label="Adicionar aula"
           onClick={() => {
             onOpenChange(false);
@@ -42,7 +40,7 @@ export function ClassesDrawer({ open, onOpenChange }: ClassesDrawerProps) {
           }}
         >
           <Plus className="size-3.5" aria-hidden="true" />
-        </GlassButton>
+        </IconButton>
       }
     >
       {loadError ? (

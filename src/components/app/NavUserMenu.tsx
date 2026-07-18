@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronDown, ChevronUp, Loader2, LogOut, User } from "lucide-react";
+import { ChevronDown, ChevronUp, LogOut, User } from "lucide-react";
 import { GhostButton } from "@/components/common/form";
 import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
 import { UserAvatar } from "@/components/users/UserAvatar";
@@ -22,7 +21,12 @@ type SessionUser = {
   avatarUrl: string | null;
 };
 
-export function NavUserMenu() {
+interface NavUserMenuProps {
+  /** Só avatar no trigger; nome aparece no dropdown acima de "Meu perfil". */
+  compact?: boolean;
+}
+
+export function NavUserMenu({ compact = false }: NavUserMenuProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -94,7 +98,7 @@ export function NavUserMenu() {
         variant="subtle"
         intensity="low"
         elevation="floating"
-        className="h-11 rounded-full"
+        className={cn("rounded-full", compact ? "size-10 shrink-0" : "h-11")}
       >
         <div className="h-full w-full animate-pulse rounded-full" />
       </GlassPanel>
@@ -104,68 +108,121 @@ export function NavUserMenu() {
   if (!sessionUser) return null;
 
   return (
-    <div ref={containerRef} className="flex flex-col-reverse gap-2">
-      {/* Vidro 1 — pill sobre a sidebar */}
+    <div
+      ref={containerRef}
+      className={cn(
+        "flex flex-col-reverse gap-2 ",
+        compact && "relative",
+      )}
+    >
       <GlassPanel
         variant="default"
         intensity="medium"
         elevation="floating"
         className="rounded-full"
       >
-        <GhostButton
-          onClick={() => setOpen((current) => !current)}
-          aria-expanded={open}
-          aria-haspopup="menu"
-          className="w-full justify-start gap-2.5 rounded-full px-2 py-1.5 text-left hover:bg-white/6"
-          leftIcon={<UserAvatar
-            name={sessionUser.displayName}
-            avatarUrl={sessionUser.avatarUrl}
-            className="size-9"
-            textClassName="text-[10px]"
-          />
-          }
-          rightIcon={open ? <ChevronUp className="size-3.5 transition-transform duration-200" /> : <ChevronDown className="size-3.5 transition-transform duration-200" />}
-        >
-          {/* <UserAvatar
-            name={sessionUser.displayName}
-            avatarUrl={sessionUser.avatarUrl}
-            className="size-9"
-            textClassName="text-[10px]"
-          />
- */}
-          <span className={cn("min-w-0 flex-1 truncate text-sm font-semibold tracking-[-0.02em]", glassText.primary)}>
-            {sessionUser.displayName}
-          </span>
-
-        </GhostButton>
+        {compact ? (
+          <GhostButton
+            iconOnly
+            size="md"
+            onClick={() => setOpen((current) => !current)}
+            aria-expanded={open}
+            aria-haspopup="menu"
+            aria-label={sessionUser.displayName}
+            className="size-10 shrink-0 hover:bg-white/6"
+          >
+            <UserAvatar
+              name={sessionUser.displayName}
+              avatarUrl={sessionUser.avatarUrl}
+              className="size-9"
+              textClassName="text-[10px]"
+            />
+          </GhostButton>
+        ) : (
+          <GhostButton
+            fullWidth
+            size="sm"
+            onClick={() => setOpen((current) => !current)}
+            aria-expanded={open}
+            aria-haspopup="menu"
+            className="justify-start text-left hover:bg-white/6"
+            leftIcon={
+              <UserAvatar
+                name={sessionUser.displayName}
+                avatarUrl={sessionUser.avatarUrl}
+                className="size-9"
+                textClassName="text-[10px]"
+              />
+            }
+            rightIcon={
+              open ? (
+                <ChevronUp className="size-3.5 transition-transform duration-200" />
+              ) : (
+                <ChevronDown className="size-3.5 transition-transform duration-200" />
+              )
+            }
+          >
+            <span
+              className={cn(
+                "min-w-0 flex-1 truncate text-sm font-semibold tracking-[-0.02em]",
+                glassText.primary,
+              )}
+            >
+              {sessionUser.displayName}
+            </span>
+          </GhostButton>
+        )}
       </GlassPanel>
 
       {open && (
         <GlassPanel
           variant="strong"
           intensity="high"
-          elevation="popover"
-          className="rounded-2xl p-1.5"
+          elevation="solid"
+          className={cn(
+            "rounded-2xl p-1.5",
+            compact && "absolute bottom-full right-0 z-50 mb-2 w-56",
+          )}
         >
-          <Link
-            href={profileHref}
-            onClick={() => setOpen(false)}
-            className={cn(
-              "flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-xs font-medium transition hover:bg-white/10",
-              glassText.primaryElevated,
-              "hover:text-glass-primary",
-            )}
-          >
-            <User className="size-3.5" />
-            Meu perfil
-          </Link>
+          {compact ? (
+            <div className="px-3 py-2">
+              <p
+                className={cn(
+                  "truncate text-sm font-semibold tracking-[-0.02em]",
+                  glassText.primary,
+                )}
+              >
+                {sessionUser.displayName}
+              </p>
+              {sessionUser.email ? (
+                <p className={cn("truncate text-[11px]", glassText.muted)}>
+                  {sessionUser.email}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
 
           <GhostButton
             transparent
+            href={profileHref}
+            fullWidth
+            size="sm"
+            leftIcon={<User className="size-3.5" />}
+            onClick={() => setOpen(false)}
+            className={cn("justify-start text-left", glassText.primaryElevated)}
+          >
+            Meu perfil
+          </GhostButton>
+
+          <GhostButton
+            transparent
+            fullWidth
+            size="sm"
             onClick={handleLogout}
             disabled={loggingOut}
-            className="w-full justify-start gap-2.5 px-3 py-2.5 text-left text-red-500 hover:text-red-600"
-            leftIcon={loggingOut ? <Loader2 className="size-3.5 animate-spin" /> : <LogOut className="size-3.5" />}
+            isLoading={loggingOut}
+            className="justify-start text-left text-red-500 hover:text-red-600"
+            leftIcon={<LogOut className="size-3.5" />}
           >
             Sair
           </GhostButton>

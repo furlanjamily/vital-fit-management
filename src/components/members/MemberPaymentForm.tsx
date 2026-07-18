@@ -7,6 +7,7 @@ import {
   getMemberPaymentPreviewAction,
   type MemberPaymentPreview,
 } from "@/app/(app)/members/actions";
+import { Button } from "@/components/common/button/Button";
 import { InlineAlert } from "@/components/common/feedback/InlineAlert";
 import { GlassButton, GlassSelect } from "@/components/common/form";
 import { ResponsiveModal } from "@/components/common/modal/ResponsiveModal";
@@ -185,28 +186,16 @@ export function MemberPaymentForm({ member, onSuccess, onCancel }: MemberPayment
         </GlassButton>
 
         {!successMessage ? (
-          <button
+          <Button
             type="button"
+            variant="primary"
+            size="md"
             disabled={isPending || isLoadingPreview || paymentBlocked}
+            isLoading={isPending}
             onClick={handleConfirm}
-            className={cn(
-              "inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 px-4 py-2.5 text-sm font-semibold",
-              "bg-gradient-to-r from-orange-500 to-orange-600 shadow-[0_12px_32px_rgba(249,115,22,0.28)]",
-              glassText.primary,
-              "transition hover:from-orange-400 hover:to-orange-500 disabled:cursor-not-allowed disabled:opacity-60",
-            )}
           >
-            {isPending ? (
-              <>
-                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-                Confirmando…
-              </>
-            ) : paymentBlocked ? (
-              "Mensalidade em dia"
-            ) : (
-              "Confirmar Pagamento"
-            )}
-          </button>
+            {paymentBlocked ? "Mensalidade em dia" : "Confirmar Pagamento"}
+          </Button>
         ) : null}
       </div>
     </ResponsiveModal>

@@ -2,7 +2,8 @@
 
 import { Calendar, Download } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { GlassButton } from "@/components/common/button/GlassButton";
+import { Button } from "@/components/common/button/Button";
+import { IconButton } from "@/components/common/button/IconButton";
 import { DatePicker } from "@/components/common/date-picker/DatePicker";
 import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
 import type { FinanceFilter, FinancePeriod } from "@/components/finance/finance.types";
@@ -22,16 +23,6 @@ type FinanceHeaderProps = {
   onDateRangeChange?: (range: { start: string; end: string }) => void;
   onExportClick?: () => void;
 };
-
-const navButtonClass = cn(
-  "inline-flex size-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.06] transition hover:border-white/16 hover:bg-white/10",
-  glassText.secondary,
-);
-
-const activePeriodClass = cn(
-  "rounded-full border-transparent bg-gradient-to-r from-orange-500 to-orange-600 px-4 py-2 text-xs font-semibold shadow-[0_4px_16px_rgba(249,115,22,0.32)]",
-  glassText.primary,
-);
 
 const PERIOD_OPTIONS: { value: FinanceHeaderPeriod; label: string }[] = [
   { value: "today", label: "Dia" },
@@ -116,39 +107,30 @@ export function FinanceHeader({
           <p className={cn(glassText.muted, "leading-none text-sm font-normal")}>
             Acompanhe todas as movimentações financeiras
           </p>
-          <button
-            type="button"
+          <IconButton
+            size="sm"
+            variant="glass"
             aria-label="Exportar"
             onClick={onExportClick}
-            className={cn(navButtonClass, "size-7 shrink-0")}
           >
             <Download className="size-3.5" strokeWidth={2} />
-          </button>
+          </IconButton>
         </div>
       </div>
 
       <div className="flex w-full flex-wrap items-center justify-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 sm:w-auto">
         <div ref={datePanelRef} className="relative">
-          <button
+          <Button
             type="button"
+            size="sm"
+            variant={isCustomRangeActive ? "primary" : "glass"}
+            leftIcon={<Calendar className="size-4" strokeWidth={2} />}
             onClick={openDatePanel}
             aria-expanded={datePanelOpen}
-            className={cn(
-              "inline-flex min-w-[9.5rem] items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2 text-xs font-medium transition hover:border-white/16 hover:bg-white/10",
-              glassText.primary,
-              isCustomRangeActive &&
-                "border-transparent bg-gradient-to-r from-orange-500 to-orange-600 shadow-[0_4px_16px_rgba(249,115,22,0.32)]",
-            )}
+            className="min-w-[9.5rem]"
           >
-            <Calendar
-              className={cn(
-                "size-4 shrink-0",
-                isCustomRangeActive ? glassText.primary : glassText.secondary,
-              )}
-              strokeWidth={2}
-            />
             {dateLabel}
-          </button>
+          </Button>
 
           {datePanelOpen ? (
             <GlassPanel
@@ -179,15 +161,16 @@ export function FinanceHeader({
                   </label>
                 </div>
 
-                <GlassButton
+                <Button
+                  type="button"
+                  variant="primary"
                   size="sm"
-                  shape="pill"
-                  className="self-end bg-gradient-to-r from-orange-500 to-orange-600 px-5 font-semibold"
+                  className="self-end"
                   onClick={handleApplyDateRange}
                   disabled={!draftStart || !draftEnd}
                 >
                   Aplicar
-                </GlassButton>
+                </Button>
               </div>
             </GlassPanel>
           ) : null}
@@ -198,19 +181,15 @@ export function FinanceHeader({
             const isActive = activeFilter.kind === "period" && activeFilter.period === value;
 
             return (
-              <button
+              <Button
                 key={value}
                 type="button"
+                size="sm"
+                variant={isActive ? "primary" : "ghost"}
                 onClick={() => onPeriodChange?.(value)}
-                className={cn(
-                  "px-3 py-1.5 text-xs transition",
-                  isActive
-                    ? activePeriodClass
-                    : cn("rounded-full font-medium hover:text-glass-primary", glassText.muted),
-                )}
               >
                 {label}
-              </button>
+              </Button>
             );
           })}
         </div>

@@ -11,7 +11,7 @@ export type RowAction = {
   label: string;
   icon: LucideIcon;
   onSelect: () => void;
-  tone?: "default" | "danger";
+  tone?: "default" | "danger" | "accent";
   disabled?: boolean;
 };
 
@@ -22,11 +22,10 @@ type RowActionsMenuProps = {
 };
 
 const ACTION_TONE_CLASSES: Record<NonNullable<RowAction["tone"]>, string> = {
-  default: cn(
-    glassText.primaryElevated,
-    "hover:bg-[#A0825C] text-glass-primary ",
-  ),
+  default: glassText.primaryElevated,
   danger: "text-red-400 hover:bg-[#9A4A3A] hover:text-red-100",
+  accent:
+    "bg-emerald-500/20 text-emerald-200 hover:bg-emerald-500/30 hover:text-emerald-100",
 };
 
 export function RowActionsMenu({
@@ -77,26 +76,34 @@ export function RowActionsMenu({
         <GlassPanel
           role="menu"
           variant="subtle"
-          intensity="medium"
-          elevation="popover"
-          className="absolute right-0 top-0 z-50 w-44 rounded-2xl p-1.5"
+          intensity="high"
+          elevation="solid"
+          className="absolute right-0 top-0 z-50 w-48 rounded-2xl p-1.5"
         >
-          {actions.map((action) => (
-            <GhostButton
-              key={action.label}
-              role="menuitem"
-              disabled={disabled || action.disabled}
-              className={cn(
-                "w-full justify-start gap-2.5 px-3 py-2 text-left",
-                ACTION_TONE_CLASSES[action.tone ?? "default"],
-                action.disabled && "cursor-not-allowed opacity-45 hover:bg-transparent",
-              )}
-              leftIcon={<action.icon className="size-3.5" />}
-              onClick={() => handleSelect(action)}
-            >
-              {action.label}
-            </GhostButton>
-          ))}
+          {actions.map((action) => {
+            const isDisabled = disabled || Boolean(action.disabled);
+            const tone = action.tone ?? "default";
+
+            return (
+              <GhostButton
+                key={action.label}
+                role="menuitem"
+                fullWidth
+                size="sm"
+                transparent={tone !== "accent"}
+                disabled={isDisabled}
+                className={cn(
+                  "justify-start text-left",
+                  ACTION_TONE_CLASSES[tone],
+                  isDisabled && "cursor-not-allowed opacity-40",
+                )}
+                leftIcon={<action.icon className="size-3.5" />}
+                onClick={() => handleSelect(action)}
+              >
+                {action.label}
+              </GhostButton>
+            );
+          })}
         </GlassPanel>
       )}
     </div>

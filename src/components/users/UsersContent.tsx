@@ -2,7 +2,7 @@
 
 import { Edit3, Trash2, UserCheck, UserMinus, UserPlus } from "lucide-react";
 import { InlineAlert } from "@/components/common/feedback/InlineAlert";
-import { GlassButton } from "@/components/common/form";
+import { Button } from "@/components/common/button/Button";
 import { RowActionsMenu, type RowAction } from "@/components/common/menu/RowActionsMenu";
 import { ConfirmRemoveDialog } from "@/components/common/modal/ConfirmRemoveDialog";
 import { Table, type TableColumn } from "@/components/common/table/Table";
@@ -123,22 +123,23 @@ export function UsersContent({ initialUsers, loadError = null }: UsersContentPro
 
   return (
     <div className="flex min-h-full w-full flex-col gap-6 lg:h-full lg:min-h-0">
-      <div className="mb-2 flex items-center justify-between gap-4">
+      <div className="mb-2 flex items-center justify-between gap-2.8">
         <div>
-          <h1 className={glassTextStyles.pageTitle}>Gestão de Usuários</h1>
+          <h1 className={glassTextStyles.pageTitle}>Usuários</h1>
           <p className={glassTextStyles.pageSubtitle}>
             Cadastre e gerencie os acessos ao sistema
           </p>
         </div>
 
-        <GlassButton
-          variant="subtle"
-          size="md"
-          rightIcon={<UserPlus className="size-4" />}
+        <Button
+          type="button"
+          variant="primary"
+          size="lg"
+          leftIcon={<UserPlus className="size-5" />}
           onClick={openCreateForm}
         >
-          Novo Usuário
-        </GlassButton>
+          Usuário
+        </Button>
       </div>
 
       {loadError ? <InlineAlert>{loadError}</InlineAlert> : null}

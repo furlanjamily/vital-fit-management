@@ -94,15 +94,16 @@ export function DatePicker({
         )}
       />
 
+      {/* Input nativo só para valor/API; cliques passam pelo botão → showPicker(). */}
       <input
         ref={inputRef}
         type="date"
         value={value}
         disabled={disabled}
         onChange={(event) => onChange?.(event.target.value)}
-        className="absolute inset-0 cursor-pointer opacity-0"
+        className="pointer-events-none absolute inset-0 opacity-0"
         tabIndex={-1}
-        aria-label={props["aria-label"] ?? "Selecionar data"}
+        aria-hidden="true"
         {...props}
       />
     </div>

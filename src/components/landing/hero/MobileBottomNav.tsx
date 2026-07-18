@@ -3,14 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { NavUserMenu } from "@/components/app/NavUserMenu";
 import { ClassesDrawer } from "@/components/classes/ClassesDrawer";
-import { profileAvatar } from "@/components/landing/hero/data/hero-scene.mock";
 import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
 import {
   getMobileNavItemsForRole,
   isClassesRouteActive,
   isNavActive,
-  profileHref,
   type RouteItem,
 } from "@/config/app-nav.config";
 import { glassText } from "@/config/glass-typography";
@@ -114,36 +113,9 @@ export function MobileBottomNav() {
 
             <div className="mx-0.5 h-8 w-px shrink-0 rounded-full bg-white/10" />
 
-            <Link
-              href={profileHref}
-              className={cn(
-                "mr-3 flex shrink-0 flex-col items-center gap-1 rounded-2xl px-2 py-2 transition-colors",
-                isNavActive(pathname, profileHref) && "bg-orange-500/18",
-              )}
-            >
-              <div
-                className={cn(
-                  "size-7 rounded-full border-2 bg-cover bg-center transition-colors",
-                  isNavActive(pathname, profileHref)
-                    ? "border-white"
-                    : "border-white/28",
-                )}
-                style={{ backgroundImage: `url(${profileAvatar})` }}
-              />
-              <span
-                className={cn(
-                  "text-[9px] font-semibold leading-none transition-colors",
-                  isNavActive(pathname, profileHref)
-                    ? glassText.secondary
-                    : glassText.muted,
-                )}
-              >
-                Profile
-              </span>
-              {isNavActive(pathname, profileHref) ? (
-                <span className="mt-0.5 h-0.5 w-4 rounded-full bg-orange-500" />
-              ) : null}
-            </Link>
+            <div className="mr-3 ml-2 shrink-0">
+              <NavUserMenu compact />
+            </div>
           </div>
         </GlassPanel>
       </nav>

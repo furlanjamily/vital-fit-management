@@ -1,5 +1,6 @@
 export {
   Button,
+  buttonSizes,
   buttonVariants,
   DangerButton,
   GhostButton,
@@ -8,6 +9,7 @@ export {
 } from "@/components/common/button";
 export type {
   ButtonProps,
+  ButtonSize,
   ButtonVariantProps,
   GlassButtonProps,
   IconButtonProps,

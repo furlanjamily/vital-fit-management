@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ArrowLeft, Edit3, Plus, Trash2 } from "lucide-react";
 import { InlineAlert } from "@/components/common/feedback/InlineAlert";
-import { GlassButton } from "@/components/common/form";
+import { Button } from "@/components/common/button/Button";
 import { RowActionsMenu, type RowAction } from "@/components/common/menu/RowActionsMenu";
 import { ConfirmRemoveDialog } from "@/components/common/modal/ConfirmRemoveDialog";
 import {
@@ -45,7 +45,7 @@ const categoryFilters: TableFilterDefinition<FinancialCategory>[] = [
 
 function CategoryColorSwatch({ color, name }: { color: string; name: string }) {
   return (
-    <div className="flex items-center gap-2.5">
+    <div className="flex items-center gap-2.5 truncate">
       <span
         className="size-3.5 shrink-0 rounded-full border border-white/20"
         style={{ backgroundColor: color }}
@@ -174,14 +174,15 @@ export function CategoriesContentClient({
           </p>
         </div>
 
-        <GlassButton
+        <Button
+          type="button"
+          variant="primary"
           size="sm"
           onClick={openCreateForm}
-          className="bg-gradient-to-r from-orange-500 to-orange-600"
+          leftIcon={<Plus className="size-4" aria-hidden="true" />}
         >
-          <Plus className="size-4" aria-hidden="true" />
           Nova categoria
-        </GlassButton>
+        </Button>
       </div>
 
       {errorMessage ? <InlineAlert>{errorMessage}</InlineAlert> : null}

@@ -1,12 +1,13 @@
 import type { LucideIcon } from "lucide-react";
 import {
+  BicepsFlexed,
   CalendarDays,
   CircleDollarSignIcon,
   Dumbbell,
   Grid2X2,
   Settings,
-  User2Icon,
-  UsersRound,
+  UserCog,
+  Users,
 } from "lucide-react";
 
 export type RouteItem = {
@@ -56,21 +57,21 @@ export const navigationRoutes: RouteItem[] = [
   {
     label: "Alunos",
     path: "/members",
-    icon: UsersRound,
+    icon: Users,
     showInMobileNav: true,
     isUtility: true,
   },
   {
     label: "Profissionais",
     path: "/professionals",
-    icon: UsersRound,
+    icon: BicepsFlexed,
     showInMobileNav: true,
     isUtility: true,
   },
   {
     label: "Usuários",
     path: "/users",
-    icon: User2Icon,
+    icon: UserCog,
     showInMobileNav: true,
     isUtility: true,
     requiresSuperAdmin: true,

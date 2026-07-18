@@ -14,6 +14,7 @@ import { toIsoDate } from "@/components/classes/class-schedule.helpers";
 import { GlassMultiSelect } from "@/components/agenda/GlassMultiSelect";
 import { eventTypeOptions, type AgendaUserOption } from "@/components/agenda/agenda.types";
 import type { CreateEventFormValues } from "@/components/agenda/event.schema";
+import { Button } from "@/components/common/button/Button";
 import { InlineAlert } from "@/components/common/feedback/InlineAlert";
 import {
   FormField,
@@ -228,16 +229,15 @@ export function EventModal({
               Cancelar
             </GlassButton>
 
-            <GlassButton
+            <Button
               type="submit"
-              size="sm"
-              variant="strong"
-              loading={isPending}
-              leftIcon={isPending ? undefined : <Calendar className="size-4" />}
-              className="bg-gradient-to-r from-orange-500 to-orange-600"
+              variant="primary"
+              size="md"
+              isLoading={isPending}
+              leftIcon={<Calendar className="size-4" />}
             >
-              {isPending ? "Salvando…" : "Adicionar evento"}
-            </GlassButton>
+              Adicionar evento
+            </Button>
           </div>
         </form>
     </ResponsiveModal>

@@ -108,9 +108,10 @@ export function TableFooter({
             ) : (
               <GhostButton
                 key={item}
+                size="sm"
+                iconOnly
                 onClick={() => onPageChange(item)}
                 aria-label={`Ir para página ${item}`}
-                className="size-8"
               >
                 {item}
               </GhostButton>

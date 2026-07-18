@@ -1,10 +1,9 @@
 "use client";
 
-import { Edit3, Trash2, UserCheck, UserMinus, UserPlus, Wallet } from "lucide-react";
+import { Edit3, UserCheck, UserMinus, UserPlus, Wallet } from "lucide-react";
 import { InlineAlert } from "@/components/common/feedback/InlineAlert";
-import { GlassButton } from "@/components/common/form";
+import { Button } from "@/components/common/button/Button";
 import { RowActionsMenu, type RowAction } from "@/components/common/menu/RowActionsMenu";
-import { ConfirmRemoveDialog } from "@/components/common/modal/ConfirmRemoveDialog";
 import {
   Table,
   type TableColumn,
@@ -159,7 +158,6 @@ export function MembersContentClient({
     members,
     formOpen,
     editingMember,
-    removingMember,
     payingMember,
     actionError,
     isPending,
@@ -169,9 +167,6 @@ export function MembersContentClient({
     handleFormSuccess,
     handlePaymentSuccess,
     toggleStatus,
-    removeMember,
-    requestRemove,
-    cancelRemove,
     openPaymentForm,
     closePaymentForm,
   } = useMembersManagement(initialMembers);
@@ -184,23 +179,23 @@ export function MembersContentClient({
       getPaymentStatus(member.nextDueDate, member.paymentStatus) === "Em dia";
 
     return [
-      { label: "Editar", icon: Edit3, onSelect: () => openEditForm(member) },
+      {
+        label: "Editar",
+        icon: Edit3,
+        disabled: !isActive,
+        onSelect: () => openEditForm(member),
+      },
       {
         label: isPaymentCurrent ? "Mensalidade em dia" : "Confirmar pagamento",
         icon: Wallet,
-        disabled: isPaymentCurrent,
+        disabled: !isActive || isPaymentCurrent,
         onSelect: () => openPaymentForm(member),
       },
       {
         label: isActive ? "Inativar" : "Reativar",
         icon: isActive ? UserMinus : UserCheck,
+        tone: isActive ? "default" : "accent",
         onSelect: () => toggleStatus(member),
-      },
-      {
-        label: "Remover",
-        icon: Trash2,
-        tone: "danger",
-        onSelect: () => requestRemove(member),
       },
     ];
   }
@@ -281,20 +276,21 @@ export function MembersContentClient({
     <div className="flex min-h-full w-full flex-col gap-6 lg:h-full lg:min-h-0">
       <div className="mb-2 flex items-center justify-between gap-4">
         <div>
-          <h1 className={glassTextStyles.pageTitle}>Gestão de Alunos</h1>
+          <h1 className={glassTextStyles.pageTitle}>Alunos</h1>
           <p className={glassTextStyles.pageSubtitle}>
             Cadastre e gerencie as matrículas da academia
           </p>
         </div>
 
-        <GlassButton
-          variant="subtle"
-          size="sm"
-          rightIcon={<UserPlus className="size-3" />}
+        <Button
+          type="button"
+          variant="primary"
+          size="lg"
+          leftIcon={<UserPlus className="size-5" />}
           onClick={openCreateForm}
         >
-          Novo Aluno
-        </GlassButton>
+          Aluno
+        </Button>
       </div>
 
       {loadError ? <InlineAlert>{loadError}</InlineAlert> : null}
@@ -307,7 +303,11 @@ export function MembersContentClient({
         title="Todos os alunos"
         filters={memberFilters}
         emptyMessage="Nenhum aluno encontrado."
-        rowClassName={(member) => (member.status === "inactive" ? "opacity-50" : undefined)}
+        rowClassName={(member) =>
+          member.status === "inactive"
+            ? "[&>td:not(:last-child)]:opacity-50"
+            : undefined
+        }
         className="lg:min-h-0 lg:flex-1"
       />
 
@@ -318,16 +318,6 @@ export function MembersContentClient({
           professionalOptions={professionalOptions}
           onSuccess={handleFormSuccess}
           onCancel={closeForm}
-        />
-      )}
-
-      {removingMember && (
-        <ConfirmRemoveDialog
-          title="Remover aluno"
-          subjectName={removingMember.name}
-          pending={isPending}
-          onConfirm={() => removeMember(removingMember.id)}
-          onCancel={cancelRemove}
         />
       )}
 

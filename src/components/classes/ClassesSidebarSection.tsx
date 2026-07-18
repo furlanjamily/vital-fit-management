@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { ChevronDown, ChevronUp, Plus } from "lucide-react";
 import { useState } from "react";
 import { useClassesNavItems } from "@/components/classes/useClassesNavItems";
-import { GhostButton, GlassButton } from "@/components/common/form";
+import { GhostButton, IconButton } from "@/components/common/form";
 import { Skeleton } from "@/components/common/skeleton";
 import { useScheduleModal } from "@/components/classes/ScheduleModalProvider";
 import { isNavActive } from "@/config/navigation";
@@ -29,14 +29,14 @@ export function ClassesSidebarSection() {
     <div className="mt-3 shrink-0">
       <div className="mb-3 flex items-center justify-between gap-2">
         <p className={cn(glassText.secondary, "text-xs font-semibold")}>Classes</p>
-        <GlassButton
+        <IconButton
           size="sm"
-          variant="subtle"
-          className="h-7 px-2 text-[10px]"
+          variant="glass"
+          aria-label="Adicionar aula"
           onClick={() => openScheduleModal({ defaultClassId: null })}
         >
-          <Plus className="size-3" aria-hidden="true" />
-        </GlassButton>
+          <Plus className="size-3.5" aria-hidden="true" />
+        </IconButton>
       </div>
 
       {loadError ? (
@@ -83,8 +83,9 @@ export function ClassesSidebarSection() {
 
       {hasHiddenItems ? (
         <GhostButton
+          size="sm"
           className={cn(
-            "mt-4 justify-start gap-3 px-2 text-xs font-semibold hover:bg-transparent hover:text-glass-secondary",
+            "mt-4 justify-start font-semibold hover:bg-transparent hover:text-glass-secondary",
             glassText.secondary,
           )}
           rightIcon={showAllClasses ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}

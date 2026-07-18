@@ -1,6 +1,9 @@
 "use client";
 
 import { Calendar, ChevronLeft, ChevronRight } from "lucide-react";
+import { Button } from "@/components/common/button/Button";
+import { GlassButton } from "@/components/common/button/GlassButton";
+import { IconButton } from "@/components/common/button/IconButton";
 import {
   formatAgendaReferenceLabel,
   shiftReferenceDate,
@@ -22,16 +25,6 @@ const VIEW_OPTIONS: { value: AgendaViewMode; label: string }[] = [
   { value: "week", label: "Semana" },
   { value: "month", label: "Mês" },
 ];
-
-const navButtonClass = cn(
-  "inline-flex size-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.06] transition hover:border-white/16 hover:bg-white/10",
-  glassText.secondary,
-);
-
-const activeViewClass = cn(
-  "rounded-full border-transparent bg-gradient-to-r from-orange-500 to-orange-600 px-4 py-2 text-xs font-semibold shadow-[0_4px_16px_rgba(249,115,22,0.32)]",
-  glassText.primary,
-);
 
 export function AgendaDateFilter({
   viewMode,
@@ -75,34 +68,36 @@ export function AgendaDateFilter({
         </div>
 
         <div className="order-2 flex items-center justify-center gap-2 sm:contents">
-          <button
-            type="button"
+          <IconButton
+            size="md"
+            variant="glass"
             aria-label="Período anterior"
-            className={cn(navButtonClass, "sm:order-1")}
+            className="sm:order-1"
             onClick={() => shift(-1)}
           >
             <ChevronLeft className="size-4" />
-          </button>
+          </IconButton>
 
-          <button
-            type="button"
+          <IconButton
+            size="md"
+            variant="glass"
             aria-label="Próximo período"
-            className={cn(navButtonClass, "sm:order-3")}
+            className="sm:order-3"
             onClick={() => shift(1)}
           >
             <ChevronRight className="size-4" />
-          </button>
+          </IconButton>
 
-          <button
+          <GlassButton
             type="button"
+            size="sm"
+            variant="subtle"
+            shape="pill"
+            className="sm:order-4"
             onClick={goToToday}
-            className={cn(
-              "rounded-full border border-white/10 bg-white/[0.06] px-3 py-1.5 text-xs font-medium transition hover:bg-white/10 sm:order-4",
-              glassText.secondary,
-            )}
           >
             Hoje
-          </button>
+          </GlassButton>
         </div>
       </div>
 
@@ -111,19 +106,15 @@ export function AgendaDateFilter({
           const isActive = viewMode === value;
 
           return (
-            <button
+            <Button
               key={value}
               type="button"
+              size="sm"
+              variant={isActive ? "primary" : "ghost"}
               onClick={() => onViewModeChange(value)}
-              className={cn(
-                "px-3 py-1.5 text-xs transition",
-                isActive
-                  ? activeViewClass
-                  : cn("rounded-full font-medium hover:text-glass-primary", glassText.muted),
-              )}
             >
               {optionLabel}
-            </button>
+            </Button>
           );
         })}
       </div>

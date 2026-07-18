@@ -1,3 +1,4 @@
+import { Button } from "@/components/common/button/Button";
 import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
 import { glassText } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
@@ -130,16 +131,9 @@ export function PortfolioSummaryCard({
             Resumo Geral
           </h2>
 
-          <button
-            type="button"
-            onClick={onNewTransaction}
-            className={cn(
-              "inline-flex h-9 items-center justify-center rounded-full bg-gradient-to-r from-orange-500 to-orange-600 px-5 text-[13px] font-semibold tracking-[-0.02em] shadow-[0_4px_18px_rgba(255,77,61,0.35)] transition hover:brightness-110",
-              glassText.primary,
-            )}
-          >
+          <Button type="button" variant="primary" size="sm" onClick={onNewTransaction}>
             Nova Transação +
-          </button>
+          </Button>
         </div>
 
         <div className="mt-8 grid grid-cols-2 place-items-center gap-x-4 gap-y-6 sm:mt-9 md:flex md:flex-row md:place-items-stretch md:gap-5 lg:gap-8">

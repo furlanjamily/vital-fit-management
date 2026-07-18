@@ -1,10 +1,9 @@
 "use client";
 
-import { Edit3, Trash2, UserCheck, UserMinus, UserPlus } from "lucide-react";
+import { Edit3, UserCheck, UserMinus, UserPlus } from "lucide-react";
 import { InlineAlert } from "@/components/common/feedback/InlineAlert";
-import { GlassButton } from "@/components/common/form";
+import { Button } from "@/components/common/button/Button";
 import { RowActionsMenu, type RowAction } from "@/components/common/menu/RowActionsMenu";
-import { ConfirmRemoveDialog } from "@/components/common/modal/ConfirmRemoveDialog";
 import {
   Table,
   type TableColumn,
@@ -106,7 +105,6 @@ export function ProfessionalsContentClient({
     professionals,
     formOpen,
     editingProfessional,
-    removingProfessional,
     actionError,
     isPending,
     openCreateForm,
@@ -114,26 +112,23 @@ export function ProfessionalsContentClient({
     closeForm,
     handleFormSuccess,
     toggleStatus,
-    removeProfessional,
-    requestRemove,
-    cancelRemove,
   } = useProfessionalsManagement(initialProfessionals);
 
   function buildRowActions(professional: ManagedProfessional): RowAction[] {
     const isActive = professional.status === "active";
 
     return [
-      { label: "Editar", icon: Edit3, onSelect: () => openEditForm(professional) },
+      {
+        label: "Editar",
+        icon: Edit3,
+        disabled: !isActive,
+        onSelect: () => openEditForm(professional),
+      },
       {
         label: isActive ? "Inativar" : "Reativar",
         icon: isActive ? UserMinus : UserCheck,
+        tone: isActive ? "default" : "accent",
         onSelect: () => toggleStatus(professional),
-      },
-      {
-        label: "Remover",
-        icon: Trash2,
-        tone: "danger",
-        onSelect: () => requestRemove(professional),
       },
     ];
   }
@@ -215,21 +210,22 @@ export function ProfessionalsContentClient({
     <div className="flex min-h-full w-full flex-col gap-6 lg:h-full lg:min-h-0">
       <div className="mb-2 flex items-center justify-between gap-4">
         <div>
-          <h1 className={glassTextStyles.pageTitle}>Gestão de Profissionais</h1>
+          <h1 className={glassTextStyles.pageTitle}>Profissionais</h1>
           <p className={glassTextStyles.pageSubtitle}>
             Cadastre e gerencie os personal trainers da academia
           </p>
         </div>
-
-        <GlassButton
-          variant="subtle"
-          size="sm"
-          rightIcon={<UserPlus className="size-3" />}
+      </div>
+      
+        <Button
+          type="button"
+          variant="primary"
+          size="lg"
+          leftIcon={<UserPlus className="size-5" />}
           onClick={openCreateForm}
         >
-          Novo Profissional
-        </GlassButton>
-      </div>
+          Profissional
+        </Button>
 
       {loadError ? <InlineAlert>{loadError}</InlineAlert> : null}
       {actionError ? <InlineAlert>{actionError}</InlineAlert> : null}
@@ -242,7 +238,9 @@ export function ProfessionalsContentClient({
         filters={professionalFilters}
         emptyMessage="Nenhum profissional encontrado."
         rowClassName={(professional) =>
-          professional.status === "inactive" ? "opacity-50" : undefined
+          professional.status === "inactive"
+            ? "[&>td:not(:last-child)]:opacity-50"
+            : undefined
         }
         className="lg:min-h-0 lg:flex-1"
       />
@@ -256,15 +254,6 @@ export function ProfessionalsContentClient({
         />
       )}
 
-      {removingProfessional && (
-        <ConfirmRemoveDialog
-          title="Remover profissional"
-          subjectName={removingProfessional.name}
-          pending={isPending}
-          onConfirm={() => removeProfessional(removingProfessional.id)}
-          onCancel={cancelRemove}
-        />
-      )}
     </div>
   );
 }

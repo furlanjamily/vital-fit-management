@@ -1,12 +1,13 @@
 "use client";
 
-import Link from "next/link";
-import { Clock, CalendarDays, PlusIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { CalendarDays, Clock, PlusIcon } from "lucide-react";
 import type { AgendaEvent } from "@/components/agenda/agenda.types";
 import { eventTypeLabels } from "@/components/agenda/agenda.types";
 import { formatUpNextSchedule } from "@/components/dashboard/right-sidebar/right-sidebar.helpers";
+import { Button } from "@/components/common/button/Button";
 import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
-import { GhostButton, GlassButton } from "@/components/common/form";
+import { GlassButton } from "@/components/common/form";
 import { glassText, glassTextStyles } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
 
@@ -18,6 +19,8 @@ type UpNextCardProps = {
 };
 
 export function UpNextCard({ event, countdown, isLoading = false, className }: UpNextCardProps) {
+  const router = useRouter();
+
   if (isLoading && !event) {
     return (
       <GlassPanel
@@ -52,23 +55,18 @@ export function UpNextCard({ event, countdown, isLoading = false, className }: U
               Próximos eventos
             </p>
             <p className={cn("mt-1 text-sm font-medium leading-snug", glassText.secondary)}>
-              Sem eventos para hoje! 😎 
+              Sem eventos para hoje! 😎
             </p>
-
           </div>
         </div>
 
-        {/* <div className="w-full justify-center items-center">
-          <p className="mt-1.5 text-xs leading-relaxed text-center px-2 text-orange-600">
-            Sua agenda está livre!😎 </p>
-        </div> */}
         <GlassButton
           href="/agenda"
           variant="subtle"
           size="sm"
           shape="pill"
           panelClassName="mt-3"
-          leftIcon={<PlusIcon className="size-2" />}
+          leftIcon={<PlusIcon className="size-3.5" />}
         >
           Adicionar evento
         </GlassButton>
@@ -109,11 +107,9 @@ export function UpNextCard({ event, countdown, isLoading = false, className }: U
       </p>
 
       <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-        <Link href="/agenda" className="inline-flex">
-          <GhostButton className={cn("rounded-full bg-gradient-to-r from-orange-500 to-orange-600 px-4 py-1.5 text-[10px] font-bold shadow-[0_4px_16px_rgba(249,115,22,0.32)] hover:brightness-110", glassText.primary)}>
-            Detalhes
-          </GhostButton>
-        </Link>
+        <Button type="button" variant="primary" size="sm" onClick={() => router.push("/agenda")}>
+          Detalhes
+        </Button>
       </div>
     </GlassPanel>
   );

@@ -126,9 +126,13 @@ export function MembersTable() {
       title="All Members"
       searchPlaceholder="Search"
       headerActions={
-        <Button variant="glass" size="sm" className={cn("gap-2 px-3 py-2.5 font-normal", glassText.secondary)}>
+        <Button
+          variant="glass"
+          size="sm"
+          className={cn("font-normal", glassText.secondary)}
+          rightIcon={<ChevronDown className="size-3.5" />}
+        >
           Sort by: Expired Soon
-          <ChevronDown className="size-3.5" />
         </Button>
       }
     />

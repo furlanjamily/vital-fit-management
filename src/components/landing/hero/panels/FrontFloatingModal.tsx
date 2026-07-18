@@ -1,4 +1,5 @@
 import { Plus, X } from "lucide-react";
+import { Button } from "@/components/common/button/Button";
 import { GhostButton } from "@/components/common/form";
 import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
 import {
@@ -80,21 +81,17 @@ export function FrontFloatingModal() {
 
       <div className="mt-5 flex items-center justify-end gap-3">
         <GhostButton
+          size="sm"
           className={cn(
-            "text-[10px] font-semibold hover:bg-transparent hover:text-glass-primary",
+            "font-semibold hover:bg-transparent hover:text-glass-primary",
             glassText.secondary,
           )}
         >
           Cancel
         </GhostButton>
-        <GhostButton
-          className={cn(
-            "rounded-full bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-2 text-[10px] font-bold shadow-[0_16px_40px_rgba(249,115,22,0.35)] hover:brightness-110",
-            glassText.primary,
-          )}
-        >
+        <Button type="button" variant="primary" size="sm">
           OK
-        </GhostButton>
+        </Button>
       </div>
     </GlassPanel>
   );

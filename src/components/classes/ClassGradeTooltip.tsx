@@ -226,7 +226,7 @@ export function ClassGradeTooltip({ grade }: ClassGradeTooltipProps) {
     >
       <IconButton
         ref={triggerRef}
-        type="button"
+        size="md"
         aria-label="Ver grade horária"
         aria-expanded={open}
         aria-describedby={open ? tooltipId : undefined}
