@@ -21,6 +21,7 @@ import {
 import {
   resolveUserAvatarForMetadata,
 } from "@/lib/avatars/resolve-user-avatar";
+import { formatPhone } from "@/components/profile/profile.helpers";
 import {
   resolveAvatarUrl,
   resolveDisplayName,
@@ -62,14 +63,37 @@ function parseStatus(user: User): UserStatus {
 function mapAuthUserToManaged(user: User): ManagedUser {
   const metadata = user.user_metadata ?? {};
   const rawRole = typeof metadata.role === "string" ? metadata.role.toUpperCase() : null;
+  const phoneRaw =
+    (typeof metadata.phone === "string" && metadata.phone) ||
+    (typeof metadata.whatsapp === "string" && metadata.whatsapp) ||
+    "";
+  const specialty = typeof metadata.specialty === "string" ? metadata.specialty : "";
 
   return {
     id: user.id,
     name: resolveDisplayName(metadata, user.email ?? undefined),
     email: user.email ?? "",
+    phone: formatPhone(phoneRaw),
+    specialty,
     role: isUserRole(rawRole) ? rawRole : "MEMBER",
     status: parseStatus(user),
     avatarUrl: resolveAvatarUrl(metadata),
+  };
+}
+
+function buildUserMetadata(input: {
+  name: string;
+  role: string;
+  phone: string;
+  specialty: string;
+  avatarUrl: string | null;
+}) {
+  return {
+    name: input.name,
+    role: input.role,
+    phone: input.phone.trim(),
+    specialty: input.specialty,
+    avatar_url: input.avatarUrl,
   };
 }
 
@@ -131,16 +155,18 @@ export async function createUserAction(
     const admin = createAdminClient();
     if (!admin) return actionSuccess<CreateUserData>({ persisted: false });
 
-    const { name, email, password, role, avatarUrl } = parsed.data;
+    const { name, email, password, role, phone, specialty, avatarUrl } = parsed.data;
     const { data, error } = await admin.auth.admin.createUser({
       email,
       password,
       email_confirm: true,
-      user_metadata: {
+      user_metadata: buildUserMetadata({
         name,
         role,
-        avatar_url: null,
-      },
+        phone,
+        specialty,
+        avatarUrl: null,
+      }),
     });
 
     if (error || !data.user) {
@@ -155,7 +181,15 @@ export async function createUserAction(
 
       const { data: updated, error: avatarError } = await admin.auth.admin.updateUserById(
         createdUser.id,
-        { user_metadata: { name, role, avatar_url: resolved.url } },
+        {
+          user_metadata: buildUserMetadata({
+            name,
+            role,
+            phone,
+            specialty,
+            avatarUrl: resolved.url,
+          }),
+        },
       );
 
       if (avatarError || !updated.user) {
@@ -189,18 +223,20 @@ export async function updateUserAction(
     const admin = createAdminClient();
     if (!admin) return actionSuccess<UpdateUserData>({ persisted: false });
 
-    const { id, name, email, role, password, avatarUrl } = parsed.data;
+    const { id, name, email, role, phone, specialty, password, avatarUrl } = parsed.data;
 
     const resolved = await resolveUserAvatarForMetadata(admin, id, avatarUrl ?? null);
     if (!resolved.ok) return actionFailure(resolved.error);
 
     const { data, error } = await admin.auth.admin.updateUserById(id, {
       email,
-      user_metadata: {
+      user_metadata: buildUserMetadata({
         name,
         role,
-        avatar_url: resolved.url,
-      },
+        phone,
+        specialty,
+        avatarUrl: resolved.url,
+      }),
       ...(password ? { password } : {}),
     });
 

@@ -1,4 +1,4 @@
-import { ProfileContent } from "@/components/profile/ProfileContent";
+import { HeroProfileShowcase } from "@/components/landing/hero/panels/HeroProfileShowcase";
 import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
 
 /**
@@ -14,7 +14,7 @@ export function RightProfilePanel() {
       className="h-full w-full overflow-hidden rounded-[28px] shadow-2xl shadow-orange-950/20"
     >
       <div className="flex h-full flex-col overflow-y-auto p-5 pb-12 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <ProfileContent />
+        <HeroProfileShowcase />
       </div>
     </GlassPanel>
   );

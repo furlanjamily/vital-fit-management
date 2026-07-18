@@ -47,6 +47,8 @@ export function useUsersManagement(initialUsers: ManagedUser[]) {
       id: editing.id,
       name: values.name.trim(),
       email: values.email.trim(),
+      phone: values.phone.trim(),
+      specialty: values.specialty,
       role: values.role,
       password: values.password.trim() || undefined,
       avatarUrl: values.avatarUrl,
@@ -78,6 +80,8 @@ export function useUsersManagement(initialUsers: ManagedUser[]) {
     const result = await createUserAction({
       name: values.name.trim(),
       email: values.email.trim(),
+      phone: values.phone.trim(),
+      specialty: values.specialty,
       password: values.password,
       role: values.role,
       avatarUrl: values.avatarUrl,

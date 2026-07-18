@@ -1,142 +1,175 @@
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import {
-  challenges,
-  profileAvatar,
-} from "@/components/landing/hero/data/hero-scene.mock";
-import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
-import { brand } from "@/config/brand-colors";
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { Button } from "@/components/common/button/Button";
+import { AvatarUploadTrigger } from "@/components/common/form";
+import { InlineAlert } from "@/components/common/feedback/InlineAlert";
+import { ProfileGeneralForm } from "@/components/profile/ProfileGeneralForm";
+import { ProfilePasswordForm } from "@/components/profile/ProfilePasswordForm";
+import { ProfileSkeleton } from "@/components/profile/ProfileSkeleton";
+import { mapUserToProfileSession } from "@/components/profile/profile.helpers";
+import type { ProfileSession } from "@/components/profile/profile.types";
+import { UserAvatar } from "@/components/users/UserAvatar";
 import { glassText, glassTextStyles } from "@/config/glass-typography";
+import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/cn";
 
-const calendarDays = [
-  "",
-  "",
-  "1",
-  "2",
-  "3",
-  "4",
-  "5",
-  "6",
-  "7",
-  "8",
-  "9",
-  "10",
-  "11",
-  "12",
-  "13",
-  "14",
-  "15",
-  "16",
-  "17",
-  "18",
-  "19",
-  "20",
-  "21",
-  "22",
-  "23",
-  "24",
-  "25",
-  "26",
-  "27",
-  "28",
-];
-
-const selectedDays = new Set(["3", "4", "5", "6", "7"]);
-
-const PROFILE_GLASS = {
-  variant: "subtle" as const,
-  intensity: "low" as const,
-  elevation: "floating" as const,
-};
+const FULL_NAME_INPUT_ID = "profile-full-name";
 
 export function ProfileContent() {
+  const [session, setSession] = useState<ProfileSession | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [draftAvatarUrl, setDraftAvatarUrl] = useState<string | null>(null);
+  const isEditingRef = useRef(isEditing);
+
+  useEffect(() => {
+    isEditingRef.current = isEditing;
+  }, [isEditing]);
+
+  useEffect(() => {
+    const supabase = createClient();
+    let active = true;
+
+    async function loadProfile() {
+      setIsLoading(true);
+      setLoadError(null);
+
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser();
+
+      if (!active) return;
+
+      if (error || !user) {
+        setSession(null);
+        setLoadError("Não foi possível carregar o perfil. Faça login novamente.");
+        setIsLoading(false);
+        return;
+      }
+
+      const nextSession = mapUserToProfileSession(user);
+      setSession(nextSession);
+      setDraftAvatarUrl(nextSession.avatarUrl);
+      setIsLoading(false);
+    }
+
+    loadProfile();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, authSession) => {
+      if (!active) return;
+      if (authSession?.user) {
+        const nextSession = mapUserToProfileSession(authSession.user);
+        setSession(nextSession);
+        if (!isEditingRef.current) {
+          setDraftAvatarUrl(nextSession.avatarUrl);
+        }
+        setLoadError(null);
+      } else {
+        setSession(null);
+      }
+    });
+
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  function enterEditMode() {
+    setDraftAvatarUrl(session?.avatarUrl ?? null);
+    setIsEditing(true);
+
+    window.requestAnimationFrame(() => {
+      const input = document.getElementById(FULL_NAME_INPUT_ID);
+      if (!(input instanceof HTMLInputElement)) return;
+
+      input.scrollIntoView({ behavior: "smooth", block: "center" });
+      window.setTimeout(() => input.focus(), 320);
+    });
+  }
+
+  function cancelEditMode() {
+    setDraftAvatarUrl(session?.avatarUrl ?? null);
+    setIsEditing(false);
+  }
+
+  if (isLoading) {
+    return <ProfileSkeleton />;
+  }
+
+  if (loadError || !session) {
+    return (
+      <div className="py-6">
+        <InlineAlert>{loadError ?? "Sessão não encontrada."}</InlineAlert>
+      </div>
+    );
+  }
+
+  const displayName = session.displayName;
+
   return (
-    <>
-      <div className="mb-4 flex shrink-0 items-center justify-between">
-        <p className={cn(glassText.secondary, "text-xs font-semibold")}>Profile</p>
-        <span className="rounded-full bg-white px-2 py-1 text-[9px] font-extrabold text-[#171a16]">
-          EDIT
-        </span>
-      </div>
-
-      <div className="shrink-0 text-center">
-        <div
-          className="mx-auto size-[82px] rounded-full border border-white/80 bg-cover bg-center ring-2 ring-white/20"
-          style={{ backgroundImage: `url(${profileAvatar})` }}
-        />
-        <p className={cn(glassTextStyles.panelTitle, "mt-3 text-sm")}>Jakob Dorwart</p>
-        <p className={glassTextStyles.entityEmail}>Gym Manager</p>
-      </div>
-
-      <div className="mt-4 grid shrink-0 grid-cols-3 gap-1 rounded-2xl text-center">
-        {["Age 32", "10 years", "Manager"].map((item) => (
-          <GlassPanel
-            key={item}
-            {...PROFILE_GLASS}
-            className="rounded-xl px-1.5 py-3 text-[9px] font-semibold"
+    <div className="flex flex-col pb-4">
+      <header className="mb-6 shrink-0">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <p className={cn(glassText.secondary, "text-xs font-semibold")}>Perfil</p>
+          <Button
+            type="button"
+            variant="glass"
+            size="sm"
+            onClick={isEditing ? cancelEditMode : enterEditMode}
+            aria-label={
+              isEditing
+                ? "Cancelar edição do perfil"
+                : "Editar informações do perfil"
+            }
           >
-            <span className={glassText.secondary}>{item}</span>
-          </GlassPanel>
-        ))}
-      </div>
+            {isEditing ? "Cancelar" : "Editar"}
+          </Button>
+        </div>
 
-      <GlassPanel {...PROFILE_GLASS} className="mt-6 shrink-0 rounded-[20px] p-3">
-        <div className="mb-3 flex items-center justify-between">
-          <ChevronLeft className={cn("size-3.5", glassText.secondary)} />
-          <p className={cn(glassText.secondary, "text-xs font-semibold")}>April</p>
-          <ChevronRight className={cn("size-3.5", glassText.secondary)} />
+        <div className="text-center">
+          {isEditing ? (
+            <AvatarUploadTrigger
+              name={displayName}
+              avatarUrl={draftAvatarUrl}
+              onImageSelected={setDraftAvatarUrl}
+              hint="Clique ou arraste para trocar a foto"
+              avatarClassName="size-[82px] border border-white/80 ring-2 ring-white/20"
+              avatarTextClassName="text-xl"
+            />
+          ) : (
+            <UserAvatar
+              name={displayName}
+              avatarUrl={session.avatarUrl}
+              className="mx-auto size-[82px] border border-white/80 ring-2 ring-white/20"
+              textClassName="text-xl"
+            />
+          )}
+          <p className={cn(glassTextStyles.panelTitle, isEditing ? "mt-1 text-sm" : "mt-3 text-sm")}>
+            {displayName}
+          </p>
+          <p className={glassTextStyles.entityEmail}>{session.roleLabel}</p>
         </div>
-        <div className={cn("grid grid-cols-7 gap-1 text-center text-[8px]", glassText.muted)}>
-          {["S", "M", "T", "W", "T", "F", "S"].map((day, index) => (
-            <span key={index}>{day}</span>
-          ))}
-        </div>
-        <div className={cn("relative mt-2 grid grid-cols-7 gap-1 text-center text-[8px]", glassText.muted)}>
-          <span className="absolute left-[calc((100%/7)*1+2px)] top-[24px] h-[18px] w-[calc((100%/7)*5-4px)] rounded-full bg-orange-500" />
-          {calendarDays.map((day, index) => (
-            <span
-              key={`${day}-${index}`}
-              className={
-                selectedDays.has(day)
-                  ? cn("relative z-10 py-1 font-bold", glassText.primary)
-                  : "relative z-10 py-1"
-              }
-            >
-              {day}
-            </span>
-          ))}
-        </div>
-      </GlassPanel>
+      </header>
 
-      <div className="mt-6 shrink-0">
-        <p className={cn(glassText.secondary, "mb-3 text-xs font-semibold")}>Challenges</p>
-        <div className="grid gap-3">
-          {challenges.map((challenge) => (
-            <GlassPanel
-              key={challenge.title}
-              {...PROFILE_GLASS}
-              className="flex items-center justify-between rounded-[18px] px-3 py-3"
-            >
-              <div>
-                <p className={cn("text-[9px]", glassText.muted)}>{challenge.subtitle}</p>
-                <p className={cn("text-[10px] font-semibold", glassText.secondary)}>
-                  {challenge.title}
-                </p>
-              </div>
-              <div
-                className="grid size-10 shrink-0 place-items-center rounded-full p-1"
-                style={{
-                  background: `conic-gradient(${brand.orange} 0 ${challenge.progress}%, rgba(255,255,255,0.16) ${challenge.progress}% 100%)`,
-                }}
-              >
-                <div className={cn("grid size-full place-items-center rounded-full bg-white/15 text-[8px] font-bold", glassText.primary)}>
-                  {challenge.progress}
-                </div>
-              </div>
-            </GlassPanel>
-          ))}
-        </div>
-      </div>
-    </>
+      <ProfileGeneralForm
+        session={session}
+        isEditing={isEditing}
+        avatarUrl={draftAvatarUrl}
+        onProfileUpdated={(nextSession) => {
+          setSession(nextSession);
+          setDraftAvatarUrl(nextSession.avatarUrl);
+          setIsEditing(false);
+        }}
+        onCancelEdit={cancelEditMode}
+      />
+
+      <ProfilePasswordForm email={session.email} />
+    </div>
   );
 }

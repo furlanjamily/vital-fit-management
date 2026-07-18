@@ -208,24 +208,24 @@ export function ProfessionalsContentClient({
 
   return (
     <div className="flex min-h-full w-full flex-col gap-6 lg:h-full lg:min-h-0">
-      <div className="mb-2 flex items-center justify-between gap-4">
+      <div className="mb-2 flex flex-col gap-4 min-[425px]:flex-row min-[425px]:items-center min-[425px]:justify-between">
         <div>
           <h1 className={glassTextStyles.pageTitle}>Profissionais</h1>
           <p className={glassTextStyles.pageSubtitle}>
             Cadastre e gerencie os personal trainers da academia
           </p>
         </div>
-      </div>
-      
         <Button
           type="button"
           variant="primary"
           size="lg"
           leftIcon={<UserPlus className="size-5" />}
           onClick={openCreateForm}
+          className="self-start"
         >
           Profissional
         </Button>
+      </div>
 
       {loadError ? <InlineAlert>{loadError}</InlineAlert> : null}
       {actionError ? <InlineAlert>{actionError}</InlineAlert> : null}

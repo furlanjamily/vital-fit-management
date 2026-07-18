@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { ChevronDown, ChevronUp, LogOut, User } from "lucide-react";
 import { GhostButton } from "@/components/common/form";
 import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
 import { UserAvatar } from "@/components/users/UserAvatar";
 import { profileHref } from "@/config/app-nav.config";
+import { useHydrated } from "@/hooks/useHydrated";
 import {
   resolveAvatarUrl,
   resolveDisplayName,
@@ -21,6 +23,12 @@ type SessionUser = {
   avatarUrl: string | null;
 };
 
+type MenuPosition = {
+  bottom: number;
+  left: number;
+  width: number;
+};
+
 interface NavUserMenuProps {
   /** Só avatar no trigger; nome aparece no dropdown acima de "Meu perfil". */
   compact?: boolean;
@@ -28,11 +36,15 @@ interface NavUserMenuProps {
 
 export function NavUserMenu({ compact = false }: NavUserMenuProps) {
   const router = useRouter();
+  const hydrated = useHydrated();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loggingOut, setLoggingOut] = useState(false);
   const [sessionUser, setSessionUser] = useState<SessionUser | null>(null);
+  const [position, setPosition] = useState<MenuPosition | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const supabase = createClient();
@@ -68,13 +80,49 @@ export function NavUserMenu({ compact = false }: NavUserMenuProps) {
     return () => subscription.unsubscribe();
   }, []);
 
+  function updatePosition() {
+    const trigger = triggerRef.current;
+    if (!trigger) return;
+
+    const rect = trigger.getBoundingClientRect();
+    const gap = 8;
+    const menuWidth = compact ? 224 : Math.max(rect.width, 200);
+
+    setPosition({
+      bottom: window.innerHeight - rect.top + gap,
+      left: Math.max(8, rect.right - menuWidth),
+      width: menuWidth,
+    });
+  }
+
+  useLayoutEffect(() => {
+    if (!open) {
+      setPosition(null);
+      return;
+    }
+
+    updatePosition();
+
+    function handleReposition() {
+      updatePosition();
+    }
+
+    window.addEventListener("resize", handleReposition);
+    window.addEventListener("scroll", handleReposition, true);
+    return () => {
+      window.removeEventListener("resize", handleReposition);
+      window.removeEventListener("scroll", handleReposition, true);
+    };
+  }, [open, compact]);
+
   useEffect(() => {
     if (!open) return;
 
     function onPointerDown(event: PointerEvent) {
-      if (!containerRef.current?.contains(event.target as Node)) {
-        setOpen(false);
-      }
+      const target = event.target as Node;
+      if (containerRef.current?.contains(target)) return;
+      if (menuRef.current?.contains(target)) return;
+      setOpen(false);
     }
 
     document.addEventListener("pointerdown", onPointerDown);
@@ -107,127 +155,139 @@ export function NavUserMenu({ compact = false }: NavUserMenuProps) {
 
   if (!sessionUser) return null;
 
-  return (
-    <div
-      ref={containerRef}
-      className={cn(
-        "flex flex-col-reverse gap-2 ",
-        compact && "relative",
-      )}
-    >
-      <GlassPanel
-        variant="default"
-        intensity="medium"
-        elevation="floating"
-        className="rounded-full"
-      >
-        {compact ? (
-          <GhostButton
-            iconOnly
-            size="md"
-            onClick={() => setOpen((current) => !current)}
-            aria-expanded={open}
-            aria-haspopup="menu"
-            aria-label={sessionUser.displayName}
-            className="size-10 shrink-0 hover:bg-white/6"
+  const menu =
+    open && hydrated && position
+      ? createPortal(
+          <div
+            ref={menuRef}
+            style={{
+              position: "fixed",
+              bottom: position.bottom,
+              left: position.left,
+              width: position.width,
+              zIndex: 9999,
+              pointerEvents: "auto",
+            }}
           >
-            <UserAvatar
-              name={sessionUser.displayName}
-              avatarUrl={sessionUser.avatarUrl}
-              className="size-9"
-              textClassName="text-[10px]"
-            />
-          </GhostButton>
-        ) : (
-          <GhostButton
-            fullWidth
-            size="sm"
-            onClick={() => setOpen((current) => !current)}
-            aria-expanded={open}
-            aria-haspopup="menu"
-            className="justify-start text-left hover:bg-white/6"
-            leftIcon={
+            <GlassPanel
+              role="menu"
+              variant="strong"
+              intensity="high"
+              elevation="solid"
+              className="rounded-2xl p-1.5 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.55)]"
+            >
+              {compact ? (
+                <div className="px-3 py-2">
+                  <p
+                    className={cn(
+                      "truncate text-sm font-semibold tracking-[-0.02em]",
+                      glassText.primary,
+                    )}
+                  >
+                    {sessionUser.displayName}
+                  </p>
+                  {sessionUser.email ? (
+                    <p className={cn("truncate text-[11px]", glassText.muted)}>
+                      {sessionUser.email}
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
+
+              <GhostButton
+                transparent
+                href={profileHref}
+                fullWidth
+                size="sm"
+                leftIcon={<User className="size-3.5" />}
+                onClick={() => setOpen(false)}
+                className={cn("justify-start text-left", glassText.primaryElevated)}
+              >
+                Meu perfil
+              </GhostButton>
+
+              <GhostButton
+                transparent
+                fullWidth
+                size="sm"
+                onClick={handleLogout}
+                disabled={loggingOut}
+                isLoading={loggingOut}
+                className="justify-start text-left text-red-500 hover:text-red-600"
+                leftIcon={<LogOut className="size-3.5" />}
+              >
+                Sair
+              </GhostButton>
+            </GlassPanel>
+          </div>,
+          document.body,
+        )
+      : null;
+
+  return (
+    <div ref={containerRef} className={cn(compact && "relative")}>
+      <div ref={triggerRef}>
+        <GlassPanel
+          variant="default"
+          intensity="medium"
+          elevation="floating"
+          className="rounded-full"
+        >
+          {compact ? (
+            <GhostButton
+              iconOnly
+              size="md"
+              onClick={() => setOpen((current) => !current)}
+              aria-expanded={open}
+              aria-haspopup="menu"
+              aria-label={sessionUser.displayName}
+              className="size-10 shrink-0 hover:bg-white/6"
+            >
               <UserAvatar
                 name={sessionUser.displayName}
                 avatarUrl={sessionUser.avatarUrl}
                 className="size-9"
                 textClassName="text-[10px]"
               />
-            }
-            rightIcon={
-              open ? (
-                <ChevronUp className="size-3.5 transition-transform duration-200" />
-              ) : (
-                <ChevronDown className="size-3.5 transition-transform duration-200" />
-              )
-            }
-          >
-            <span
-              className={cn(
-                "min-w-0 flex-1 truncate text-sm font-semibold tracking-[-0.02em]",
-                glassText.primary,
-              )}
+            </GhostButton>
+          ) : (
+            <GhostButton
+              fullWidth
+              size="sm"
+              onClick={() => setOpen((current) => !current)}
+              aria-expanded={open}
+              aria-haspopup="menu"
+              className="justify-start text-left hover:bg-white/6"
+              leftIcon={
+                <UserAvatar
+                  name={sessionUser.displayName}
+                  avatarUrl={sessionUser.avatarUrl}
+                  className="size-9"
+                  textClassName="text-[10px]"
+                />
+              }
+              rightIcon={
+                open ? (
+                  <ChevronUp className="size-3.5 transition-transform duration-200" />
+                ) : (
+                  <ChevronDown className="size-3.5 transition-transform duration-200" />
+                )
+              }
             >
-              {sessionUser.displayName}
-            </span>
-          </GhostButton>
-        )}
-      </GlassPanel>
-
-      {open && (
-        <GlassPanel
-          variant="strong"
-          intensity="high"
-          elevation="solid"
-          className={cn(
-            "rounded-2xl p-1.5",
-            compact && "absolute bottom-full right-0 z-50 mb-2 w-56",
-          )}
-        >
-          {compact ? (
-            <div className="px-3 py-2">
-              <p
+              <span
                 className={cn(
-                  "truncate text-sm font-semibold tracking-[-0.02em]",
+                  "min-w-0 flex-1 truncate text-sm font-semibold tracking-[-0.02em]",
                   glassText.primary,
                 )}
               >
                 {sessionUser.displayName}
-              </p>
-              {sessionUser.email ? (
-                <p className={cn("truncate text-[11px]", glassText.muted)}>
-                  {sessionUser.email}
-                </p>
-              ) : null}
-            </div>
-          ) : null}
-
-          <GhostButton
-            transparent
-            href={profileHref}
-            fullWidth
-            size="sm"
-            leftIcon={<User className="size-3.5" />}
-            onClick={() => setOpen(false)}
-            className={cn("justify-start text-left", glassText.primaryElevated)}
-          >
-            Meu perfil
-          </GhostButton>
-
-          <GhostButton
-            transparent
-            fullWidth
-            size="sm"
-            onClick={handleLogout}
-            disabled={loggingOut}
-            isLoading={loggingOut}
-            className="justify-start text-left text-red-500 hover:text-red-600"
-            leftIcon={<LogOut className="size-3.5" />}
-          >
-            Sair
-          </GhostButton>
+              </span>
+            </GhostButton>
+          )}
         </GlassPanel>
-      )}
+      </div>
+
+      {menu}
     </div>
   );
 }

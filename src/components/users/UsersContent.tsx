@@ -83,14 +83,25 @@ export function UsersContent({ initialUsers, loadError = null }: UsersContentPro
     {
       key: "name",
       header: "Usuário",
-      width: "42%",
-      searchValue: (user) => `${user.name} ${user.email}`,
+      width: "34%",
+      searchValue: (user) => `${user.name} ${user.email} ${user.phone}`,
       render: (user) => <UserIdentityCell user={user} />,
+    },
+    {
+      key: "specialty",
+      header: "Atuação",
+      width: "18%",
+      searchValue: (user) => user.specialty,
+      render: (user) => (
+        <span className={cn("text-xs", glassText.secondary)}>
+          {user.specialty || "—"}
+        </span>
+      ),
     },
     {
       key: "role",
       header: "Permissão",
-      width: "24%",
+      width: "18%",
       searchValue: (user) => roleLabels[user.role],
       render: (user) => (
         <span className={cn("inline-flex rounded-full border border-white/14 bg-white/8 px-2.5 py-1", glassTextStyles.badge)}>
@@ -101,7 +112,7 @@ export function UsersContent({ initialUsers, loadError = null }: UsersContentPro
     {
       key: "status",
       header: "Status",
-      width: "22%",
+      width: "16%",
       searchValue: (user) => (user.status === "active" ? "Ativo" : "Inativo"),
       render: (user) => <UserStatusBadge status={user.status} />,
     },
@@ -149,7 +160,7 @@ export function UsersContent({ initialUsers, loadError = null }: UsersContentPro
         columns={columns}
         getRowId={(user) => user.id}
         title="Todos os usuários"
-        searchPlaceholder="Buscar por nome, e-mail..."
+        searchPlaceholder="Buscar por nome, e-mail, atuação..."
         emptyMessage="Nenhum usuário encontrado."
         rowClassName={(user) => (user.status === "inactive" ? "opacity-50" : undefined)}
         className="lg:min-h-0 lg:flex-1"

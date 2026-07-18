@@ -1,6 +1,12 @@
 export const USER_ROLES = ["SUPER_ADMIN", "ADMIN", "TRAINER", "MEMBER"] as const;
 export const USER_STATUSES = ["active", "inactive"] as const;
 
+export {
+  PROFILE_SPECIALTIES as USER_SPECIALTIES,
+  specialtyOptions as userSpecialtyOptions,
+  type ProfileSpecialty as UserSpecialty,
+} from "@/components/profile/profile.types";
+
 export type UserRole = (typeof USER_ROLES)[number];
 export type UserStatus = (typeof USER_STATUSES)[number];
 
@@ -8,6 +14,8 @@ export type ManagedUser = {
   id: string;
   name: string;
   email: string;
+  phone: string;
+  specialty: string;
   role: UserRole;
   status: UserStatus;
   avatarUrl: string | null;
@@ -16,6 +24,8 @@ export type ManagedUser = {
 export type UserFormValues = {
   name: string;
   email: string;
+  phone: string;
+  specialty: string;
   password: string;
   role: UserRole;
   avatarUrl: string | null;

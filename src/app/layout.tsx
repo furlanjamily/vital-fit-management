@@ -16,7 +16,11 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "VitalFit Management",
-  icons: "/vitalfit-management-icon.png",
+  icons: {
+    icon: "/vital-fit-logo.png",
+    shortcut: "/vital-fit-logo.png",
+    apple: "/vital-fit-logo.png",
+  },
   description:
     "Template premium de landing page para gestao de academias com dashboard glassmorphism.",
 };
