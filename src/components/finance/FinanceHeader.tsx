@@ -1,7 +1,8 @@
 "use client";
 
 import { Calendar, Download } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
+import { generateFinancePdfAction } from "@/app/(app)/finance/actions";
 import { Button } from "@/components/common/button/Button";
 import { IconButton } from "@/components/common/button/IconButton";
 import { DatePicker } from "@/components/common/date-picker/DatePicker";
@@ -14,6 +15,8 @@ import {
 } from "@/components/finance/finance.helpers";
 import { glassText, glassTextStyles } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
+import { downloadFinancePdf } from "@/lib/finance/download-finance-pdf";
+import { toastError, toastSuccess } from "@/lib/toast-utils";
 
 type FinanceHeaderPeriod = Extract<FinancePeriod, "today" | "thisWeek" | "thisMonth">;
 
@@ -21,7 +24,6 @@ type FinanceHeaderProps = {
   activeFilter: FinanceFilter;
   onPeriodChange?: (period: FinanceHeaderPeriod) => void;
   onDateRangeChange?: (range: { start: string; end: string }) => void;
-  onExportClick?: () => void;
 };
 
 const PERIOD_OPTIONS: { value: FinanceHeaderPeriod; label: string }[] = [
@@ -53,15 +55,29 @@ export function FinanceHeader({
   activeFilter,
   onPeriodChange,
   onDateRangeChange,
-  onExportClick,
 }: FinanceHeaderProps) {
   const [datePanelOpen, setDatePanelOpen] = useState(false);
   const [draftStart, setDraftStart] = useState("");
   const [draftEnd, setDraftEnd] = useState("");
+  const [isExporting, startExportTransition] = useTransition();
   const datePanelRef = useRef<HTMLDivElement>(null);
 
   const isCustomRangeActive = activeFilter.kind === "range";
   const dateLabel = getFilterDateLabel(activeFilter);
+
+  function handleExportClick() {
+    startExportTransition(async () => {
+      const result = await generateFinancePdfAction(activeFilter);
+
+      if (!result.success) {
+        toastError(result.error);
+        return;
+      }
+
+      downloadFinancePdf(result.data);
+      toastSuccess("Relatório financeiro exportado com sucesso.");
+    });
+  }
 
   useEffect(() => {
     if (!datePanelOpen) return;
@@ -110,12 +126,14 @@ export function FinanceHeader({
           <IconButton
             size="sm"
             variant="glass"
-            aria-label="Exportar"
-            onClick={onExportClick}
+            aria-label={isExporting ? "Gerando relatório PDF" : "Exportar relatório PDF"}
+            title="Exportar relatório PDF"
+            isLoading={isExporting}
+            disabled={isExporting}
+            onClick={handleExportClick}
           >
             <Download className="size-3.5" strokeWidth={2} />
-          </IconButton>
-        </div>
+          </IconButton>        </div>
       </div>
 
       <div className="flex w-full flex-wrap items-center justify-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 sm:w-auto">

@@ -6,10 +6,16 @@ import { getFinancialCategoryByIdAction } from "@/app/(app)/settings/categories/
 import { mapFinancialTransactionRow } from "@/components/finance/financial-transactions/financial-transaction.helpers";
 import type { FinancialTransaction } from "@/components/finance/financial-transactions/financial-transaction.types";
 import {
+  buildFinancialHealthData,
+  buildFinancialOverviewData,
+  formatBrlAmount,
+  formatFinanceFilterLabel,
+  getAxisLabel,
   groupExpensesByCategory,
   groupMovementsByDate,
   mergeExpenseCategoriesWithTotals,
   resolveFinanceFilterDates,
+  resolveOverviewChartPeriod,
 } from "@/components/finance/finance.helpers";
 import {
   transactionFormSchema,
@@ -33,6 +39,12 @@ import {
   toActionError,
   type ActionResult,
 } from "@/lib/action-result";
+import {
+  generateFinancePdfReport,
+  type FinancePdfDownload,
+  type FinancePdfMovementBar,
+  type FinancePdfReportInput,
+} from "@/lib/finance/pdf-generator";
 import { createClient } from "@/lib/supabase/server";
 import { isUuid } from "@/lib/is-uuid";
 
@@ -324,6 +336,178 @@ export async function getFinanceDashboardAction(
     transactions: transactionsResult,
     balance: balanceResult,
   };
+}
+
+function formatIsoAsBr(iso: string): string {
+  const [year, month, day] = iso.split("-");
+  return `${day}/${month}/${year}`;
+}
+
+function resolvePeriodBalance(
+  summary: FinanceSummary,
+  filter: FinanceFilter,
+  computedBalance: FinancialBalance | null,
+): FinancialBalance {
+  if (computedBalance) return computedBalance;
+
+  if (filter.kind === "period") {
+    if (filter.period === "today") return summary.today;
+    if (filter.period === "thisYear") return summary.year;
+    return summary.month;
+  }
+
+  return { receitas: 0, despesas: 0, saldo: 0 };
+}
+
+function buildPdfMovementBars(
+  movements: DailyMovement[],
+  filter: FinanceFilter,
+): FinancePdfMovementBar[] {
+  const overview = buildFinancialOverviewData(movements, filter);
+  const chartPeriod = resolveOverviewChartPeriod(filter);
+
+  const bars = overview.map((item) => {
+    const axisLabel = getAxisLabel(item.date, chartPeriod);
+    const fallbackLabel =
+      item.date.length >= 10
+        ? `${item.date.slice(8, 10)}/${item.date.slice(5, 7)}`
+        : item.date;
+
+    return {
+      label: axisLabel ?? fallbackLabel,
+      receitas: item.revenue,
+      despesas: item.expense,
+    };
+  });
+
+  if (bars.length <= 12) return bars;
+
+  const step = Math.ceil(bars.length / 12);
+  return bars.filter((_, index) => index % step === 0).slice(0, 12);
+}
+
+function buildFinancePdfInsights(
+  balance: FinancialBalance,
+  expenses: CategoryExpense[],
+  healthStatusLabel: string,
+): string[] {
+  if (balance.receitas === 0 && balance.despesas === 0) {
+    return ["Não há movimentações registradas no período selecionado."];
+  }
+
+  const insights: string[] = [];
+  const marginPercent =
+    balance.receitas > 0 ? (balance.saldo / balance.receitas) * 100 : 0;
+  const expenseRatio =
+    balance.receitas > 0 ? (balance.despesas / balance.receitas) * 100 : 0;
+
+  insights.push(
+    `Receita bruta de R$ ${formatBrlAmount(balance.receitas)} frente a despesas de R$ ${formatBrlAmount(balance.despesas)}, resultando em saldo líquido de R$ ${formatBrlAmount(balance.saldo)}.`,
+  );
+
+  if (balance.saldo >= 0) {
+    insights.push(
+      `Resultado positivo no período, com margem operacional de ${marginPercent.toFixed(1)}% — base favorável para decisões de reinvestimento.`,
+    );
+  } else {
+    insights.push(
+      `Período em déficit. Recomenda-se revisar custos fixos e acelerar captação de receita para recuperar o caixa.`,
+    );
+  }
+
+  const topExpenses = [...expenses]
+    .filter((item) => item.total > 0)
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 3);
+
+  if (topExpenses.length > 0 && balance.despesas > 0) {
+    const share =
+      (topExpenses.reduce((sum, item) => sum + item.total, 0) / balance.despesas) * 100;
+    insights.push(
+      `Principais vetores de despesa: ${topExpenses.map((item) => item.name).join(", ")} (≈${share.toFixed(0)}% do total).`,
+    );
+  }
+
+  if (balance.receitas > 0) {
+    if (expenseRatio > 85) {
+      insights.push(
+        `Despesas consomem ${expenseRatio.toFixed(0)}% da receita — atenção à sustentabilidade operacional.`,
+      );
+    } else {
+      insights.push(
+        `Despesas equivalem a ${expenseRatio.toFixed(0)}% da receita, indicando controle relativo de custos.`,
+      );
+    }
+  }
+
+  insights.push(`Indicador de saúde financeira: ${healthStatusLabel}.`);
+
+  return insights;
+}
+
+/** Gera relatório executivo em PDF com KPIs, visão visual e insights (sem lista de transações). */
+export async function generateFinancePdfAction(
+  filter: FinanceFilter = { kind: "period", period: "thisMonth" },
+): Promise<ActionResult<FinancePdfDownload>> {
+  try {
+    const session = await requireAuthenticatedClient();
+    if (!session.authenticated) return actionFailure(session.error);
+
+    const { start, end, period } = resolveFinanceFilterDates(filter);
+    const needsComputedBalance =
+      filter.kind === "range" || periodNeedsComputedBalance(period);
+
+    const [summaryResult, movementsResult, expensesResult, balanceResult] =
+      await Promise.all([
+        getFinanceSummaryAction(),
+        getFinanceMovementsAction(filter),
+        getFinanceExpensesByCategoryAction(filter),
+        needsComputedBalance
+          ? fetchBalanceForRange(session.supabase, start, end)
+          : Promise.resolve(null),
+      ]);
+
+    if (!summaryResult.success) return actionFailure(summaryResult.error);
+    if (!movementsResult.success) return actionFailure(movementsResult.error);
+    if (!expensesResult.success) return actionFailure(expensesResult.error);
+    if (balanceResult && !balanceResult.success) {
+      return actionFailure(balanceResult.error);
+    }
+
+    const computedBalance = balanceResult?.success ? balanceResult.data : null;
+    const balance = resolvePeriodBalance(summaryResult.data, filter, computedBalance);
+    const health = buildFinancialHealthData(summaryResult.data, filter, computedBalance ?? undefined);
+    const periodLabel = formatFinanceFilterLabel(filter);
+    const dateRangeLabel =
+      start === end
+        ? formatIsoAsBr(start)
+        : `${formatIsoAsBr(start)} – ${formatIsoAsBr(end)}`;
+
+    const reportInput: FinancePdfReportInput = {
+      periodLabel,
+      dateRangeLabel,
+      generatedAtLabel: new Date().toLocaleString("pt-BR", {
+        dateStyle: "short",
+        timeStyle: "short",
+      }),
+      balance,
+      healthStatus: health.status,
+      healthStatusLabel: health.statusLabel,
+      movements: buildPdfMovementBars(movementsResult.data, filter),
+      expenses: expensesResult.data,
+      insights: buildFinancePdfInsights(balance, expensesResult.data, health.statusLabel),
+    };
+
+    const pdf = await generateFinancePdfReport(reportInput);
+
+    return actionSuccess({
+      base64: pdf.buffer.toString("base64"),
+      filename: pdf.filename,
+      mimeType: pdf.mimeType,
+    });
+  } catch (error) {
+    return actionFailure(toActionError(error, "Erro ao gerar relatório financeiro em PDF."));
+  }
 }
 
 function toTransactionPayload(values: ReturnType<typeof toValidatedTransactionForm>) {
