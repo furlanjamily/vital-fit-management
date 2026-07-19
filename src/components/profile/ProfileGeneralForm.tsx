@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Briefcase, Mail, Phone, User } from "lucide-react";
 import { Controller, useForm } from "react-hook-form";
 import { updateOwnProfileAction } from "@/app/(app)/profile/actions";
-import { InlineAlert } from "@/components/common/feedback/InlineAlert";
 import { Button } from "@/components/common/button/Button";
 import { FormField, GlassInput, GlassSelect } from "@/components/common/form";
 import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
@@ -22,6 +21,7 @@ import {
 import { glassText, glassTextStyles } from "@/config/glass-typography";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/cn";
+import { toastError, toastSuccess } from "@/lib/toast-utils";
 
 type ProfileGeneralFormProps = {
   session: ProfileSession;
@@ -51,9 +51,6 @@ export function ProfileGeneralForm({
   onProfileUpdated,
   onCancelEdit,
 }: ProfileGeneralFormProps) {
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-
   const {
     register,
     control,
@@ -73,7 +70,6 @@ export function ProfileGeneralForm({
   useEffect(() => {
     if (!isEditing) {
       reset(toFormValues(session, avatarUrl));
-      setSubmitError(null);
     }
   }, [isEditing, reset, session, avatarUrl]);
 
@@ -84,16 +80,13 @@ export function ProfileGeneralForm({
   async function onSubmit(values: ProfileGeneralSchemaOutput) {
     if (!isEditing) return;
 
-    setSubmitError(null);
-    setSuccessMessage(null);
-
     const result = await updateOwnProfileAction({
       ...values,
       avatarUrl,
     });
 
     if (!result.success) {
-      setSubmitError(result.error);
+      toastError(result.error);
       return;
     }
 
@@ -101,7 +94,7 @@ export function ProfileGeneralForm({
     await supabase.auth.refreshSession();
 
     onProfileUpdated(result.data);
-    setSuccessMessage("Informações atualizadas com sucesso.");
+    toastSuccess("Informações atualizadas com sucesso.");
   }
 
   return (
@@ -114,19 +107,6 @@ export function ProfileGeneralForm({
       <h2 className={cn(glassTextStyles.panelTitle, "mb-5 text-base")}>
         Informações Gerais
       </h2>
-
-      {submitError ? (
-        <InlineAlert className="mb-4 text-xs">{submitError}</InlineAlert>
-      ) : null}
-
-      {successMessage ? (
-        <p
-          role="status"
-          className="mb-4 rounded-xl border border-emerald-400/25 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-300"
-        >
-          {successMessage}
-        </p>
-      ) : null}
 
       <form className="grid gap-5" onSubmit={handleSubmit(onSubmit)} noValidate>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">

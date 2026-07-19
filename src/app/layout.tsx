@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Pacifico } from "next/font/google";
+import { AppToaster } from "@/components/common/feedback/AppToaster";
 import { HeroBackground } from "@/components/landing/hero/HeroBackground";
 import { MobileBottomNav } from "@/components/landing/hero/MobileBottomNav";
 import "./globals.css";
@@ -12,6 +13,12 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+const brandScript = Pacifico({
+  variable: "--font-brand-script",
+  subsets: ["latin"],
+  weight: "400",
 });
 
 export const metadata: Metadata = {
@@ -40,7 +47,7 @@ export default function RootLayout({
     <html
       lang="pt-BR"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} h-dvh overflow-hidden scroll-smooth antialiased lg:h-full lg:overflow-auto`}
+      className={`${geistSans.variable} ${geistMono.variable} ${brandScript.variable} h-dvh overflow-hidden scroll-smooth antialiased lg:h-full lg:overflow-auto`}
     >
       <body
         suppressHydrationWarning
@@ -51,6 +58,7 @@ export default function RootLayout({
           {children}
         </div>
         <MobileBottomNav />
+        <AppToaster />
       </body>
     </html>
   );

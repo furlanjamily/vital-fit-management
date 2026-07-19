@@ -9,7 +9,6 @@ import {
   validateClassSlotAction,
 } from "@/app/(app)/classes/actions";
 import { dispatchAppointmentsChanged } from "@/components/classes/appointments-events";
-import { InlineAlert } from "@/components/common/feedback/InlineAlert";
 import {
   FormField,
   GlassButton,
@@ -28,6 +27,7 @@ import {
 import type { ManagedMember } from "@/components/members/members.types";
 import { glassText } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
+import { toastError, toastSuccess } from "@/lib/toast-utils";
 import type { AvailableClass, ClassRecord } from "@/services/class-manager";
 
 type SubmitPhase = "idle" | "validating" | "confirming";
@@ -66,7 +66,6 @@ export function ScheduleModal({
   const [availableSlots, setAvailableSlots] = useState<AvailableClass[]>([]);
   const [gradeWeekdays, setGradeWeekdays] = useState<number[]>([]);
   const [slotsLoading, setSlotsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [submitPhase, setSubmitPhase] = useState<SubmitPhase>("idle");
   const [, startTransition] = useTransition();
 
@@ -102,7 +101,6 @@ export function ScheduleModal({
     setClassId(defaultClassId ?? classes[0]?.id ?? "");
     setDate(todayIso());
     setScheduleId("");
-    setErrorMessage(null);
   }, [defaultClassId, classes]);
 
   useEffect(() => {
@@ -136,7 +134,6 @@ export function ScheduleModal({
 
     let cancelled = false;
     setSlotsLoading(true);
-    setErrorMessage(null);
 
     startTransition(async () => {
       const result = await getClassScheduleSlotsAction(classId, date);
@@ -148,7 +145,7 @@ export function ScheduleModal({
       if (!result.success) {
         setAvailableSlots([]);
         setScheduleId("");
-        setErrorMessage(result.error);
+        toastError(result.error);
         return;
       }
 
@@ -171,15 +168,14 @@ export function ScheduleModal({
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setErrorMessage(null);
 
     if (!classId || !memberId || !date || !scheduleId) {
-      setErrorMessage("Preencha todos os campos para agendar.");
+      toastError("Preencha todos os campos para agendar.");
       return;
     }
 
     if (!isGradeDay) {
-      setErrorMessage(
+      toastError(
         `Esta modalidade não possui horários na grade para ${weekdayLabels[selectedDayOfWeek] ?? "este dia"}. Dias disponíveis: ${formatScheduleWeekdays(gradeWeekdays)}.`,
       );
       return;
@@ -192,13 +188,13 @@ export function ScheduleModal({
 
       if (!validation.success) {
         setSubmitPhase("idle");
-        setErrorMessage(validation.error);
+        toastError(validation.error);
         return;
       }
 
       if (validation.data.remainingSlots <= 0) {
         setSubmitPhase("idle");
-        setErrorMessage("Não há vagas disponíveis para este horário.");
+        toastError("Não há vagas disponíveis para este horário.");
         return;
       }
 
@@ -209,10 +205,11 @@ export function ScheduleModal({
       setSubmitPhase("idle");
 
       if (!result.success) {
-        setErrorMessage(result.error);
+        toastError(result.error);
         return;
       }
 
+      toastSuccess("Agendamento confirmado com sucesso.");
       dispatchAppointmentsChanged();
       onSuccess();
     });
@@ -243,8 +240,6 @@ export function ScheduleModal({
       description={description}
       size="md"
     >
-      {errorMessage ? <InlineAlert className="mb-4 text-xs">{errorMessage}</InlineAlert> : null}
-
       <form className="space-y-4" onSubmit={handleSubmit} noValidate>
         <FormField label="Aula" htmlFor="schedule-class">
           <GlassSelect

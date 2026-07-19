@@ -2,7 +2,6 @@
 
 import { useState, type FormEvent } from "react";
 import { Briefcase, Eye, EyeOff, Lock, Mail, Phone, Shield, User } from "lucide-react";
-import { InlineAlert } from "@/components/common/feedback/InlineAlert";
 import {
   AvatarUploadTrigger,
   GlassButton,
@@ -48,7 +47,6 @@ function buildInitialValues(editingUser: ManagedUser | null): UserFormValues {
 type UserFormProps = {
   editingUser: ManagedUser | null;
   submitting?: boolean;
-  errorMessage?: string | null;
   onSubmit: (values: UserFormValues) => void;
   onCancelEdit: () => void;
 };
@@ -56,7 +54,6 @@ type UserFormProps = {
 export function UserForm({
   editingUser,
   submitting = false,
-  errorMessage,
   onSubmit,
   onCancelEdit,
 }: UserFormProps) {
@@ -94,8 +91,6 @@ export function UserForm({
       size="lg"
     >
       <form onSubmit={handleSubmit} className="grid gap-4" noValidate>
-        {errorMessage ? <InlineAlert className="text-xs">{errorMessage}</InlineAlert> : null}
-
         <AvatarUploadTrigger
           name={values.name}
           avatarUrl={values.avatarUrl}

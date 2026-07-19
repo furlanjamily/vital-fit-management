@@ -15,7 +15,6 @@ import { GlassMultiSelect } from "@/components/agenda/GlassMultiSelect";
 import { eventTypeOptions, type AgendaUserOption } from "@/components/agenda/agenda.types";
 import type { CreateEventFormValues } from "@/components/agenda/event.schema";
 import { Button } from "@/components/common/button/Button";
-import { InlineAlert } from "@/components/common/feedback/InlineAlert";
 import {
   FormField,
   GlassButton,
@@ -24,6 +23,7 @@ import {
 } from "@/components/common/form";
 import { DatePicker } from "@/components/common/date-picker/DatePicker";
 import { ResponsiveModal } from "@/components/common/modal/ResponsiveModal";
+import { toastError, toastSuccess } from "@/lib/toast-utils";
 
 type EventModalProps = {
   userOptions: AgendaUserOption[];
@@ -67,12 +67,10 @@ export function EventModal({
   const [values, setValues] = useState<CreateEventFormValues>(() =>
     buildDefaultValues(defaultDate, defaultStartTime, defaultEndTime),
   );
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
     setValues(buildDefaultValues(defaultDate, defaultStartTime, defaultEndTime));
-    setErrorMessage(null);
   }, [defaultDate, defaultStartTime, defaultEndTime]);
 
   const showMeetingLink = values.type === "reuniao";
@@ -95,16 +93,16 @@ export function EventModal({
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setErrorMessage(null);
 
     startTransition(async () => {
       const result = await createAgendaEventAction(values);
 
       if (!result.success) {
-        setErrorMessage(result.error);
+        toastError(result.error);
         return;
       }
 
+      toastSuccess("Evento criado com sucesso.");
       dispatchAgendaChanged({ event: result.data, reason: "create" });
       onSuccess();
       onClose();
@@ -119,10 +117,6 @@ export function EventModal({
       description="Preencha os detalhes e convide participantes."
       size="lg"
     >
-      {errorMessage ? (
-        <InlineAlert className="mb-4 shrink-0 text-xs">{errorMessage}</InlineAlert>
-      ) : null}
-
       <form className="flex min-h-0 flex-1 flex-col" onSubmit={handleSubmit} noValidate>
         <div className="min-h-0 flex-1 space-y-4 pb-5">
             <FormField label="Título" htmlFor="event-title">

@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { useLoginForm } from "@/components/auth/useLoginForm";
-import { InlineAlert } from "@/components/common/feedback/InlineAlert";
 import {
   FormField,
   GlassButton,
@@ -21,13 +20,10 @@ type LoginFormProps = {
 
 export function LoginForm({ redirectPath = DEFAULT_REDIRECT_PATH }: LoginFormProps) {
   const [showPassword, setShowPassword] = useState(false);
-  const { register, errors, isSubmitting, authError, onSubmit } =
-    useLoginForm(redirectPath);
+  const { register, errors, isSubmitting, onSubmit } = useLoginForm(redirectPath);
 
   return (
     <form className="grid gap-5" onSubmit={onSubmit} noValidate>
-      {authError ? <InlineAlert>{authError}</InlineAlert> : null}
-
       <FormField label="E-mail" htmlFor="email" error={errors.email?.message}>
         <GlassInput
           id="email"

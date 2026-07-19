@@ -4,7 +4,6 @@ import { useMemo, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { Bell, Mail } from "lucide-react";
 import { GlassSelect, IconButton } from "@/components/common/form";
-import { InlineAlert } from "@/components/common/feedback/InlineAlert";
 import {
   DashboardFavouritedWorkoutSection,
   DashboardGymCapacitySection,
@@ -26,6 +25,7 @@ import {
   useDashboardData,
   type DashboardPeriod,
 } from "@/hooks/use-dashboard-data";
+import { useToastOnError } from "@/hooks/useToastOnError";
 import type { RevenueChartFilter } from "@/hooks/useRevenueChartData";
 import { cn } from "@/lib/cn";
 
@@ -76,12 +76,18 @@ export function DashboardContentClient({ userName }: DashboardContentClientProps
     error,
   } = useDashboardData(dateRange);
 
+  useToastOnError(error);
+
   return (
     <div className="flex w-full flex-col gap-6">
       <div className="flex flex-col">
         <div className="w-full">
           <h1 className={glassTextStyles.pageTitle}>
-            Bem vindo de volta, {userName ?? DEFAULT_USER_NAME}!
+            Bem vindo de volta,{" "}
+            <span className="font-[family-name:var(--font-brand-script)] font-normal tracking-normal">
+              {userName ?? DEFAULT_USER_NAME}
+            </span>
+            !
           </h1>
           <HeaderDateWeather />
         </div>
@@ -121,8 +127,6 @@ export function DashboardContentClient({ userName }: DashboardContentClientProps
           </div> */}
         </div>
       </div>
-
-      {error ? <InlineAlert>{error}</InlineAlert> : null}
 
       <DashboardRevenueSection
         filter={revenueFilter}

@@ -8,8 +8,8 @@ import { MyCalendarsSection } from "@/components/dashboard/right-sidebar/MyCalen
 import { UpNextCard } from "@/components/dashboard/right-sidebar/UpNextCard";
 import { useDashboardRightSidebar } from "@/components/dashboard/right-sidebar/useDashboardRightSidebar";
 import { UserAvatar } from "@/components/users/UserAvatar";
-import { InlineAlert } from "@/components/common/feedback/InlineAlert";
 import { glassText, glassTextStyles } from "@/config/glass-typography";
+import { useToastOnError } from "@/hooks/useToastOnError";
 import { cn } from "@/lib/cn";
 
 const SECTION_CARD_CLASS = "shrink-0 w-full min-w-0";
@@ -24,6 +24,8 @@ export function DashboardRightSidebar() {
     loadError,
     isLoading,
   } = useDashboardRightSidebar();
+
+  useToastOnError(loadError);
 
   return (
     <div className="flex w-full min-w-0 flex-col gap-4">
@@ -60,7 +62,7 @@ export function DashboardRightSidebar() {
       </header>
 
       {loadError ? (
-        <InlineAlert className={cn(SECTION_CARD_CLASS, "text-xs")}>{loadError}</InlineAlert>
+        <p className={cn(SECTION_CARD_CLASS, "text-xs", glassText.muted)}>{loadError}</p>
       ) : null}
 
       <MiniCalendar className={SECTION_CARD_CLASS} />

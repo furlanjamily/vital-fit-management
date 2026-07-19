@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { ArrowLeft, Edit3, Plus, Trash2 } from "lucide-react";
-import { InlineAlert } from "@/components/common/feedback/InlineAlert";
 import { Button } from "@/components/common/button/Button";
 import { RowActionsMenu, type RowAction } from "@/components/common/menu/RowActionsMenu";
 import { ConfirmRemoveDialog } from "@/components/common/modal/ConfirmRemoveDialog";
@@ -18,6 +17,7 @@ import {
   type FinancialCategory,
 } from "@/components/finance/finance-category.types";
 import { glassText, glassTextStyles } from "@/config/glass-typography";
+import { useToastOnError } from "@/hooks/useToastOnError";
 import { cn } from "@/lib/cn";
 
 type CategoriesContentClientProps = {
@@ -82,7 +82,6 @@ export function CategoriesContentClient({
     formOpen,
     editingCategory,
     removingCategory,
-    actionError,
     isPending,
     openCreateForm,
     openEditForm,
@@ -94,6 +93,8 @@ export function CategoriesContentClient({
     createFinancialCategoryAction,
     updateFinancialCategoryAction,
   } = useCategoriesManagement(initialCategories);
+
+  useToastOnError(loadError);
 
   const columns: TableColumn<FinancialCategory>[] = [
     {
@@ -152,8 +153,6 @@ export function CategoriesContentClient({
     },
   ];
 
-  const errorMessage = loadError ?? actionError;
-
   return (
     <div className="flex w-full flex-col gap-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -184,8 +183,6 @@ export function CategoriesContentClient({
           Nova categoria
         </Button>
       </div>
-
-      {errorMessage ? <InlineAlert>{errorMessage}</InlineAlert> : null}
 
       <Table
         data={categories}

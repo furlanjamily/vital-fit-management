@@ -3,7 +3,6 @@
 import { useState, useTransition, type FormEvent } from "react";
 import { Palette, Tag } from "lucide-react";
 import { Button } from "@/components/common/button/Button";
-import { InlineAlert } from "@/components/common/feedback/InlineAlert";
 import {
   FormField,
   GlassButton,
@@ -19,6 +18,7 @@ import {
 } from "@/components/finance/finance-category.types";
 import { glassText } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
+import { toastError, toastSuccess } from "@/lib/toast-utils";
 
 const EMPTY_VALUES: FinancialCategoryFormValues = {
   name: "",
@@ -54,14 +54,12 @@ export function CategoryForm({
   const [values, setValues] = useState<FinancialCategoryFormValues>(() =>
     buildInitialValues(editingCategory),
   );
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const isEditing = Boolean(editingCategory);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setErrorMessage(null);
 
     startTransition(async () => {
       const result = isEditing
@@ -69,10 +67,13 @@ export function CategoryForm({
         : await createAction(values);
 
       if (!result.success) {
-        setErrorMessage(result.error);
+        toastError(result.error);
         return;
       }
 
+      toastSuccess(
+        isEditing ? "Categoria atualizada com sucesso." : "Categoria criada com sucesso.",
+      );
       onSuccess(result.data);
     });
   }
@@ -85,8 +86,6 @@ export function CategoryForm({
       description="Categorias aparecem automaticamente no financeiro e nos formulários"
       size="md"
     >
-      {errorMessage ? <InlineAlert className="mb-4 text-xs">{errorMessage}</InlineAlert> : null}
-
       <form className="space-y-4" onSubmit={handleSubmit} noValidate>
         <FormField label="Nome" htmlFor="name">
           <GlassInput

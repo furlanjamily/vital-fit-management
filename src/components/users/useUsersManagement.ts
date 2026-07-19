@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createUserAction, updateUserAction } from "@/app/(app)/users/actions";
 import type { ManagedUser, UserFormValues } from "@/components/users/users.types";
 import { createClient } from "@/lib/supabase/client";
+import { toastError, toastSuccess } from "@/lib/toast-utils";
 
 const SIMULATED_MODE_MESSAGE =
   "Configure SUPABASE_SERVICE_ROLE_KEY no .env para persistir alterações.";
@@ -16,24 +17,20 @@ export function useUsersManagement(initialUsers: ManagedUser[]) {
   const [editingUser, setEditingUser] = useState<ManagedUser | null>(null);
   const [removingUser, setRemovingUser] = useState<ManagedUser | null>(null);
   const [saving, setSaving] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null);
 
   function openCreateForm() {
     setEditingUser(null);
-    setFormError(null);
     setFormOpen(true);
   }
 
   function openEditForm(user: ManagedUser) {
     setEditingUser(user);
-    setFormError(null);
     setFormOpen(true);
   }
 
   function closeForm() {
     setFormOpen(false);
     setEditingUser(null);
-    setFormError(null);
   }
 
   async function refreshCurrentUserSession() {
@@ -55,12 +52,12 @@ export function useUsersManagement(initialUsers: ManagedUser[]) {
     });
 
     if (!result.success) {
-      setFormError(result.error);
+      toastError(result.error);
       return;
     }
 
     if (!result.data.persisted) {
-      setFormError(SIMULATED_MODE_MESSAGE);
+      toastError(SIMULATED_MODE_MESSAGE);
       return;
     }
 
@@ -73,6 +70,7 @@ export function useUsersManagement(initialUsers: ManagedUser[]) {
       await refreshCurrentUserSession();
     }
 
+    toastSuccess("Usuário atualizado com sucesso.");
     closeForm();
   }
 
@@ -88,23 +86,23 @@ export function useUsersManagement(initialUsers: ManagedUser[]) {
     });
 
     if (!result.success) {
-      setFormError(result.error);
+      toastError(result.error);
       return;
     }
 
     if (!result.data.persisted) {
-      setFormError(SIMULATED_MODE_MESSAGE);
+      toastError(SIMULATED_MODE_MESSAGE);
       return;
     }
 
     const createdUser = result.data.user;
     setUsers((current) => [...current, createdUser]);
+    toastSuccess("Usuário cadastrado com sucesso.");
     closeForm();
   }
 
   async function handleSubmit(values: UserFormValues) {
     setSaving(true);
-    setFormError(null);
 
     try {
       if (editingUser) {
@@ -132,6 +130,7 @@ export function useUsersManagement(initialUsers: ManagedUser[]) {
     setUsers((current) => current.filter((user) => user.id !== userId));
     if (editingUser?.id === userId) closeForm();
     setRemovingUser(null);
+    toastSuccess("Usuário removido com sucesso.");
   }
 
   return {
@@ -140,7 +139,6 @@ export function useUsersManagement(initialUsers: ManagedUser[]) {
     editingUser,
     removingUser,
     saving,
-    formError,
     openCreateForm,
     openEditForm,
     closeForm,

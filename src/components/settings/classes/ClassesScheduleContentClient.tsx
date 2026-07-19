@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { ArrowLeft, Edit3, Plus, Trash2 } from "lucide-react";
-import { InlineAlert } from "@/components/common/feedback/InlineAlert";
 import { Button } from "@/components/common/button/Button";
 import { RowActionsMenu, type RowAction } from "@/components/common/menu/RowActionsMenu";
 import { ConfirmRemoveDialog } from "@/components/common/modal/ConfirmRemoveDialog";
@@ -18,6 +17,7 @@ import {
   type ClassSchedule,
 } from "@/components/settings/classes/schedule.types";
 import { glassText, glassTextStyles } from "@/config/glass-typography";
+import { useToastOnError } from "@/hooks/useToastOnError";
 import { cn } from "@/lib/cn";
 
 type ClassesScheduleContentClientProps = {
@@ -89,7 +89,6 @@ export function ClassesScheduleContentClient({
     formOpen,
     editingSchedule,
     removingSchedule,
-    actionError,
     isPending,
     openCreateForm,
     openEditForm,
@@ -101,6 +100,8 @@ export function ClassesScheduleContentClient({
     createClassScheduleAction,
     updateClassScheduleAction,
   } = useScheduleManagement(initialSchedules);
+
+  useToastOnError(loadError);
 
   const columns: TableColumn<ClassSchedule>[] = [
     {
@@ -180,8 +181,6 @@ export function ClassesScheduleContentClient({
     },
   ];
 
-  const errorMessage = loadError ?? actionError;
-
   return (
     <div className="flex min-h-full w-full flex-col gap-6 lg:h-full lg:min-h-0">
       <div className="flex shrink-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -212,8 +211,6 @@ export function ClassesScheduleContentClient({
           Adicionar Aula
         </Button>
       </div>
-
-      {errorMessage ? <InlineAlert className="shrink-0">{errorMessage}</InlineAlert> : null}
 
       <Table
         data={schedules}

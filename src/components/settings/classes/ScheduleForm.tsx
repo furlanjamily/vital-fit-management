@@ -5,7 +5,6 @@ import { Clock, User } from "lucide-react";
 import { listAllClassesAction } from "@/app/(app)/classes/actions";
 import { getScheduleProfessionalsAction } from "@/app/(app)/professionals/actions";
 import { Button } from "@/components/common/button/Button";
-import { InlineAlert } from "@/components/common/feedback/InlineAlert";
 import {
   FormField,
   GlassButton,
@@ -23,6 +22,7 @@ import {
 import { specialtyMatchesClass } from "@/config/professional-specialties";
 import { glassText } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
+import { toastError, toastSuccess } from "@/lib/toast-utils";
 
 const EMPTY_VALUES: ClassScheduleFormValues = {
   className: "Crossfit",
@@ -65,7 +65,6 @@ export function ScheduleForm({
   const [dbClassOptions, setDbClassOptions] = useState<{ value: string; label: string }[]>([]);
   const [professionals, setProfessionals] = useState<ScheduleProfessionalOption[]>([]);
   const [isLoadingOptions, setIsLoadingOptions] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, startSubmitTransition] = useTransition();
 
   const isEditing = Boolean(editingSchedule);
@@ -120,7 +119,6 @@ export function ScheduleForm({
 
     async function loadOptions() {
       setIsLoadingOptions(true);
-      setErrorMessage(null);
 
       const [classesResult, professionalsResult] = await Promise.all([
         listAllClassesAction(),
@@ -138,7 +136,7 @@ export function ScheduleForm({
       if (professionalsResult.success) {
         setProfessionals(professionalsResult.data);
       } else {
-        setErrorMessage(professionalsResult.error);
+        toastError(professionalsResult.error);
       }
 
       setIsLoadingOptions(false);
@@ -170,17 +168,16 @@ export function ScheduleForm({
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setErrorMessage(null);
 
     if (!values.professionalId) {
-      setErrorMessage(
+      toastError(
         `Cadastre um profissional ativo com especialidade em ${values.className} em Profissionais antes de adicionar este horário.`,
       );
       return;
     }
 
     if (!values.startTime || !values.maxCapacity) {
-      setErrorMessage("Preencha horário e capacidade máxima.");
+      toastError("Preencha horário e capacidade máxima.");
       return;
     }
 
@@ -195,10 +192,13 @@ export function ScheduleForm({
         : await createAction(payload);
 
       if (!result.success) {
-        setErrorMessage(result.error);
+        toastError(result.error);
         return;
       }
 
+      toastSuccess(
+        isEditing ? "Horário atualizado com sucesso." : "Horário adicionado com sucesso.",
+      );
       onSuccess(result.data);
     });
   }
@@ -218,8 +218,6 @@ export function ScheduleForm({
       description="Vincule a modalidade a um profissional habilitado na grade"
       size="md"
     >
-      {errorMessage ? <InlineAlert className="mb-4 text-xs">{errorMessage}</InlineAlert> : null}
-
       <form className="space-y-4" onSubmit={handleSubmit} noValidate>
         <FormField label="Aula" htmlFor="className">
           <GlassSelect

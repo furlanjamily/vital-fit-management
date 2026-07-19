@@ -11,11 +11,12 @@ import { EventModal, padHour } from "@/components/agenda/EventModal";
 import { formatEventSubject } from "@/components/agenda/agenda.helpers";
 import type { AgendaEvent, AgendaUserOption } from "@/components/agenda/agenda.types";
 import { Button } from "@/components/common/button/Button";
-import { InlineAlert } from "@/components/common/feedback/InlineAlert";
 import { ConfirmRemoveDialog } from "@/components/common/modal/ConfirmRemoveDialog";
-import { useCollaborativeAgenda } from "@/hooks/useCollaborativeAgenda";
 import { glassText, glassTextStyles } from "@/config/glass-typography";
+import { useCollaborativeAgenda } from "@/hooks/useCollaborativeAgenda";
+import { useToastOnError } from "@/hooks/useToastOnError";
 import { cn } from "@/lib/cn";
+import { toastError, toastSuccess } from "@/lib/toast-utils";
 
 type AgendaContentClientProps = {
   initialEvents: AgendaEvent[];
@@ -48,7 +49,6 @@ export function AgendaContentClient({
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<AgendaEvent | null>(null);
   const [removingEvent, setRemovingEvent] = useState<AgendaEvent | null>(null);
-  const [actionError, setActionError] = useState<string | null>(null);
   const [isDeleting, startDeleteTransition] = useTransition();
   const [modalDefaults, setModalDefaults] = useState<ModalDefaults>(() => ({
     date: toIsoDate(new Date()),
@@ -56,7 +56,8 @@ export function AgendaContentClient({
     endTime: "10:00",
   }));
 
-  const errorMessage = loadError ?? scheduleError ?? actionError;
+  useToastOnError(loadError);
+  useToastOnError(scheduleError);
 
   const sortedEvents = useMemo(
     () => [...events].sort((left, right) => left.startTime.localeCompare(right.startTime)),
@@ -82,7 +83,6 @@ export function AgendaContentClient({
 
   const handleEventSelect = useCallback((event: AgendaEvent) => {
     setSelectedEvent(event);
-    setActionError(null);
   }, []);
 
   const requestRemove = useCallback(() => {
@@ -99,12 +99,10 @@ export function AgendaContentClient({
     if (!removingEvent) return;
 
     startDeleteTransition(async () => {
-      setActionError(null);
-
       const result = await deleteAgendaEventAction(removingEvent.id);
 
       if (!result.success) {
-        setActionError(result.error);
+        toastError(result.error);
         return;
       }
 
@@ -112,6 +110,7 @@ export function AgendaContentClient({
       setSelectedEvent(null);
       dispatchAgendaChanged({ reason: "delete" });
       refreshEvents();
+      toastSuccess("Evento removido com sucesso.");
     });
   }, [removingEvent, refreshEvents]);
 
@@ -136,8 +135,6 @@ export function AgendaContentClient({
           Adicionar evento
         </Button>
       </div>
-
-      {errorMessage ? <InlineAlert className="shrink-0">{errorMessage}</InlineAlert> : null}
 
       <CollaborativeCalendar
         className="lg:min-h-0 lg:flex-1"

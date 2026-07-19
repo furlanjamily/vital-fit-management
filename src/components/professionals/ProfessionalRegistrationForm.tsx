@@ -15,7 +15,6 @@ import {
   createProfessionalAction,
   updateProfessionalAction,
 } from "@/app/(app)/professionals/actions";
-import { InlineAlert } from "@/components/common/feedback/InlineAlert";
 import {
   AvatarUploadTrigger,
   GlassButton,
@@ -37,6 +36,7 @@ import {
 } from "@/components/professionals/professionals.types";
 import { glassText } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
+import { toastError, toastSuccess } from "@/lib/toast-utils";
 
 const EMPTY_VALUES: ProfessionalFormValues = {
   name: "",
@@ -75,7 +75,6 @@ export function ProfessionalRegistrationForm({
   const [values, setValues] = useState<ProfessionalFormValues>(() =>
     buildInitialValues(editingProfessional),
   );
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const isEditing = editingProfessional !== null;
@@ -93,17 +92,20 @@ export function ProfessionalRegistrationForm({
     if (!values.name.trim() || !values.email.trim()) return;
 
     startTransition(async () => {
-      setErrorMessage(null);
-
       const result = isEditing
         ? await updateProfessionalAction(editingProfessional.id, values)
         : await createProfessionalAction(values);
 
       if (!result.success) {
-        setErrorMessage(result.error);
+        toastError(result.error);
         return;
       }
 
+      toastSuccess(
+        isEditing
+          ? "Profissional atualizado com sucesso."
+          : "Profissional cadastrado com sucesso.",
+      );
       onSuccess(result.data);
     });
   }
@@ -121,8 +123,6 @@ export function ProfessionalRegistrationForm({
       size="xl"
     >
       <form onSubmit={handleSubmit} className="grid gap-5" noValidate>
-        {errorMessage ? <InlineAlert className="text-xs">{errorMessage}</InlineAlert> : null}
-
         <AvatarUploadTrigger
           name={values.name}
           avatarUrl={values.avatarUrl}

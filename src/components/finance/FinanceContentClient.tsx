@@ -2,7 +2,6 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { getFinanceDashboardAction } from "@/app/(app)/finance/actions";
-import { InlineAlert } from "@/components/common/feedback/InlineAlert";
 import { ConfirmRemoveDialog } from "@/components/common/modal/ConfirmRemoveDialog";
 import { Table } from "@/components/common/table/Table";
 import { ExpenseBreakdownCard, ExpenseBreakdownCardLoading } from "@/components/finance/expense-breakdown";
@@ -36,7 +35,9 @@ import { FinancialOverviewChart } from "@/components/finance/FinancialOverviewCh
 import { PortfolioSummaryCard } from "@/components/finance/PortfolioSummaryCard";
 import { TransactionForm } from "@/components/finance/TransactionForm";
 import { useFinancialTransactions } from "@/hooks/useFinancialTransactions";
+import { useToastOnError } from "@/hooks/useToastOnError";
 import { cn } from "@/lib/cn";
+import { toastError } from "@/lib/toast-utils";
 
 type FinanceDashboardData = {
   summary: FinanceSummary;
@@ -57,14 +58,11 @@ export function FinanceContentClient({
 }: FinanceContentClientProps) {
   const [filter, setFilter] = useState<FinanceFilter>({ kind: "period", period: "thisMonth" });
   const [data, setData] = useState(initialData);
-  const [fetchError, setFetchError] = useState<string | null>(null);
   const [transactionFormOpen, setTransactionFormOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   const {
     transactions,
-    fetchError: transactionsFetchError,
-    actionError: transactionsActionError,
     isPending: isTransactionsPending,
     editingTransaction,
     removingTransaction,
@@ -75,6 +73,8 @@ export function FinanceContentClient({
     cancelRemove,
     removeTransaction,
   } = useFinancialTransactions(filter, data.transactions);
+
+  useToastOnError(loadError);
 
   const computedBalance = data.balance ?? undefined;
 
@@ -124,16 +124,15 @@ export function FinanceContentClient({
 
   function refetchDashboard(nextFilter: FinanceFilter = filter) {
     startTransition(async () => {
-      setFetchError(null);
       const result = await getFinanceDashboardAction(nextFilter);
 
       if (!result.summary.success) {
-        setFetchError(result.summary.error);
+        toastError(result.summary.error);
         return;
       }
 
       if (result.balance && !result.balance.success) {
-        setFetchError(result.balance.error);
+        toastError(result.balance.error);
         return;
       }
 
@@ -164,8 +163,6 @@ export function FinanceContentClient({
     refetchDashboard();
   }
 
-  const errorMessage =
-    loadError ?? fetchError ?? transactionsFetchError ?? transactionsActionError;
   const isBusy = isPending || isTransactionsPending;
 
   return (
@@ -175,8 +172,6 @@ export function FinanceContentClient({
         onPeriodChange={handlePeriodChange}
         onDateRangeChange={handleDateRangeChange}
       />
-
-      {errorMessage ? <InlineAlert>{errorMessage}</InlineAlert> : null}
 
       <div className="flex flex-col gap-6 lg:flex-row lg:items-stretch">
         <div className="flex w-full min-h-0 min-w-0 flex-col gap-6 lg:w-[70%]">

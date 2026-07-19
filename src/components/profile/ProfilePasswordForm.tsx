@@ -4,7 +4,6 @@ import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, Lock } from "lucide-react";
 import { useForm } from "react-hook-form";
-import { InlineAlert } from "@/components/common/feedback/InlineAlert";
 import { Button } from "@/components/common/button/Button";
 import { FormField, GlassInput, IconButton } from "@/components/common/form";
 import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
@@ -16,6 +15,7 @@ import type { ProfilePasswordFormValues } from "@/components/profile/profile.typ
 import { glassText, glassTextStyles } from "@/config/glass-typography";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/cn";
+import { toastError, toastSuccess } from "@/lib/toast-utils";
 
 const PASSWORD_REQUIREMENTS = [
   "Pelo menos 8 caracteres",
@@ -28,8 +28,6 @@ type ProfilePasswordFormProps = {
 };
 
 export function ProfilePasswordForm({ email }: ProfilePasswordFormProps) {
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
 
@@ -47,11 +45,8 @@ export function ProfilePasswordForm({ email }: ProfilePasswordFormProps) {
   });
 
   async function onSubmit(values: ProfilePasswordSchemaOutput) {
-    setSubmitError(null);
-    setSuccessMessage(null);
-
     if (!email) {
-      setSubmitError("Não foi possível identificar o e-mail da sessão.");
+      toastError("Não foi possível identificar o e-mail da sessão.");
       return;
     }
 
@@ -63,7 +58,7 @@ export function ProfilePasswordForm({ email }: ProfilePasswordFormProps) {
     });
 
     if (verifyError) {
-      setSubmitError("Senha atual incorreta.");
+      toastError("Senha atual incorreta.");
       return;
     }
 
@@ -72,12 +67,12 @@ export function ProfilePasswordForm({ email }: ProfilePasswordFormProps) {
     });
 
     if (error) {
-      setSubmitError(error.message || "Não foi possível atualizar a senha.");
+      toastError(error.message || "Não foi possível atualizar a senha.");
       return;
     }
 
     reset({ currentPassword: "", newPassword: "" });
-    setSuccessMessage("Senha atualizada com sucesso.");
+    toastSuccess("Senha atualizada com sucesso.");
   }
 
   return (
@@ -90,19 +85,6 @@ export function ProfilePasswordForm({ email }: ProfilePasswordFormProps) {
       <h2 className={cn(glassTextStyles.panelTitle, "mb-5 text-base")}>
         Alteração de Senha
       </h2>
-
-      {submitError ? (
-        <InlineAlert className="mb-4 text-xs">{submitError}</InlineAlert>
-      ) : null}
-
-      {successMessage ? (
-        <p
-          role="status"
-          className="mb-4 rounded-xl border border-emerald-400/25 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-300"
-        >
-          {successMessage}
-        </p>
-      ) : null}
 
       <form className="grid gap-5" onSubmit={handleSubmit(onSubmit)} noValidate>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">

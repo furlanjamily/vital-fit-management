@@ -8,6 +8,7 @@ import {
   updateClassScheduleAction,
 } from "@/app/(app)/settings/classes/actions";
 import type { ClassSchedule } from "@/components/settings/classes/schedule.types";
+import { toastError, toastSuccess } from "@/lib/toast-utils";
 
 function compareSchedules(a: ClassSchedule, b: ClassSchedule) {
   if (a.dayOfWeek !== b.dayOfWeek) return a.dayOfWeek - b.dayOfWeek;
@@ -29,25 +30,21 @@ export function useScheduleManagement(initialSchedules: ClassSchedule[]) {
   const [formOpen, setFormOpen] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState<ClassSchedule | null>(null);
   const [removingSchedule, setRemovingSchedule] = useState<ClassSchedule | null>(null);
-  const [actionError, setActionError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   function openCreateForm() {
     setEditingSchedule(null);
-    setActionError(null);
     setFormOpen(true);
   }
 
   function openEditForm(schedule: ClassSchedule) {
     setEditingSchedule(schedule);
-    setActionError(null);
     setFormOpen(true);
   }
 
   function closeForm() {
     setFormOpen(false);
     setEditingSchedule(null);
-    setActionError(null);
   }
 
   function handleFormSuccess(schedule: ClassSchedule) {
@@ -61,18 +58,17 @@ export function useScheduleManagement(initialSchedules: ClassSchedule[]) {
 
   function removeSchedule(scheduleId: string) {
     startTransition(async () => {
-      setActionError(null);
-
       const result = await deleteClassScheduleAction(scheduleId);
 
       if (!result.success) {
-        setActionError(result.error);
+        toastError(result.error);
         return;
       }
 
       setSchedules((current) => current.filter((schedule) => schedule.id !== scheduleId));
       if (editingSchedule?.id === scheduleId) closeForm();
       setRemovingSchedule(null);
+      toastSuccess("Horário removido com sucesso.");
       router.refresh();
     });
   }
@@ -82,7 +78,6 @@ export function useScheduleManagement(initialSchedules: ClassSchedule[]) {
     formOpen,
     editingSchedule,
     removingSchedule,
-    actionError,
     isPending,
     openCreateForm,
     openEditForm,

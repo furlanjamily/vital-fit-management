@@ -15,7 +15,6 @@ import {
   createMemberAction,
   updateMemberAction,
 } from "@/app/(app)/members/actions";
-import { InlineAlert } from "@/components/common/feedback/InlineAlert";
 import {
   AvatarUploadTrigger,
   GlassButton,
@@ -36,6 +35,7 @@ import {
 } from "@/components/members/members.types";
 import { glassText } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
+import { toastError, toastSuccess } from "@/lib/toast-utils";
 
 const EMPTY_VALUES: MemberFormValues = {
   name: "",
@@ -99,7 +99,6 @@ export function MemberRegistrationForm({
   const [values, setValues] = useState<MemberFormValues>(() =>
     buildInitialValues(editingMember),
   );
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const isEditing = editingMember !== null;
@@ -117,17 +116,18 @@ export function MemberRegistrationForm({
     if (!values.name.trim() || !values.email.trim()) return;
 
     startTransition(async () => {
-      setErrorMessage(null);
-
       const result = isEditing
         ? await updateMemberAction(editingMember.id, values)
         : await createMemberAction(values);
 
       if (!result.success) {
-        setErrorMessage(result.error);
+        toastError(result.error);
         return;
       }
 
+      toastSuccess(
+        isEditing ? "Aluno atualizado com sucesso." : "Aluno cadastrado com sucesso.",
+      );
       onSuccess(result.data);
     });
   }
@@ -145,8 +145,6 @@ export function MemberRegistrationForm({
       size="xl"
     >
       <form onSubmit={handleSubmit} className="grid gap-5" noValidate>
-        {errorMessage ? <InlineAlert className="text-xs">{errorMessage}</InlineAlert> : null}
-
         <AvatarUploadTrigger
           name={values.name}
           avatarUrl={values.avatarUrl}

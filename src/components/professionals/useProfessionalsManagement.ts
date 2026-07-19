@@ -7,6 +7,7 @@ import {
   updateProfessionalStatusAction,
 } from "@/app/(app)/professionals/actions";
 import type { ManagedProfessional } from "@/components/professionals/professionals.types";
+import { toastError, toastSuccess } from "@/lib/toast-utils";
 
 export function useProfessionalsManagement(initialProfessionals: ManagedProfessional[]) {
   const router = useRouter();
@@ -17,25 +18,21 @@ export function useProfessionalsManagement(initialProfessionals: ManagedProfessi
   );
   const [removingProfessional, setRemovingProfessional] =
     useState<ManagedProfessional | null>(null);
-  const [actionError, setActionError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   function openCreateForm() {
     setEditingProfessional(null);
-    setActionError(null);
     setFormOpen(true);
   }
 
   function openEditForm(professional: ManagedProfessional) {
     setEditingProfessional(professional);
-    setActionError(null);
     setFormOpen(true);
   }
 
   function closeForm() {
     setFormOpen(false);
     setEditingProfessional(null);
-    setActionError(null);
   }
 
   function handleFormSuccess(professional: ManagedProfessional) {
@@ -57,17 +54,20 @@ export function useProfessionalsManagement(initialProfessionals: ManagedProfessi
     const nextActive = professional.status !== "active";
 
     startTransition(async () => {
-      setActionError(null);
-
       const result = await updateProfessionalStatusAction(professional.id, nextActive);
 
       if (!result.success) {
-        setActionError(result.error);
+        toastError(result.error);
         return;
       }
 
       setProfessionals((current) =>
         current.map((item) => (item.id === professional.id ? result.data : item)),
+      );
+      toastSuccess(
+        nextActive
+          ? "Profissional reativado com sucesso."
+          : "Profissional desativado com sucesso.",
       );
       router.refresh();
     });
@@ -75,12 +75,10 @@ export function useProfessionalsManagement(initialProfessionals: ManagedProfessi
 
   function removeProfessional(professionalId: string) {
     startTransition(async () => {
-      setActionError(null);
-
       const result = await deleteProfessionalAction(professionalId);
 
       if (!result.success) {
-        setActionError(result.error);
+        toastError(result.error);
         return;
       }
 
@@ -89,6 +87,7 @@ export function useProfessionalsManagement(initialProfessionals: ManagedProfessi
       );
       if (editingProfessional?.id === professionalId) closeForm();
       setRemovingProfessional(null);
+      toastSuccess("Profissional removido com sucesso.");
       router.refresh();
     });
   }
@@ -98,7 +97,6 @@ export function useProfessionalsManagement(initialProfessionals: ManagedProfessi
     formOpen,
     editingProfessional,
     removingProfessional,
-    actionError,
     isPending,
     openCreateForm,
     openEditForm,

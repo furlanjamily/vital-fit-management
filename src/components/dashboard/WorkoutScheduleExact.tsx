@@ -6,10 +6,10 @@ import {
   MoreHorizontal,
 } from "lucide-react";
 import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
-import { InlineAlert } from "@/components/common/feedback/InlineAlert";
 import { WorkoutScheduleExactSkeleton } from "@/components/dashboard/WorkoutScheduleExactSkeleton";
 import { brand } from "@/config/brand-colors";
 import { glassText, glassTextStyles } from "@/config/glass-typography";
+import { useToastOnError } from "@/hooks/useToastOnError";
 import {
   type WorkoutScheduleItem,
   type WorkoutSchedulePosition,
@@ -220,6 +220,8 @@ type WorkoutScheduleExactProps = {
 };
 
 export function WorkoutScheduleExact({ data, isLoading, error }: WorkoutScheduleExactProps) {
+  useToastOnError(error);
+
   if (isLoading) return <WorkoutScheduleExactSkeleton />;
 
   return (
@@ -251,8 +253,6 @@ export function WorkoutScheduleExact({ data, isLoading, error }: WorkoutSchedule
         <div className="px-3 pb-3.5 sm:px-4 sm:pb-4">
           <DateAxis timelineDates={data.timelineDates} currentDayIndex={data.currentDayIndex} />
         </div>
-
-        {error ? <InlineAlert className="mx-4 mb-4">{error}</InlineAlert> : null}
       </div>
     </WorkoutScheduleGlass>
   );

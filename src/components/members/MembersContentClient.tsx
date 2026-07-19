@@ -1,7 +1,6 @@
 "use client";
 
 import { Edit3, UserCheck, UserMinus, UserPlus, Wallet } from "lucide-react";
-import { InlineAlert } from "@/components/common/feedback/InlineAlert";
 import { Button } from "@/components/common/button/Button";
 import { RowActionsMenu, type RowAction } from "@/components/common/menu/RowActionsMenu";
 import {
@@ -25,6 +24,7 @@ import {
 } from "@/components/members/members.types";
 import { useMembersManagement } from "@/components/members/useMembersManagement";
 import { glassText, glassTextStyles } from "@/config/glass-typography";
+import { useToastOnError } from "@/hooks/useToastOnError";
 import { cn } from "@/lib/cn";
 
 type MembersContentClientProps = {
@@ -159,7 +159,6 @@ export function MembersContentClient({
     formOpen,
     editingMember,
     payingMember,
-    actionError,
     isPending,
     openCreateForm,
     openEditForm,
@@ -170,6 +169,8 @@ export function MembersContentClient({
     openPaymentForm,
     closePaymentForm,
   } = useMembersManagement(initialMembers);
+
+  useToastOnError(loadError);
 
   const memberFilters = buildMemberFilters(professionalOptions);
 
@@ -292,9 +293,6 @@ export function MembersContentClient({
           Aluno
         </Button>
       </div>
-
-      {loadError ? <InlineAlert>{loadError}</InlineAlert> : null}
-      {actionError ? <InlineAlert>{actionError}</InlineAlert> : null}
 
       <Table
         data={members}

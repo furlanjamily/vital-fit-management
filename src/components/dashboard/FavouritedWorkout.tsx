@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { GhostButton } from "@/components/common/form";
-import { InlineAlert } from "@/components/common/feedback/InlineAlert";
 import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
 import {
   filterWorkoutsByCategory,
@@ -18,6 +17,7 @@ import {
   type WorkoutCategoryFilter,
 } from "@/components/dashboard/favourited-workout.types";
 import { glassText, glassTextStyles } from "@/config/glass-typography";
+import { useToastOnError } from "@/hooks/useToastOnError";
 import { motionTokens } from "@/lib/motion";
 import { cn } from "@/lib/cn";
 
@@ -31,6 +31,8 @@ export function FavouritedWorkout({
   error = null,
 }: FavouritedWorkoutProps) {
   const [activeTab, setActiveTab] = useState<WorkoutCategoryFilter>("all");
+
+  useToastOnError(error);
 
   const filteredWorkouts = useMemo(
     () => sortWorkoutsForDisplay(filterWorkoutsByCategory(data.workouts, activeTab)),
@@ -47,10 +49,6 @@ export function FavouritedWorkout({
       className="rounded-2xl p-5 shadow-none after:shadow-none"
     >
       <p className={cn(glassTextStyles.panelTitle, "mb-4")}>Treinos favoritos</p>
-
-      {error ? (
-        <InlineAlert className="mb-4">{error}</InlineAlert>
-      ) : null}
 
       <div className="mb-4 flex gap-4 overflow-x-auto border-b border-white/10 pb-3 text-[11px]">
         {WORKOUT_CATEGORY_TABS.map((tab) => {

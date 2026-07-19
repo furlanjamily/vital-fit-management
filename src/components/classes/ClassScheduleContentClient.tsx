@@ -3,7 +3,6 @@
 import { CirclePlus, Trash2 } from "lucide-react";
 import { useCallback, useMemo, useState, useTransition } from "react";
 import { deleteAppointmentAction } from "@/app/(app)/classes/actions";
-import { InlineAlert } from "@/components/common/feedback/InlineAlert";
 import { GlassButton } from "@/components/common/form";
 import { RowActionsMenu, type RowAction } from "@/components/common/menu/RowActionsMenu";
 import { ConfirmRemoveDialog } from "@/components/common/modal/ConfirmRemoveDialog";
@@ -19,7 +18,9 @@ import { formatAgendaDayGroupLabel } from "@/components/classes/class-schedule.h
 import { useScheduleModal } from "@/components/classes/ScheduleModalProvider";
 import { useClassSchedule } from "@/components/classes/useClassSchedule";
 import { glassText, glassTextStyles } from "@/config/glass-typography";
+import { useToastOnError } from "@/hooks/useToastOnError";
 import { cn } from "@/lib/cn";
+import { toastError, toastSuccess } from "@/lib/toast-utils";
 import type { ClassAppointment, ClassGradeSlot, ClassRecord } from "@/services/class-manager";
 
 type ClassScheduleContentClientProps = {
@@ -93,8 +94,10 @@ export function ClassScheduleContentClient({
   } = useClassSchedule({ slug, initialAppointments });
 
   const [removingAppointment, setRemovingAppointment] = useState<ClassAppointment | null>(null);
-  const [actionError, setActionError] = useState<string | null>(null);
   const [isDeleting, startDeleteTransition] = useTransition();
+
+  useToastOnError(loadError);
+  useToastOnError(scheduleError);
 
   const isGroupedView = viewMode !== "day";
   const isBusy = isLoading || isDeleting;
@@ -111,7 +114,6 @@ export function ClassScheduleContentClient({
 
   const requestRemove = useCallback((appointment: ClassAppointment) => {
     setRemovingAppointment(appointment);
-    setActionError(null);
   }, []);
 
   const cancelRemove = useCallback(() => {
@@ -123,17 +125,16 @@ export function ClassScheduleContentClient({
     if (!removingAppointment) return;
 
     startDeleteTransition(async () => {
-      setActionError(null);
-
       const result = await deleteAppointmentAction(removingAppointment.id, slug);
 
       if (!result.success) {
-        setActionError(result.error);
+        toastError(result.error);
         return;
       }
 
       dispatchAppointmentsChanged();
       setRemovingAppointment(null);
+      toastSuccess("Agendamento removido com sucesso.");
     });
   }, [removingAppointment, slug]);
 
@@ -228,8 +229,6 @@ export function ClassScheduleContentClient({
     return baseColumns;
   }, [buildRowActions, isBusy, isGroupedView]);
 
-  const errorMessage = loadError ?? scheduleError ?? actionError;
-
   return (
     <div className="flex min-h-full w-full flex-col gap-6 lg:h-full lg:min-h-0">
       <div className="flex shrink-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -257,8 +256,6 @@ export function ClassScheduleContentClient({
           </GlassButton>
         </div>
       </div>
-
-      {errorMessage ? <InlineAlert className="shrink-0">{errorMessage}</InlineAlert> : null}
 
       <Table
         data={sortedAppointments}

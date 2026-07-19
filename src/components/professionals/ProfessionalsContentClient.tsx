@@ -1,7 +1,6 @@
 "use client";
 
 import { Edit3, UserCheck, UserMinus, UserPlus } from "lucide-react";
-import { InlineAlert } from "@/components/common/feedback/InlineAlert";
 import { Button } from "@/components/common/button/Button";
 import { RowActionsMenu, type RowAction } from "@/components/common/menu/RowActionsMenu";
 import {
@@ -21,6 +20,7 @@ import {
 } from "@/components/professionals/professionals.types";
 import { useProfessionalsManagement } from "@/components/professionals/useProfessionalsManagement";
 import { glassText, glassTextStyles } from "@/config/glass-typography";
+import { useToastOnError } from "@/hooks/useToastOnError";
 import { cn } from "@/lib/cn";
 
 type ProfessionalsContentClientProps = {
@@ -105,7 +105,6 @@ export function ProfessionalsContentClient({
     professionals,
     formOpen,
     editingProfessional,
-    actionError,
     isPending,
     openCreateForm,
     openEditForm,
@@ -113,6 +112,8 @@ export function ProfessionalsContentClient({
     handleFormSuccess,
     toggleStatus,
   } = useProfessionalsManagement(initialProfessionals);
+
+  useToastOnError(loadError);
 
   function buildRowActions(professional: ManagedProfessional): RowAction[] {
     const isActive = professional.status === "active";
@@ -226,9 +227,6 @@ export function ProfessionalsContentClient({
           Profissional
         </Button>
       </div>
-
-      {loadError ? <InlineAlert>{loadError}</InlineAlert> : null}
-      {actionError ? <InlineAlert>{actionError}</InlineAlert> : null}
 
       <Table
         data={professionals}

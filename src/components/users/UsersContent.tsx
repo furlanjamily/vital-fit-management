@@ -1,7 +1,6 @@
 "use client";
 
 import { Edit3, Trash2, UserCheck, UserMinus, UserPlus } from "lucide-react";
-import { InlineAlert } from "@/components/common/feedback/InlineAlert";
 import { Button } from "@/components/common/button/Button";
 import { RowActionsMenu, type RowAction } from "@/components/common/menu/RowActionsMenu";
 import { ConfirmRemoveDialog } from "@/components/common/modal/ConfirmRemoveDialog";
@@ -11,6 +10,7 @@ import { UserForm } from "@/components/users/UserForm";
 import { roleLabels, type ManagedUser } from "@/components/users/users.types";
 import { useUsersManagement } from "@/components/users/useUsersManagement";
 import { glassText, glassTextStyles } from "@/config/glass-typography";
+import { useToastOnError } from "@/hooks/useToastOnError";
 import { cn } from "@/lib/cn";
 
 type UsersContentProps = {
@@ -49,7 +49,6 @@ export function UsersContent({ initialUsers, loadError = null }: UsersContentPro
     editingUser,
     removingUser,
     saving,
-    formError,
     openCreateForm,
     openEditForm,
     closeForm,
@@ -59,6 +58,8 @@ export function UsersContent({ initialUsers, loadError = null }: UsersContentPro
     requestRemove,
     cancelRemove,
   } = useUsersManagement(initialUsers);
+
+  useToastOnError(loadError);
 
   function buildRowActions(user: ManagedUser): RowAction[] {
     const isActive = user.status === "active";
@@ -153,8 +154,6 @@ export function UsersContent({ initialUsers, loadError = null }: UsersContentPro
         </Button>
       </div>
 
-      {loadError ? <InlineAlert>{loadError}</InlineAlert> : null}
-
       <Table
         data={users}
         columns={columns}
@@ -171,7 +170,6 @@ export function UsersContent({ initialUsers, loadError = null }: UsersContentPro
           key={editingUser?.id ?? "new"}
           editingUser={editingUser}
           submitting={saving}
-          errorMessage={formError}
           onSubmit={handleSubmit}
           onCancelEdit={closeForm}
         />

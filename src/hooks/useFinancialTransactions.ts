@@ -7,14 +7,13 @@ import {
 } from "@/app/(app)/finance/actions";
 import type { FinancialTransaction } from "@/components/finance/financial-transactions/financial-transaction.types";
 import type { FinanceFilter } from "@/components/finance/finance.types";
+import { toastError, toastSuccess } from "@/lib/toast-utils";
 
 export function useFinancialTransactions(
   filter: FinanceFilter,
   initialTransactions: FinancialTransaction[] = [],
 ) {
   const [transactions, setTransactions] = useState(initialTransactions);
-  const [fetchError, setFetchError] = useState<string | null>(null);
-  const [actionError, setActionError] = useState<string | null>(null);
   const [editingTransaction, setEditingTransaction] = useState<FinancialTransaction | null>(null);
   const [removingTransaction, setRemovingTransaction] = useState<FinancialTransaction | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -22,12 +21,10 @@ export function useFinancialTransactions(
   const reload = useCallback(
     (nextFilter: FinanceFilter = filter) => {
       startTransition(async () => {
-        setFetchError(null);
-
         const result = await getFinancialTransactionsAction(nextFilter);
 
         if (!result.success) {
-          setFetchError(result.error);
+          toastError(result.error);
           return;
         }
 
@@ -47,13 +44,11 @@ export function useFinancialTransactions(
 
   function openEditForm(transaction: FinancialTransaction) {
     if (transaction.is_membership) return;
-    setActionError(null);
     setEditingTransaction(transaction);
   }
 
   function closeEditForm() {
     setEditingTransaction(null);
-    setActionError(null);
   }
 
   function handleEditSuccess() {
@@ -63,7 +58,6 @@ export function useFinancialTransactions(
 
   function requestRemove(transaction: FinancialTransaction) {
     if (transaction.is_membership) return;
-    setActionError(null);
     setRemovingTransaction(transaction);
   }
 
@@ -73,26 +67,23 @@ export function useFinancialTransactions(
 
   function removeTransaction(transactionId: string) {
     startTransition(async () => {
-      setActionError(null);
-
       const result = await deleteTransactionAction(transactionId);
 
       if (!result.success) {
-        setActionError(result.error);
+        toastError(result.error);
         return;
       }
 
       setTransactions((current) => current.filter((item) => item.id !== transactionId));
       if (editingTransaction?.id === transactionId) closeEditForm();
       setRemovingTransaction(null);
+      toastSuccess("Transação removida com sucesso.");
       reload(filter);
     });
   }
 
   return {
     transactions,
-    fetchError,
-    actionError,
     isPending,
     editingTransaction,
     removingTransaction,

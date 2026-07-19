@@ -7,6 +7,7 @@ import {
   updateMemberStatusAction,
 } from "@/app/(app)/members/actions";
 import type { ManagedMember } from "@/components/members/members.types";
+import { toastError, toastSuccess } from "@/lib/toast-utils";
 
 export function useMembersManagement(initialMembers: ManagedMember[]) {
   const router = useRouter();
@@ -15,25 +16,21 @@ export function useMembersManagement(initialMembers: ManagedMember[]) {
   const [editingMember, setEditingMember] = useState<ManagedMember | null>(null);
   const [removingMember, setRemovingMember] = useState<ManagedMember | null>(null);
   const [payingMember, setPayingMember] = useState<ManagedMember | null>(null);
-  const [actionError, setActionError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   function openCreateForm() {
     setEditingMember(null);
-    setActionError(null);
     setFormOpen(true);
   }
 
   function openEditForm(member: ManagedMember) {
     setEditingMember(member);
-    setActionError(null);
     setFormOpen(true);
   }
 
   function closeForm() {
     setFormOpen(false);
     setEditingMember(null);
-    setActionError(null);
   }
 
   function handleFormSuccess(member: ManagedMember) {
@@ -51,17 +48,18 @@ export function useMembersManagement(initialMembers: ManagedMember[]) {
     const nextActive = member.status !== "active";
 
     startTransition(async () => {
-      setActionError(null);
-
       const result = await updateMemberStatusAction(member.id, nextActive);
 
       if (!result.success) {
-        setActionError(result.error);
+        toastError(result.error);
         return;
       }
 
       setMembers((current) =>
         current.map((item) => (item.id === member.id ? result.data : item)),
+      );
+      toastSuccess(
+        nextActive ? "Aluno reativado com sucesso." : "Aluno desativado com sucesso.",
       );
       router.refresh();
     });
@@ -69,18 +67,17 @@ export function useMembersManagement(initialMembers: ManagedMember[]) {
 
   function removeMember(memberId: string) {
     startTransition(async () => {
-      setActionError(null);
-
       const result = await deleteMemberAction(memberId);
 
       if (!result.success) {
-        setActionError(result.error);
+        toastError(result.error);
         return;
       }
 
       setMembers((current) => current.filter((member) => member.id !== memberId));
       if (editingMember?.id === memberId) closeForm();
       setRemovingMember(null);
+      toastSuccess("Aluno removido com sucesso.");
       router.refresh();
     });
   }
@@ -99,7 +96,6 @@ export function useMembersManagement(initialMembers: ManagedMember[]) {
     editingMember,
     removingMember,
     payingMember,
-    actionError,
     isPending,
     openCreateForm,
     openEditForm,

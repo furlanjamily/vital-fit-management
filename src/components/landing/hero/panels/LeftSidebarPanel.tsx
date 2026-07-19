@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { NavUserMenu } from "@/components/app/NavUserMenu";
+import { BrandWordmark } from "@/components/brand/BrandWordmark";
 import { ClassesSidebarSection } from "@/components/classes/ClassesSidebarSection";
 import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
 import {
@@ -10,7 +11,7 @@ import {
   isNavActive,
   mainNavItems,
 } from "@/config/app-nav.config";
-import { glassText, glassTextStyles } from "@/config/glass-typography";
+import { glassText } from "@/config/glass-typography";
 import { useSessionUserRole } from "@/hooks/useSessionUserRole";
 import { cn } from "@/lib/cn";
 
@@ -35,10 +36,8 @@ export function LeftSidebarPanel() {
             className="h-11 w-auto shrink-0 object-contain"
           />
           <div>
-            <p className={cn(glassTextStyles.panelTitle, "text-sm tracking-[-0.03em]")}>
-              VITAL FIT
-            </p>
-            <p className={cn(glassText.muted, "text-[10px]")}>Workspace</p>
+            <BrandWordmark className="text-[1.35rem]" />
+            <p className={cn(glassText.muted, "mt-0.5 text-[10px]")}>Workspace</p>
           </div>
         </Link>
 

@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/common/button/Button";
 import { AvatarUploadTrigger } from "@/components/common/form";
-import { InlineAlert } from "@/components/common/feedback/InlineAlert";
 import { ProfileGeneralForm } from "@/components/profile/ProfileGeneralForm";
 import { ProfilePasswordForm } from "@/components/profile/ProfilePasswordForm";
 import { ProfileSkeleton } from "@/components/profile/ProfileSkeleton";
@@ -11,6 +10,7 @@ import { mapUserToProfileSession } from "@/components/profile/profile.helpers";
 import type { ProfileSession } from "@/components/profile/profile.types";
 import { UserAvatar } from "@/components/users/UserAvatar";
 import { glassText, glassTextStyles } from "@/config/glass-typography";
+import { useToastOnError } from "@/hooks/useToastOnError";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/cn";
 
@@ -23,6 +23,8 @@ export function ProfileContent() {
   const [isEditing, setIsEditing] = useState(false);
   const [draftAvatarUrl, setDraftAvatarUrl] = useState<string | null>(null);
   const isEditingRef = useRef(isEditing);
+
+  useToastOnError(loadError);
 
   useEffect(() => {
     isEditingRef.current = isEditing;
@@ -105,7 +107,9 @@ export function ProfileContent() {
   if (loadError || !session) {
     return (
       <div className="py-6">
-        <InlineAlert>{loadError ?? "Sessão não encontrada."}</InlineAlert>
+        <p className={cn("text-sm", glassText.muted)}>
+          {loadError ?? "Sessão não encontrada."}
+        </p>
       </div>
     );
   }

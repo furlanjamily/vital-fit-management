@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { LoginForm } from "@/components/auth/LoginForm";
+import { BrandWordmark } from "@/components/brand/BrandWordmark";
 import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
 import { glassText, glassTextStyles } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
@@ -36,12 +37,10 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/vital-fit-logo.png"
-              alt="Vital Fit"
+              alt=""
               className="h-14 w-auto object-contain sm:h-16"
             />
-            <p className={cn(glassTextStyles.tableHeader, "text-[10px] tracking-[0.28em]")}>
-              VitalFit Management
-            </p>
+            <BrandWordmark className="text-3xl sm:text-4xl" />
           </div>
           <h1 className={cn(glassText.primary, "text-2xl font-semibold tracking-[-0.03em]")}>
             Acesso Administrativo

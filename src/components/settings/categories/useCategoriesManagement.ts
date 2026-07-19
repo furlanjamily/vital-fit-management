@@ -8,6 +8,7 @@ import {
   updateFinancialCategoryAction,
 } from "@/app/(app)/settings/categories/actions";
 import type { FinancialCategory } from "@/components/finance/finance-category.types";
+import { toastError, toastSuccess } from "@/lib/toast-utils";
 
 export function useCategoriesManagement(initialCategories: FinancialCategory[]) {
   const router = useRouter();
@@ -15,25 +16,21 @@ export function useCategoriesManagement(initialCategories: FinancialCategory[]) 
   const [formOpen, setFormOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<FinancialCategory | null>(null);
   const [removingCategory, setRemovingCategory] = useState<FinancialCategory | null>(null);
-  const [actionError, setActionError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   function openCreateForm() {
     setEditingCategory(null);
-    setActionError(null);
     setFormOpen(true);
   }
 
   function openEditForm(category: FinancialCategory) {
     setEditingCategory(category);
-    setActionError(null);
     setFormOpen(true);
   }
 
   function closeForm() {
     setFormOpen(false);
     setEditingCategory(null);
-    setActionError(null);
   }
 
   function handleFormSuccess(category: FinancialCategory) {
@@ -49,18 +46,17 @@ export function useCategoriesManagement(initialCategories: FinancialCategory[]) 
 
   function removeCategory(categoryId: string) {
     startTransition(async () => {
-      setActionError(null);
-
       const result = await deleteFinancialCategoryAction(categoryId);
 
       if (!result.success) {
-        setActionError(result.error);
+        toastError(result.error);
         return;
       }
 
       setCategories((current) => current.filter((category) => category.id !== categoryId));
       if (editingCategory?.id === categoryId) closeForm();
       setRemovingCategory(null);
+      toastSuccess("Categoria removida com sucesso.");
       router.refresh();
     });
   }
@@ -70,7 +66,6 @@ export function useCategoriesManagement(initialCategories: FinancialCategory[]) 
     formOpen,
     editingCategory,
     removingCategory,
-    actionError,
     isPending,
     openCreateForm,
     openEditForm,

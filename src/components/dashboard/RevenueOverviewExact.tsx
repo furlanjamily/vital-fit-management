@@ -5,10 +5,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
 import { GlassSelect } from "@/components/common/select/GlassSelect";
 import { RevenueOverviewExactSkeleton } from "@/components/dashboard/RevenueOverviewExactSkeleton";
-import { InlineAlert } from "@/components/common/feedback/InlineAlert";
 import { formatBrlAmount, formatRevenueTooltipLabel, resolveRevenueChartLayout } from "@/components/finance/finance.helpers";
 import { brand } from "@/config/brand-colors";
 import { glassText, glassTextStyles } from "@/config/glass-typography";
+import { useToastOnError } from "@/hooks/useToastOnError";
 import {
   computeRevenueVariation,
   REVENUE_CHART_FILTER_LABELS,
@@ -228,6 +228,8 @@ export function RevenueOverviewExact({
 
   const { bars, totalRevenue, isLoading, error } = useRevenueChartData(filter);
 
+  useToastOnError(error);
+
   useEffect(() => {
     const element = chartAreaRef.current;
     if (!element) return;
@@ -375,12 +377,6 @@ export function RevenueOverviewExact({
             wrapperClassName="flex items-center justify-center"
       />
       </div>
-
-      {error ? (
-        <div className="mt-3">
-          <InlineAlert>{error}</InlineAlert>
-        </div>
-      ) : null}
 
       <div className="relative mt-4 flex flex-col gap-3 sm:mt-5">
         <div className="z-10 flex shrink-0 flex-col items-start self-start">

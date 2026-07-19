@@ -1,18 +1,17 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { loginSchema, type LoginFormValues } from "@/components/auth/login.schema";
 import { createClient } from "@/lib/supabase/client";
+import { toastError } from "@/lib/toast-utils";
 
 const INVALID_CREDENTIALS_MESSAGE =
   "Credenciais inválidas. Verifique seu e-mail e senha.";
 
 export function useLoginForm(redirectPath: string) {
   const router = useRouter();
-  const [authError, setAuthError] = useState<string | null>(null);
 
   const {
     register,
@@ -24,13 +23,11 @@ export function useLoginForm(redirectPath: string) {
   });
 
   async function signIn(values: LoginFormValues) {
-    setAuthError(null);
-
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithPassword(values);
 
     if (error) {
-      setAuthError(INVALID_CREDENTIALS_MESSAGE);
+      toastError(INVALID_CREDENTIALS_MESSAGE);
       return;
     }
 
@@ -42,7 +39,6 @@ export function useLoginForm(redirectPath: string) {
     register,
     errors,
     isSubmitting,
-    authError,
     onSubmit: handleSubmit(signIn),
   };
 }

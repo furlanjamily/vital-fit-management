@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowDownCircle, ArrowUpCircle, CreditCard } from "lucide-react";
 import { Controller, useForm } from "react-hook-form";
@@ -8,7 +8,6 @@ import {
   createTransactionAction,
   updateTransactionAction,
 } from "@/app/(app)/finance/actions";
-import { InlineAlert } from "@/components/common/feedback/InlineAlert";
 import { FormField, GlassButton, GlassInput, GlassSelect } from "@/components/common/form";
 import { ResponsiveModal } from "@/components/common/modal/ResponsiveModal";
 import type { FinancialTransaction } from "@/components/finance/financial-transactions/financial-transaction.types";
@@ -29,6 +28,7 @@ import {
   type TransactionType,
 } from "@/components/finance/transaction.types";
 import { cn } from "@/lib/cn";
+import { toastError, toastSuccess } from "@/lib/toast-utils";
 
 function buildDefaultValues(): TransactionFormValues {
   return {
@@ -73,8 +73,6 @@ export function TransactionForm({
   onCancel,
 }: TransactionFormProps) {
   const isEditing = Boolean(editingTransaction);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const {
     register,
@@ -102,22 +100,19 @@ export function TransactionForm({
   const hasType = transactionType === "RECEITA" || transactionType === "DESPESA";
 
   async function onSubmit(values: TransactionFormSchemaOutput) {
-    setSubmitError(null);
-    setSuccessMessage(null);
-
     const result = isEditing
       ? await updateTransactionAction(editingTransaction!.id, values)
       : await createTransactionAction(values);
 
     if (!result.success) {
-      setSubmitError(result.error);
+      toastError(result.error);
       return;
     }
 
-    setSuccessMessage(
+    toastSuccess(
       isEditing ? "Transação atualizada com sucesso!" : "Transação registrada com sucesso!",
     );
-    window.setTimeout(onSuccess, 900);
+    onSuccess();
   }
 
   return (
@@ -150,135 +145,116 @@ export function TransactionForm({
         </div>
       ) : null}
 
-      {submitError ? <InlineAlert className="mb-4 text-xs">{submitError}</InlineAlert> : null}
+      <form className="space-y-4" onSubmit={handleSubmit(onSubmit)} noValidate>
+        <FormField label="Descrição" htmlFor="description" error={errors.description?.message}>
+          <GlassInput
+            id="description"
+            placeholder={
+              hasType
+                ? DESCRIPTION_PLACEHOLDER[transactionType]
+                : "Ex.: Compra de equipamentos, venda de suplementos…"
+            }
+            invalid={Boolean(errors.description)}
+            {...register("description")}
+          />
+        </FormField>
 
-      {successMessage ? (
-        <p
-          role="status"
-          className="mb-4 rounded-xl border border-emerald-400/25 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-300"
-        >
-          {successMessage}
-        </p>
-      ) : null}
-
-      {!successMessage ? (
-        <form className="space-y-4" onSubmit={handleSubmit(onSubmit)} noValidate>
-          <FormField label="Descrição" htmlFor="description" error={errors.description?.message}>
-            <GlassInput
-              id="description"
-              placeholder={
-                hasType
-                  ? DESCRIPTION_PLACEHOLDER[transactionType]
-                  : "Ex.: Compra de equipamentos, venda de suplementos…"
-              }
-              invalid={Boolean(errors.description)}
-              {...register("description")}
-            />
-          </FormField>
-
-          <FormField label="Valor (R$)" htmlFor="amount" error={errors.amount?.message}>
-            <Controller
-              name="amount"
-              control={control}
-              render={({ field }) => (
-                <GlassInput
-                  id="amount"
-                  inputMode="decimal"
-                  placeholder="0,00"
-                  invalid={Boolean(errors.amount)}
-                  value={field.value}
-                  onChange={(event) => field.onChange(formatBrlInput(event.target.value))}
-                />
-              )}
-            />
-          </FormField>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <FormField label="Tipo" htmlFor="type" error={errors.type?.message}>
-              <Controller
-                name="type"
-                control={control}
-                render={({ field }) => (
-                  <GlassSelect
-                    id="type"
-                    options={transactionTypeOptions}
-                    placeholder="Selecione o tipo"
-                    invalid={Boolean(errors.type)}
-                    value={field.value}
-                    onChange={(event) => {
-                      const nextType = event.target.value as TransactionType | "";
-                      field.onChange(nextType);
-                      setValue("category_id", "");
-                    }}
-                  />
-                )}
+        <FormField label="Valor (R$)" htmlFor="amount" error={errors.amount?.message}>
+          <Controller
+            name="amount"
+            control={control}
+            render={({ field }) => (
+              <GlassInput
+                id="amount"
+                inputMode="decimal"
+                placeholder="0,00"
+                invalid={Boolean(errors.amount)}
+                value={field.value}
+                onChange={(event) => field.onChange(formatBrlInput(event.target.value))}
               />
-            </FormField>
+            )}
+          />
+        </FormField>
 
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormField label="Tipo" htmlFor="type" error={errors.type?.message}>
             <Controller
-              name="category_id"
-              control={control}
-              render={({ field }) => (
-                <TransactionCategorySelect
-                  type={transactionType}
-                  value={field.value}
-                  onChange={field.onChange}
-                  error={errors.category_id?.message}
-                  invalid={Boolean(errors.category_id)}
-                />
-              )}
-            />
-          </div>
-
-          <FormField
-            label="Forma de pagamento"
-            htmlFor="payment_method"
-            error={errors.payment_method?.message}
-          >
-            <Controller
-              name="payment_method"
+              name="type"
               control={control}
               render={({ field }) => (
                 <GlassSelect
-                  id="payment_method"
-                  leftIcon={CreditCard}
-                  options={transactionPaymentMethodOptions}
-                  invalid={Boolean(errors.payment_method)}
+                  id="type"
+                  options={transactionTypeOptions}
+                  placeholder="Selecione o tipo"
+                  invalid={Boolean(errors.type)}
                   value={field.value}
-                  onChange={(event) => field.onChange(event.target.value)}
+                  onChange={(event) => {
+                    const nextType = event.target.value as TransactionType | "";
+                    field.onChange(nextType);
+                    setValue("category_id", "");
+                  }}
                 />
               )}
             />
           </FormField>
 
-          <div className="flex gap-3 pt-2 justify-end">
-            <GlassButton variant="subtle" size="sm" type="button" onClick={onCancel} disabled={isSubmitting}>
-              Cancelar
-            </GlassButton>
+          <Controller
+            name="category_id"
+            control={control}
+            render={({ field }) => (
+              <TransactionCategorySelect
+                type={transactionType}
+                value={field.value}
+                onChange={field.onChange}
+                error={errors.category_id?.message}
+                invalid={Boolean(errors.category_id)}
+              />
+            )}
+          />
+        </div>
 
-            <GlassButton
-              type="submit"
-              size="md"
-              variant="subtle"
-              disabled={isSubmitting}
-              loading={isSubmitting}
-              className={cn(
-                isReceita
-                  ? "border-emerald-400/20 bg-emerald-500/20 text-emerald-100 hover:bg-emerald-500/30"
-                  : "border-red-400/20 bg-red-500 text-red-100 hover:bg-red-500/25",
-              )}
-            >
-              {isEditing ? "Salvar alterações" : "Registrar transação"}
-            </GlassButton>
-          </div>
-        </form>
-      ) : (
-        <div className="flex justify-end">
-          <GlassButton variant="subtle" size="sm" onClick={onCancel} disabled={isSubmitting}>
-            Fechar
+        <FormField
+          label="Forma de pagamento"
+          htmlFor="payment_method"
+          error={errors.payment_method?.message}
+        >
+          <Controller
+            name="payment_method"
+            control={control}
+            render={({ field }) => (
+              <GlassSelect
+                id="payment_method"
+                leftIcon={CreditCard}
+                options={transactionPaymentMethodOptions}
+                invalid={Boolean(errors.payment_method)}
+                value={field.value}
+                onChange={(event) => field.onChange(event.target.value)}
+              />
+            )}
+          />
+        </FormField>
+
+        <div className="flex gap-3 pt-2 justify-end">
+          <GlassButton variant="subtle" size="sm" type="button" onClick={onCancel} disabled={isSubmitting}>
+            Cancelar
+          </GlassButton>
+
+          <GlassButton
+            type="submit"
+            size="md"
+            variant="subtle"
+            disabled={isSubmitting}
+            loading={isSubmitting}
+            className={cn(
+              isReceita
+                ? "border-emerald-400/20 bg-emerald-500/20 text-emerald-100 hover:bg-emerald-500/30"
+                : "border-red-400/20 bg-red-500 text-red-100 hover:bg-red-500/25",
+            )}
+          >
+            {isEditing ? "Salvar alterações" : "Registrar transação"}
           </GlassButton>
         </div>
-      )}
+      </form>
     </ResponsiveModal>
   );
 }

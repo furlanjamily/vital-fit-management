@@ -177,9 +177,22 @@ export function GlassSelect({
           variant="subtle"
           intensity="medium"
           elevation="popover"
-          className="max-h-56 overflow-y-auto rounded-2xl p-2"
+          className="rounded-2xl p-0"
         >
-          <div className="flex flex-col gap-1.5">
+          {/*
+            1) Scroll num filho — GlassPanel usa overflow-hidden + wrapper h-full,
+               então overflow-y-auto no próprio painel nunca ativa.
+            2) Wheel manual — RemoveScroll do Radix Dialog faz preventDefault em
+               portais no `body` (fora do lock); aplicamos o delta nós mesmos.
+          */}
+          <div
+            className="flex max-h-56 flex-col gap-1.5 overflow-y-auto overscroll-contain p-2"
+            onWheel={(event) => {
+              const el = event.currentTarget;
+              if (el.scrollHeight <= el.clientHeight) return;
+              el.scrollTop += event.deltaY;
+            }}
+          >
             {placeholder && value === "" ? (
               <button
                 type="button"

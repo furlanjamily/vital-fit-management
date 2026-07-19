@@ -1,14 +1,13 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import { CheckCircle2, CreditCard, Loader2 } from "lucide-react";
+import { CreditCard, Loader2 } from "lucide-react";
 import {
   confirmMemberPaymentAction,
   getMemberPaymentPreviewAction,
   type MemberPaymentPreview,
 } from "@/app/(app)/members/actions";
 import { Button } from "@/components/common/button/Button";
-import { InlineAlert } from "@/components/common/feedback/InlineAlert";
 import { GlassButton, GlassSelect } from "@/components/common/form";
 import { ResponsiveModal } from "@/components/common/modal/ResponsiveModal";
 import {
@@ -25,6 +24,7 @@ import { planLabels, type ManagedMember } from "@/components/members/members.typ
 import { resolvePlanPrice } from "@/config/plan-prices";
 import { glassText } from "@/config/glass-typography";
 import { cn } from "@/lib/cn";
+import { toastError, toastSuccess } from "@/lib/toast-utils";
 
 type MemberPaymentFormProps = {
   member: ManagedMember;
@@ -53,8 +53,6 @@ export function MemberPaymentForm({ member, onSuccess, onCancel }: MemberPayment
   );
   const [loadError, setLoadError] = useState<string | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("PIX");
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isLoadingPreview, startPreviewTransition] = useTransition();
   const [isPending, startTransition] = useTransition();
 
@@ -66,6 +64,7 @@ export function MemberPaymentForm({ member, onSuccess, onCancel }: MemberPayment
 
       if (!result.success) {
         setLoadError(result.error);
+        toastError(result.error);
         setPreview(buildPreviewFromMember(member));
         return;
       }
@@ -79,19 +78,16 @@ export function MemberPaymentForm({ member, onSuccess, onCancel }: MemberPayment
   function handleConfirm() {
     if (paymentBlocked || isLoadingPreview) return;
 
-    setErrorMessage(null);
-    setSuccessMessage(null);
-
     startTransition(async () => {
       const result = await confirmMemberPaymentAction(member.id, paymentMethod);
 
       if (!result.success) {
-        setErrorMessage(result.error);
+        toastError(result.error);
         return;
       }
 
-      setSuccessMessage("Pagamento confirmado! A receita foi registrada automaticamente.");
-      window.setTimeout(() => onSuccess(result.data), 1200);
+      toastSuccess("Pagamento confirmado! A receita foi registrada automaticamente.");
+      onSuccess(result.data);
     });
   }
 
@@ -153,19 +149,7 @@ export function MemberPaymentForm({ member, onSuccess, onCancel }: MemberPayment
         </p>
       ) : null}
 
-      {errorMessage ? <InlineAlert className="mb-4 text-xs">{errorMessage}</InlineAlert> : null}
-
-      {successMessage ? (
-        <p
-          role="status"
-          className="mb-4 flex items-center gap-2 rounded-xl border border-emerald-400/25 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-300"
-        >
-          <CheckCircle2 className="size-4 shrink-0" aria-hidden="true" />
-          {successMessage}
-        </p>
-      ) : null}
-
-      {!paymentBlocked && !successMessage ? (
+      {!paymentBlocked ? (
         <div className="mb-6">
           <label className={cn("mb-2 block text-xs font-medium", glassText.secondary)}>
             Forma de pagamento
@@ -182,21 +166,19 @@ export function MemberPaymentForm({ member, onSuccess, onCancel }: MemberPayment
 
       <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
         <GlassButton variant="subtle" size="sm" onClick={onCancel} disabled={isPending}>
-          {successMessage ? "Fechar" : "Cancelar"}
+          Cancelar
         </GlassButton>
 
-        {!successMessage ? (
-          <Button
-            type="button"
-            variant="primary"
-            size="md"
-            disabled={isPending || isLoadingPreview || paymentBlocked}
-            isLoading={isPending}
-            onClick={handleConfirm}
-          >
-            {paymentBlocked ? "Mensalidade em dia" : "Confirmar Pagamento"}
-          </Button>
-        ) : null}
+        <Button
+          type="button"
+          variant="primary"
+          size="md"
+          disabled={isPending || isLoadingPreview || paymentBlocked}
+          isLoading={isPending}
+          onClick={handleConfirm}
+        >
+          {paymentBlocked ? "Mensalidade em dia" : "Confirmar Pagamento"}
+        </Button>
       </div>
     </ResponsiveModal>
   );
