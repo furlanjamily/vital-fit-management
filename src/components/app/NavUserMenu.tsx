@@ -9,6 +9,7 @@ import { GlassPanel } from "@/components/common/glass-panel/GlassPanel";
 import { UserAvatar } from "@/components/users/UserAvatar";
 import { profileHref } from "@/config/app-nav.config";
 import { useHydrated } from "@/hooks/useHydrated";
+import { DEMO_LOGOUT_DISABLED } from "@/config/demo-auth";
 import {
   resolveAvatarUrl,
   resolveDisplayName,
@@ -38,6 +39,7 @@ type MenuPanelProps = {
   sessionUser: SessionUser;
   compact: boolean;
   loggingOut: boolean;
+  logoutDisabled: boolean;
   onClose: () => void;
   onLogout: () => void;
   className?: string;
@@ -47,6 +49,7 @@ function UserMenuPanel({
   sessionUser,
   compact,
   loggingOut,
+  logoutDisabled,
   onClose,
   onLogout,
   className,
@@ -94,9 +97,10 @@ function UserMenuPanel({
         fullWidth
         size="sm"
         onClick={onLogout}
-        disabled={loggingOut}
+        disabled={logoutDisabled || loggingOut}
         isLoading={loggingOut}
-        className="justify-start text-left text-red-500 hover:text-red-600"
+        title={logoutDisabled ? "Saída desabilitada no modo demonstração" : undefined}
+        className="justify-start text-left text-red-500 hover:text-red-600 disabled:opacity-40"
         leftIcon={<LogOut className="size-3.5" />}
       >
         Sair
@@ -202,6 +206,8 @@ export function NavUserMenu({ compact = false }: NavUserMenuProps) {
   }, [open]);
 
   async function handleLogout() {
+    if (DEMO_LOGOUT_DISABLED) return;
+
     setLoggingOut(true);
     setOpen(false);
 
@@ -232,6 +238,7 @@ export function NavUserMenu({ compact = false }: NavUserMenuProps) {
       sessionUser={sessionUser}
       compact={compact}
       loggingOut={loggingOut}
+      logoutDisabled={DEMO_LOGOUT_DISABLED}
       onClose={() => setOpen(false)}
       onLogout={handleLogout}
       className={
